@@ -1,0 +1,66 @@
+.hero-section {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 400px;
+}
+
+.bg-gradient {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.bg-gradient-purple {
+  background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+  width: 80px;
+  height: 80px;
+}
+
+.specialty-card {
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.specialty-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15) !important;
+}
+
+.hospital-card {
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.hospital-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 1rem 2rem rgba(0,0,0,0.15) !important;
+}
+
+.doctor-card {
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.doctor-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 1rem 2rem rgba(0,0,0,0.2) !important;
+}
+
+.doctor-avatar {
+  transition: transform 0.3s ease;
+}
+
+.doctor-card:hover .doctor-avatar {
+  transform: scale(1.1);
+}
+
+.card-header {
+  border-bottom: none;
+}
+
+@media (max-width: 768px) {
+  .display-4 {
+    font-size: 2rem;
+  }
+  
+  .lead {
+    font-size: 1rem;
+  }
+}

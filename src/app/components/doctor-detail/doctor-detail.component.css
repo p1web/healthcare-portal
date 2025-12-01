@@ -1,0 +1,70 @@
+.bg-gradient {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+}
+
+.doctor-avatar-large {
+  width: 120px;
+  height: 120px;
+  box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
+  transition: transform 0.3s ease;
+}
+
+.doctor-avatar-large:hover {
+  transform: scale(1.05);
+}
+
+.card {
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
+}
+
+.btn-primary {
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
+}
+
+.btn-primary:disabled {
+  cursor: not-allowed;
+}
+
+.alert {
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .doctor-avatar-large {
+    width: 100px;
+    height: 100px;
+  }
+}

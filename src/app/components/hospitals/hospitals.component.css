@@ -1,0 +1,362 @@
+/* ====================
+   components/hospitals/hospitals.component.css
+   ==================== */
+
+/* Hospital Cards */
+.hospital-card {
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.hospital-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Hospital Images Placeholder */
+.hospital-image-placeholder {
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.hospital-image-placeholder-small {
+  height: 120px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 8px;
+}
+
+.hospital-image-placeholder-large {
+  height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 8px;
+}
+
+/* Rating Badge */
+.rating-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  background-color: #fff3cd;
+  border-radius: 20px;
+  font-size: 0.9rem;
+}
+
+.rating-badge-large {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background-color: #fff3cd;
+  border-radius: 25px;
+  font-size: 1.1rem;
+}
+
+/* Specialty Badges */
+.badge {
+  font-weight: 500;
+}
+
+/* Filter Buttons */
+.btn-sm {
+  transition: all 0.3s ease;
+}
+
+.btn-sm:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Search Input */
+.input-group-text {
+  border-right: none;
+}
+
+.input-group .form-control {
+  border-left: none;
+}
+
+.input-group .form-control:focus {
+  border-left: none;
+  box-shadow: none;
+}
+
+.input-group-text:focus-within ~ .form-control {
+  border-left: 1px solid #86b7fe;
+}
+
+/* Card Body Spacing */
+.card-body p:last-child {
+  margin-bottom: 0;
+}
+
+/* Modal Enhancements */
+.modal.show {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-backdrop.show {
+  opacity: 0.5;
+}
+
+.modal-content {
+  border: none;
+  box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.3);
+}
+
+/* Emergency Badge Animation */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.badge.bg-danger {
+  animation: pulse 2s infinite;
+}
+
+/* Gradient Background */
+.bg-gradient-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+}
+
+/* Facility Cards */
+.card.bg-light {
+  transition: all 0.3s ease;
+}
+
+.card.bg-light:hover {
+  background-color: #fff !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Info Stats Cards */
+.card.bg-primary.bg-opacity-10,
+.card.bg-success.bg-opacity-10,
+.card.bg-warning.bg-opacity-10,
+.card.bg-danger.bg-opacity-10 {
+  transition: all 0.3s ease;
+}
+
+.card.bg-primary.bg-opacity-10:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(102, 126, 234, 0.2);
+}
+
+.card.bg-success.bg-opacity-10:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(16, 185, 129, 0.2);
+}
+
+.card.bg-warning.bg-opacity-10:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(245, 158, 11, 0.2);
+}
+
+.card.bg-danger.bg-opacity-10:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(239, 68, 68, 0.2);
+}
+
+/* List View Responsive */
+@media (max-width: 768px) {
+  .hospital-image-placeholder {
+    height: 150px;
+  }
+
+  .hospital-image-placeholder-small {
+    height: 100px;
+  }
+
+  .display-5 {
+    font-size: 2rem;
+  }
+}
+
+/* Button Hover Effects */
+.btn {
+  transition: all 0.3s ease;
+}
+
+.btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+/* Smooth Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hospital-card {
+  animation: fadeIn 0.5s ease-in;
+}
+
+/* Loading State */
+.spinner-border {
+  width: 3rem;
+  height: 3rem;
+}
+
+/* Scrollbar Styling for Modal */
+.modal-dialog-scrollable .modal-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modal-dialog-scrollable .modal-body::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.modal-dialog-scrollable .modal-body::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 10px;
+}
+
+.modal-dialog-scrollable .modal-body::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Badge Positioning */
+.position-absolute.badge {
+  z-index: 10;
+}
+
+/* Icon Colors */
+.bi-hospital {
+  color: var(--bs-primary);
+}
+
+.bi-star-fill {
+  color: var(--bs-warning);
+}
+
+.bi-check-circle-fill {
+  color: var(--bs-success);
+}
+
+/* Card Hover Shadows */
+.shadow-sm {
+  transition: box-shadow 0.3s ease;
+}
+
+.hospital-card:hover .shadow-sm {
+  box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175) !important;
+}
+
+/* Filter Button Active State */
+.btn-primary.active,
+.btn-outline-primary.active,
+.btn-warning.active,
+.btn-outline-warning.active {
+  box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+/* Responsive Grid Gap */
+@media (max-width: 576px) {
+  .g-4 {
+    --bs-gutter-y: 1rem;
+  }
+}
+
+/* Accreditation Badges */
+.badge.bg-warning.bg-opacity-10 {
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+/* Contact Info Icons */
+.card-body .bi {
+  font-size: 1.1em;
+}
+
+/* View Mode Toggle Button */
+.btn-outline-primary i {
+  font-size: 1.2rem;
+}
+
+/* No Results Section */
+.text-center .bi-search {
+  color: #cbd5e1;
+}
+
+/* Specialty Filter Scrollable */
+.d-flex.flex-wrap.gap-2 {
+  max-height: none;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+/* Badge Group Spacing */
+.d-flex.flex-wrap.gap-1 {
+  gap: 0.25rem !important;
+}
+
+.d-flex.flex-wrap.gap-2 {
+  gap: 0.5rem !important;
+}
+
+.d-flex.flex-wrap.gap-3 {
+  gap: 1rem !important;
+}
+
+/* Form Select Focus */
+.form-select:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.15);
+}
+
+/* Stat Cards Animation */
+.card.bg-primary.bg-opacity-10 .bi,
+.card.bg-success.bg-opacity-10 .bi,
+.card.bg-warning.bg-opacity-10 .bi,
+.card.bg-danger.bg-opacity-10 .bi {
+  transition: transform 0.3s ease;
+}
+
+.card.bg-primary.bg-opacity-10:hover .bi,
+.card.bg-success.bg-opacity-10:hover .bi,
+.card.bg-warning.bg-opacity-10:hover .bi,
+.card.bg-danger.bg-opacity-10:hover .bi {
+  transform: scale(1.2);
+}
+
+/* Modal Header Gradient */
+.modal-header.bg-primary.bg-gradient {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+}
+
+/* Print Styles */
+@media print {
+  .btn,
+  .modal,
+  .modal-backdrop,
+  .card-body .btn {
+    display: none !important;
+  }
+
+  .hospital-card {
+    page-break-inside: avoid;
+  }
+}

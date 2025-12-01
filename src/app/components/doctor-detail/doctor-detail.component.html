@@ -1,0 +1,222 @@
+<div class="container my-5">
+  
+  <a routerLink="/" class="btn btn-link text-decoration-none mb-4">
+    <i class="bi bi-arrow-left me-2"></i>Back to Home
+  </a>
+
+  <div *ngIf="doctor" class="card shadow-lg border-0">
+    
+    <!-- Doctor Header -->
+    <div class="card-header bg-gradient text-white py-4">
+      <div class="row align-items-center">
+        <div class="col-md-auto text-center text-md-start mb-3 mb-md-0">
+          <div class="doctor-avatar-large rounded-circle bg-white text-primary mx-auto mx-md-0 d-flex align-items-center justify-content-center">
+            <span class="display-4 fw-bold">{{ getDoctorInitial() }}</span>
+          </div>
+        </div>
+        <div class="col-md text-center text-md-start">
+          <h1 class="fw-bold mb-2">{{ doctor.name }}</h1>
+          <h4 class="mb-3">{{ doctor.specialization }}</h4>
+          <div class="d-flex align-items-center justify-content-center justify-content-md-start">
+            <i class="bi bi-star-fill text-warning me-2 fs-5"></i>
+            <span class="fs-5 fw-semibold">{{ doctor.rating }} / 5.0</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Doctor Information & Booking -->
+    <div class="card-body p-4 p-md-5">
+      
+      <!-- Success Alert -->
+      <div *ngIf="bookingSuccess" class="alert alert-success alert-dismissible fade show" role="alert">
+        <div class="d-flex align-items-center">
+          <i class="bi bi-check-circle-fill fs-4 me-3"></i>
+          <div>
+            <h5 class="alert-heading mb-1">Appointment Booked Successfully!</h5>
+            <p class="mb-0 small">We'll contact you shortly to confirm your appointment.</p>
+          </div>
+        </div>
+        <button type="button" class="btn-close" (click)="bookingSuccess = false"></button>
+      </div>
+
+      <div class="row g-4 mb-5">
+        
+        <!-- Doctor Information -->
+        <div class="col-lg-6">
+          <h3 class="fw-bold mb-4">Doctor Information</h3>
+          
+          <div class="card border-0 bg-light mb-3">
+            <div class="card-body">
+              <div class="d-flex align-items-start mb-3">
+                <i class="bi bi-award text-primary fs-4 me-3"></i>
+                <div>
+                  <h6 class="fw-bold mb-1">Experience</h6>
+                  <p class="text-muted mb-0">{{ doctor.experience }}</p>
+                </div>
+              </div>
+
+              <div class="d-flex align-items-start mb-3">
+                <i class="bi bi-hospital text-primary fs-4 me-3"></i>
+                <div>
+                  <h6 class="fw-bold mb-1">Hospital</h6>
+                  <p class="text-muted mb-0">{{ doctor.hospital }}</p>
+                </div>
+              </div>
+
+              <div class="d-flex align-items-start mb-3">
+                <i class="bi bi-clock text-primary fs-4 me-3"></i>
+                <div>
+                  <h6 class="fw-bold mb-1">Available Days</h6>
+                  <p class="text-muted mb-0">{{ doctor.available }}</p>
+                </div>
+              </div>
+
+              <div class="d-flex align-items-start">
+                <i class="bi bi-currency-rupee text-primary fs-4 me-3"></i>
+                <div>
+                  <h6 class="fw-bold mb-1">Consultation Fee</h6>
+                  <p class="text-muted mb-0">{{ doctor.fee }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Special Offer -->
+        <div class="col-lg-6">
+          <div class="card border-success h-100">
+            <div class="card-body">
+              <h3 class="fw-bold text-success mb-4">
+                <i class="bi bi-tags-fill me-2"></i>Special Offer
+              </h3>
+              
+              <div class="d-flex align-items-center mb-4">
+                <div class="bg-success bg-opacity-10 rounded-circle p-4 me-3">
+                  <i class="bi bi-percent text-success fs-2"></i>
+                </div>
+                <div>
+                  <h2 class="text-success fw-bold mb-0">20% OFF</h2>
+                  <p class="text-muted mb-0">on consultation fee</p>
+                </div>
+              </div>
+
+              <div class="alert alert-success mb-3">
+                <p class="mb-2 fw-bold">Use coupon code:</p>
+                <code class="bg-white text-success px-3 py-2 rounded fs-5">HEALTH20</code>
+              </div>
+
+              <p class="text-muted small mb-0">
+                <i class="bi bi-info-circle me-1"></i>
+                * Valid for first-time users only
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Appointment Form -->
+      <div class="border-top pt-5">
+        <h3 class="fw-bold mb-4">
+          <i class="bi bi-calendar-check me-2"></i>Book Appointment
+        </h3>
+        
+        <form [formGroup]="appointmentForm" (ngSubmit)="onSubmit()">
+          <div class="row g-3">
+            
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Full Name *</label>
+              <input
+                type="text"
+                formControlName="patientName"
+                class="form-control form-control-lg"
+                [class.is-invalid]="isFieldInvalid('patientName')"
+                placeholder="Enter your full name"
+              />
+              <div class="invalid-feedback">
+                Name is required
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Email Address *</label>
+              <input
+                type="email"
+                formControlName="email"
+                class="form-control form-control-lg"
+                [class.is-invalid]="isFieldInvalid('email')"
+                placeholder="your.email@example.com"
+              />
+              <div class="invalid-feedback">
+                Valid email is required
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Phone Number *</label>
+              <input
+                type="tel"
+                formControlName="phone"
+                class="form-control form-control-lg"
+                [class.is-invalid]="isFieldInvalid('phone')"
+                placeholder="10-digit phone number"
+              />
+              <div class="invalid-feedback">
+                Valid 10-digit phone number is required
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Preferred Date *</label>
+              <input
+                type="date"
+                formControlName="date"
+                [min]="getMinDate()"
+                class="form-control form-control-lg"
+                [class.is-invalid]="isFieldInvalid('date')"
+              />
+              <div class="invalid-feedback">
+                Date is required
+              </div>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label fw-semibold">Reason for Visit (Optional)</label>
+              <textarea
+                formControlName="reason"
+                class="form-control"
+                rows="4"
+                placeholder="Briefly describe your health concern..."
+              ></textarea>
+            </div>
+
+            <div class="col-12">
+              <button 
+                type="submit"
+                [disabled]="isSubmitting"
+                class="btn btn-primary btn-lg w-100 py-3"
+              >
+                <span *ngIf="!isSubmitting">
+                  <i class="bi bi-check-circle me-2"></i>Confirm Appointment
+                </span>
+                <span *ngIf="isSubmitting">
+                  <span class="spinner-border spinner-border-sm me-2"></span>
+                  Booking...
+                </span>
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="!doctor" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="text-muted mt-3">Loading doctor information...</p>
+  </div>
+
+</div>

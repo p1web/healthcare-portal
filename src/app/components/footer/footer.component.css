@@ -1,0 +1,72 @@
+footer {
+  background: #0e0f11 !important; /* Slightly richer dark tone */
+  color: #fff;
+}
+
+.footer-link {
+  transition: all 0.25s ease;
+  color: #bfc2c7 !important; /* Slightly brighter muted color */
+  font-size: 15px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.footer-link:hover {
+  color: var(--bs-primary) !important;
+  padding-left: 4px;
+}
+
+footer i.bi {
+  transition: transform 0.25s ease, color 0.25s ease;
+  font-weight: bold; /* Icon looks visually thicker */
+}
+
+.footer-link:hover i.bi-chevron-right {
+  transform: translateX(4px);
+  color: var(--bs-primary);
+}
+
+/* Section Titles More Visible */
+footer h5 {
+  color: #ffffff;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+/* Subtle divider enhancement */
+footer hr {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Contact icons stronger */
+footer .bi-telephone-fill,
+footer .bi-envelope-fill,
+footer .bi-geo-alt-fill {
+  font-size: 1.1rem;
+  opacity: 0.9;
+}
+
+footer .text-muted {
+  color: #d4d7db !important; /* High visibility muted text */
+}
+
+footer p,
+footer span.small {
+  color: #d4d7db !important;
+}
+
+footer .bi {
+  opacity: 0.9;
+}
+
+
+/* Responsive spacing improvement */
+@media (max-width: 576px) {
+  footer {
+    text-align: center;
+  }
+  footer .bi {
+    margin-left: 0 !important;
+  }
+}

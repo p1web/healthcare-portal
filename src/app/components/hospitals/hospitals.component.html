@@ -1,0 +1,471 @@
+<div class="container-fluid bg-light py-4 mb-4">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-8">
+        <h1 class="display-5 fw-bold mb-2">
+          <i class="bi bi-hospital text-primary me-3"></i>
+          Find Hospitals
+        </h1>
+        <p class="text-muted mb-0">Discover top-rated hospitals with advanced facilities and expert care</p>
+      </div>
+      <div class="col-md-4 text-md-end mt-3 mt-md-0">
+        <span class="badge bg-primary fs-6 px-3 py-2">
+          {{ filteredHospitals.length }} Hospitals Available
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container my-4">
+  
+  <!-- Search and Filter Section -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card shadow-sm border-0">
+        <div class="card-body p-4">
+          
+          <!-- Search Bar -->
+          <div class="row mb-3">
+            <div class="col-lg-8">
+              <div class="input-group input-group-lg">
+                <span class="input-group-text bg-white">
+                  <i class="bi bi-search"></i>
+                </span>
+                <input
+                  type="text"
+                  class="form-control"
+                  placeholder="Search by hospital name, location, or specialty..."
+                  [(ngModel)]="searchQuery"
+                  (input)="searchHospitals()"
+                />
+                <button 
+                  class="btn btn-outline-secondary" 
+                  type="button"
+                  (click)="resetFilters()"
+                  *ngIf="searchQuery || selectedSpecialty !== 'all' || selectedRating > 0"
+                >
+                  <i class="bi bi-x-circle me-1"></i>Reset
+                </button>
+              </div>
+            </div>
+            <div class="col-lg-4 mt-3 mt-lg-0">
+              <div class="d-flex gap-2">
+                <select class="form-select form-select-lg" [(ngModel)]="sortBy" (change)="sortHospitals(sortBy)">
+                  <option value="rating">Sort by Rating</option>
+                  <option value="name">Sort by Name</option>
+                  <option value="discount">Sort by Discount</option>
+                </select>
+                <button 
+                  class="btn btn-outline-primary"
+                  (click)="toggleViewMode()"
+                  title="Toggle View"
+                >
+                  <i class="bi" [ngClass]="viewMode === 'grid' ? 'bi-list' : 'bi-grid'"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Filters -->
+          <div class="row g-3">
+            <!-- Specialty Filter -->
+            <div class="col-md-8">
+              <label class="form-label small text-muted fw-bold">Filter by Specialty:</label>
+              <div class="d-flex flex-wrap gap-2">
+                <button
+                  *ngFor="let specialty of specialties"
+                  class="btn btn-sm"
+                  [class.btn-primary]="selectedSpecialty === specialty || (specialty === 'All Specialties' && selectedSpecialty === 'all')"
+                  [class.btn-outline-primary]="selectedSpecialty !== specialty && !(specialty === 'All Specialties' && selectedSpecialty === 'all')"
+                  (click)="filterBySpecialty(specialty === 'All Specialties' ? 'all' : specialty)"
+                >
+                  {{ specialty }}
+                </button>
+              </div>
+            </div>
+
+            <!-- Rating Filter -->
+            <div class="col-md-4">
+              <label class="form-label small text-muted fw-bold">Minimum Rating:</label>
+              <div class="d-flex gap-2 flex-wrap">
+                <button
+                  class="btn btn-sm"
+                  [class.btn-warning]="selectedRating === 0"
+                  [class.btn-outline-warning]="selectedRating !== 0"
+                  (click)="filterByRating(0)"
+                >
+                  All
+                </button>
+                <button
+                  *ngFor="let rating of [3, 4, 4.5]"
+                  class="btn btn-sm"
+                  [class.btn-warning]="selectedRating === rating"
+                  [class.btn-outline-warning]="selectedRating !== rating"
+                  (click)="filterByRating(rating)"
+                >
+                  {{ rating }}+ <i class="bi bi-star-fill"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Results Count -->
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <p class="text-muted mb-0">
+      Showing <strong>{{ filteredHospitals.length }}</strong> 
+      {{ filteredHospitals.length === 1 ? 'hospital' : 'hospitals' }}
+    </p>
+  </div>
+
+  <!-- Grid View -->
+  <div *ngIf="viewMode === 'grid'" class="row g-4">
+    <div *ngFor="let hospital of filteredHospitals" class="col-lg-6">
+      <div class="card hospital-card h-100 shadow-sm border-0">
+        <div class="position-relative">
+          <div class="hospital-image-placeholder bg-gradient-primary">
+            <i class="bi bi-hospital fs-1 text-white"></i>
+          </div>
+          <span class="position-absolute top-0 end-0 m-3 badge bg-success">
+            {{ hospital.discount }} OFF
+          </span>
+          <span *ngIf="hospital.emergencyAvailable" class="position-absolute bottom-0 start-0 m-3 badge bg-danger">
+            <i class="bi bi-lightning-fill me-1"></i>24/7 Emergency
+          </span>
+        </div>
+        
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <h5 class="fw-bold mb-0">{{ hospital.name }}</h5>
+            <div class="rating-badge">
+              <i class="bi bi-star-fill text-warning me-1"></i>
+              <span class="fw-bold">{{ hospital.rating }}</span>
+            </div>
+          </div>
+
+          <p class="text-muted small mb-2">
+            <i class="bi bi-geo-alt text-primary me-1"></i>
+            {{ hospital.location }}
+          </p>
+
+          <p class="text-muted small mb-3" *ngIf="hospital.description">
+            {{ hospital.description.substring(0, 100) }}...
+          </p>
+
+          <!-- Specialties -->
+          <div class="mb-3">
+            <p class="small text-muted mb-2 fw-bold">Specialties:</p>
+            <div class="d-flex flex-wrap gap-1">
+              <span 
+                *ngFor="let specialty of hospital.specialties.slice(0, 3)"
+                class="badge bg-primary bg-opacity-10 text-primary"
+              >
+                {{ specialty }}
+              </span>
+              <span 
+                *ngIf="hospital.specialties.length > 3"
+                class="badge bg-secondary bg-opacity-10 text-secondary"
+              >
+                +{{ hospital.specialties.length - 3 }} more
+              </span>
+            </div>
+          </div>
+
+          <!-- Info Grid -->
+          <div class="row g-2 mb-3 small text-muted">
+            <div class="col-6" *ngIf="hospital.beds">
+              <i class="bi bi-hospital text-primary me-1"></i>
+              {{ hospital.beds }} Beds
+            </div>
+            <div class="col-6" *ngIf="hospital.established">
+              <i class="bi bi-calendar-check text-success me-1"></i>
+              Est. {{ hospital.established }}
+            </div>
+            <div class="col-6" *ngIf="hospital.phone">
+              <i class="bi bi-telephone text-info me-1"></i>
+              {{ hospital.phone }}
+            </div>
+            <div class="col-6" *ngIf="hospital.operatingHours">
+              <i class="bi bi-clock text-warning me-1"></i>
+              {{ hospital.operatingHours }}
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="d-flex gap-2">
+            <button 
+              class="btn btn-outline-primary flex-grow-1"
+              (click)="viewHospitalDetails(hospital)"
+            >
+              <i class="bi bi-info-circle me-1"></i>View Details
+            </button>
+            <button 
+              class="btn btn-primary"
+              (click)="bookAppointment(hospital)"
+            >
+              <i class="bi bi-calendar-check me-1"></i>Book
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- List View -->
+  <div *ngIf="viewMode === 'list'" class="row g-3">
+    <div *ngFor="let hospital of filteredHospitals" class="col-12">
+      <div class="card hospital-card shadow-sm border-0">
+        <div class="card-body">
+          <div class="row align-items-center">
+            <div class="col-md-2">
+              <div class="hospital-image-placeholder-small bg-gradient-primary">
+                <i class="bi bi-hospital fs-3 text-white"></i>
+              </div>
+            </div>
+            <div class="col-md-7">
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <h5 class="fw-bold mb-1">{{ hospital.name }}</h5>
+                <div class="rating-badge">
+                  <i class="bi bi-star-fill text-warning me-1"></i>
+                  <span class="fw-bold">{{ hospital.rating }}</span>
+                </div>
+              </div>
+              <p class="text-muted small mb-2">
+                <i class="bi bi-geo-alt text-primary me-1"></i>
+                {{ hospital.address || hospital.location }}
+              </p>
+              <div class="d-flex flex-wrap gap-1 mb-2">
+                <span 
+                  *ngFor="let specialty of hospital.specialties"
+                  class="badge bg-primary bg-opacity-10 text-primary small"
+                >
+                  {{ specialty }}
+                </span>
+              </div>
+              <div class="d-flex gap-3 small text-muted">
+                <span *ngIf="hospital.beds">
+                  <i class="bi bi-hospital me-1"></i>{{ hospital.beds }} Beds
+                </span>
+                <span *ngIf="hospital.emergencyAvailable" class="text-danger">
+                  <i class="bi bi-lightning-fill me-1"></i>24/7 Emergency
+                </span>
+                <span class="text-success">
+                  <i class="bi bi-tag-fill me-1"></i>{{ hospital.discount }} OFF
+                </span>
+              </div>
+            </div>
+            <div class="col-md-3 text-md-end mt-3 mt-md-0">
+              <div class="d-flex flex-column gap-2">
+                <button 
+                  class="btn btn-outline-primary btn-sm"
+                  (click)="viewHospitalDetails(hospital)"
+                >
+                  <i class="bi bi-info-circle me-1"></i>Details
+                </button>
+                <button 
+                  class="btn btn-primary btn-sm"
+                  (click)="bookAppointment(hospital)"
+                >
+                  <i class="bi bi-calendar-check me-1"></i>Book Appointment
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- No Results -->
+  <div *ngIf="filteredHospitals.length === 0" class="text-center py-5">
+    <i class="bi bi-search fs-1 text-muted mb-3 d-block"></i>
+    <h3 class="text-muted mb-2">No Hospitals Found</h3>
+    <p class="text-muted mb-3">Try adjusting your search criteria or filters</p>
+    <button class="btn btn-primary" (click)="resetFilters()">
+      <i class="bi bi-arrow-clockwise me-2"></i>Reset Filters
+    </button>
+  </div>
+
+</div>
+
+<!-- Hospital Details Modal -->
+<div
+  class="modal fade"
+  [class.show]="selectedHospital !== null"
+  [style.display]="selectedHospital !== null ? 'block' : 'none'"
+  tabindex="-1"
+  *ngIf="selectedHospital"
+>
+  <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header bg-primary bg-gradient text-white">
+        <h5 class="modal-title fw-bold">
+          <i class="bi bi-hospital me-2"></i>
+          {{ selectedHospital.name }}
+        </h5>
+        <button type="button" class="btn-close btn-close-white" (click)="closeHospitalDetails()"></button>
+      </div>
+      <div class="modal-body">
+        
+        <!-- Hospital Image -->
+        <div class="hospital-image-placeholder-large bg-gradient-primary mb-4">
+          <i class="bi bi-hospital display-1 text-white"></i>
+        </div>
+
+        <!-- Rating and Basic Info -->
+        <div class="row mb-4">
+          <div class="col-md-8">
+            <h3 class="fw-bold mb-2">{{ selectedHospital.name }}</h3>
+            <div class="d-flex align-items-center gap-3 mb-3">
+              <div class="rating-badge-large">
+                <i class="bi bi-star-fill text-warning me-1"></i>
+                <span class="fw-bold">{{ selectedHospital.rating }}</span>
+                <span class="text-muted">/5.0</span>
+              </div>
+              <span class="badge bg-success fs-6">{{ selectedHospital.discount }} OFF</span>
+              <span *ngIf="selectedHospital.emergencyAvailable" class="badge bg-danger fs-6">
+                <i class="bi bi-lightning-fill me-1"></i>24/7 Emergency
+              </span>
+            </div>
+            <p class="text-muted">{{ selectedHospital.description }}</p>
+          </div>
+          <div class="col-md-4">
+            <div class="card bg-light border-0">
+              <div class="card-body">
+                <h6 class="fw-bold mb-3">Contact Information</h6>
+                <div class="d-flex flex-column gap-2 small">
+                  <div>
+                    <i class="bi bi-geo-alt-fill text-primary me-2"></i>
+                    {{ selectedHospital.address }}
+                  </div>
+                  <div>
+                    <i class="bi bi-telephone-fill text-success me-2"></i>
+                    {{ selectedHospital.phone }}
+                  </div>
+                  <div>
+                    <i class="bi bi-envelope-fill text-info me-2"></i>
+                    {{ selectedHospital.email }}
+                  </div>
+                  <div>
+                    <i class="bi bi-clock-fill text-warning me-2"></i>
+                    {{ selectedHospital.operatingHours }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Specialties -->
+        <div class="mb-4">
+          <h5 class="fw-bold mb-3">
+            <i class="bi bi-heart-pulse text-danger me-2"></i>Specialties
+          </h5>
+          <div class="d-flex flex-wrap gap-2">
+            <span 
+              *ngFor="let specialty of selectedHospital.specialties"
+              class="badge bg-primary bg-opacity-10 text-primary fs-6"
+            >
+              {{ specialty }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Facilities -->
+        <div class="mb-4" *ngIf="selectedHospital.facilities && selectedHospital.facilities.length > 0">
+          <h5 class="fw-bold mb-3">
+            <i class="bi bi-building text-info me-2"></i>Facilities & Services
+          </h5>
+          <div class="row g-2">
+            <div 
+              *ngFor="let facility of selectedHospital.facilities"
+              class="col-md-4 col-6"
+            >
+              <div class="card border-0 bg-light">
+                <div class="card-body py-2 px-3">
+                  <i class="bi bi-check-circle-fill text-success me-2"></i>
+                  <span class="small">{{ facility }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hospital Stats -->
+        <div class="mb-4">
+          <h5 class="fw-bold mb-3">
+            <i class="bi bi-graph-up text-success me-2"></i>Hospital Information
+          </h5>
+          <div class="row g-3">
+            <div class="col-md-3 col-6" *ngIf="selectedHospital.beds">
+              <div class="card bg-primary bg-opacity-10 border-0 text-center">
+                <div class="card-body">
+                  <i class="bi bi-hospital fs-2 text-primary mb-2"></i>
+                  <h4 class="fw-bold mb-0">{{ selectedHospital.beds }}</h4>
+                  <small class="text-muted">Total Beds</small>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3 col-6" *ngIf="selectedHospital.established">
+              <div class="card bg-success bg-opacity-10 border-0 text-center">
+                <div class="card-body">
+                  <i class="bi bi-calendar-check fs-2 text-success mb-2"></i>
+                  <h4 class="fw-bold mb-0">{{ selectedHospital.established }}</h4>
+                  <small class="text-muted">Established</small>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3 col-6">
+              <div class="card bg-warning bg-opacity-10 border-0 text-center">
+                <div class="card-body">
+                  <i class="bi bi-star-fill fs-2 text-warning mb-2"></i>
+                  <h4 class="fw-bold mb-0">{{ selectedHospital.rating }}</h4>
+                  <small class="text-muted">Rating</small>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3 col-6">
+              <div class="card bg-danger bg-opacity-10 border-0 text-center">
+                <div class="card-body">
+                  <i class="bi bi-tag-fill fs-2 text-danger mb-2"></i>
+                  <h4 class="fw-bold mb-0">{{ selectedHospital.discount }}</h4>
+                  <small class="text-muted">Discount</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Accreditations -->
+        <div *ngIf="selectedHospital.accreditations && selectedHospital.accreditations.length > 0">
+          <h5 class="fw-bold mb-3">
+            <i class="bi bi-award text-warning me-2"></i>Accreditations & Certifications
+          </h5>
+          <div class="d-flex flex-wrap gap-2">
+            <span 
+              *ngFor="let accreditation of selectedHospital.accreditations"
+              class="badge bg-warning bg-opacity-10 text-warning fs-6"
+            >
+              <i class="bi bi-patch-check-fill me-1"></i>{{ accreditation }}
+            </span>
+          </div>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeHospitalDetails()">
+          Close
+        </button>
+        <button type="button" class="btn btn-primary" (click)="bookAppointment(selectedHospital); closeHospitalDetails()">
+          <i class="bi bi-calendar-check me-2"></i>Book Appointment
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal-backdrop fade" [class.show]="selectedHospital !== null" *ngIf="selectedHospital"></div>

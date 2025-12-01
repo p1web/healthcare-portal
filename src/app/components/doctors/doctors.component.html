@@ -1,0 +1,368 @@
+<!-- doctors.component.html -->
+
+<div class="container-fluid bg-light py-4 mb-4">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-8">
+        <h1 class="display-5 fw-bold mb-2">
+          <i class="bi bi-person-badge text-primary me-3"></i>
+          Find Doctors
+        </h1>
+        <p class="text-muted mb-0">Connect with experienced doctors across all specialties</p>
+      </div>
+      <div class="col-md-4 text-md-end mt-3 mt-md-0">
+        <span class="badge bg-primary fs-6 px-3 py-2">
+          {{ filteredDoctors.length }} Doctors Available
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container my-4">
+  
+  <!-- Search and Filter Section -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card shadow-sm border-0">
+        <div class="card-body p-4">
+          
+          <!-- Search Bar -->
+          <div class="row mb-3">
+            <div class="col-lg-8">
+              <div class="input-group input-group-lg">
+                <span class="input-group-text bg-white">
+                  <i class="bi bi-search"></i>
+                </span>
+                <input
+                  type="text"
+                  class="form-control"
+                  placeholder="Search by doctor name, specialization, or hospital..."
+                  [(ngModel)]="searchQuery"
+                  (input)="searchDoctors()"
+                />
+                <button 
+                  class="btn btn-outline-secondary" 
+                  type="button"
+                  (click)="resetFilters()"
+                  *ngIf="searchQuery || selectedSpecialization !== 'all' || selectedHospital !== 'all' || selectedExperience !== 'all' || selectedRating > 0"
+                >
+                  <i class="bi bi-x-circle me-1"></i>Reset
+                </button>
+              </div>
+            </div>
+            <div class="col-lg-4 mt-3 mt-lg-0">
+              <div class="d-flex gap-2">
+                <select class="form-select form-select-lg" [(ngModel)]="sortBy" (change)="sortDoctors(sortBy)">
+                  <option value="rating">Sort by Rating</option>
+                  <option value="name">Sort by Name</option>
+                  <option value="experience">Sort by Experience</option>
+                  <option value="fee">Sort by Fee (Low to High)</option>
+                </select>
+                <button 
+                  class="btn btn-outline-primary"
+                  (click)="toggleViewMode()"
+                  title="Toggle View"
+                >
+                  <i class="bi" [ngClass]="viewMode === 'grid' ? 'bi-list' : 'bi-grid'"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Filters -->
+          <div class="row g-3">
+            <!-- Specialization Filter -->
+            <div class="col-md-6">
+              <label class="form-label small text-muted fw-bold">Filter by Specialization:</label>
+              <select 
+                class="form-select" 
+                [(ngModel)]="selectedSpecialization" 
+                (change)="filterBySpecialization(selectedSpecialization)"
+              >
+                <option *ngFor="let spec of specializations" [value]="spec === 'All Specializations' ? 'all' : spec">
+                  {{ spec }}
+                </option>
+              </select>
+            </div>
+
+            <!-- Hospital Filter -->
+            <div class="col-md-6">
+              <label class="form-label small text-muted fw-bold">Filter by Hospital:</label>
+              <select 
+                class="form-select" 
+                [(ngModel)]="selectedHospital" 
+                (change)="filterByHospital(selectedHospital)"
+              >
+                <option *ngFor="let hospital of hospitals" [value]="hospital === 'All Hospitals' ? 'all' : hospital">
+                  {{ hospital }}
+                </option>
+              </select>
+            </div>
+
+            <!-- Experience Filter -->
+            <div class="col-md-6">
+              <label class="form-label small text-muted fw-bold">Filter by Experience:</label>
+              <select 
+                class="form-select" 
+                [(ngModel)]="selectedExperience" 
+                (change)="filterByExperience(selectedExperience)"
+              >
+                <option *ngFor="let exp of experienceRanges" [value]="exp.value">
+                  {{ exp.label }}
+                </option>
+              </select>
+            </div>
+
+            <!-- Rating Filter -->
+            <div class="col-md-6">
+              <label class="form-label small text-muted fw-bold">Minimum Rating:</label>
+              <div class="d-flex gap-2 flex-wrap">
+                <button
+                  class="btn btn-sm"
+                  [class.btn-warning]="selectedRating === 0"
+                  [class.btn-outline-warning]="selectedRating !== 0"
+                  (click)="filterByRating(0)"
+                >
+                  All
+                </button>
+                <button
+                  *ngFor="let rating of [3, 4, 4.5]"
+                  class="btn btn-sm"
+                  [class.btn-warning]="selectedRating === rating"
+                  [class.btn-outline-warning]="selectedRating !== rating"
+                  (click)="filterByRating(rating)"
+                >
+                  {{ rating }}+ <i class="bi bi-star-fill"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Results Count -->
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <p class="text-muted mb-0">
+      Showing <strong>{{ filteredDoctors.length }}</strong> 
+      {{ filteredDoctors.length === 1 ? 'doctor' : 'doctors' }}
+    </p>
+  </div>
+
+  <!-- Grid View -->
+  <div *ngIf="viewMode === 'grid'" class="row g-4">
+    <div *ngFor="let doctor of filteredDoctors" class="col-lg-4 col-md-6">
+      <div class="card doctor-card h-100 shadow-sm border-0" (click)="viewDoctorProfile(doctor.id)">
+        <div class="card-header bg-gradient-purple text-white text-center py-4">
+          <div class="doctor-avatar mx-auto mb-3">
+            <span class="fs-2 fw-bold">{{ getDoctorInitial(doctor.name) }}</span>
+          </div>
+          <h5 class="fw-bold mb-1">{{ doctor.name }}</h5>
+          <p class="mb-2 small opacity-75">{{ doctor.specialization }}</p>
+          <div class="rating-badge-dark">
+            <i class="bi bi-star-fill text-warning me-1"></i>
+            <span class="fw-bold">{{ doctor.rating }}</span>
+            <span class="opacity-75">/5.0</span>
+          </div>
+          <span *ngIf="doctor.verified" class="badge bg-success bg-opacity-75 mt-2">
+            <i class="bi bi-patch-check-fill me-1"></i>Verified
+          </span>
+        </div>
+        
+        <div class="card-body">
+          <!-- Info List -->
+          <ul class="list-unstyled small mb-3">
+            <li class="mb-2">
+              <i class="bi bi-hospital text-primary me-2"></i>
+              <strong>Hospital:</strong> {{ doctor.hospital }}
+            </li>
+            <li class="mb-2">
+              <i class="bi bi-award text-success me-2"></i>
+              <strong>Experience:</strong> {{ doctor.experience }}
+            </li>
+            <li class="mb-2">
+              <i class="bi bi-calendar-week text-info me-2"></i>
+              <strong>Available:</strong> {{ doctor.available }}
+            </li>
+            <li class="mb-2">
+              <i class="bi bi-currency-rupee text-danger me-2"></i>
+              <strong>Consultation:</strong> {{ doctor.fee }}
+            </li>
+            <li class="mb-2" *ngIf="doctor.totalPatients">
+              <i class="bi bi-people text-warning me-2"></i>
+              <strong>Patients:</strong> {{ doctor.totalPatients }}+
+            </li>
+          </ul>
+
+          <!-- Consultation Types -->
+          <div class="mb-3" *ngIf="doctor.consultationTypes && doctor.consultationTypes.length > 0">
+            <p class="small text-muted mb-2 fw-bold">Consultation Types:</p>
+            <div class="d-flex flex-wrap gap-1">
+              <span 
+                *ngFor="let type of doctor.consultationTypes"
+                class="badge bg-info bg-opacity-10 text-info small"
+              >
+                <i class="bi" 
+                   [ngClass]="{
+                     'bi-hospital': type === 'In-person',
+                     'bi-camera-video': type === 'Video Call',
+                     'bi-telephone': type === 'Phone Call'
+                   }">
+                </i>
+                {{ type }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Action Button -->
+          <button class="btn btn-primary w-100">
+            <i class="bi bi-calendar-check me-2"></i>Book Appointment
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- List View -->
+  <div *ngIf="viewMode === 'list'" class="row g-3">
+    <div *ngFor="let doctor of filteredDoctors" class="col-12">
+      <div class="card doctor-card shadow-sm border-0" (click)="viewDoctorProfile(doctor.id)">
+        <div class="card-body">
+          <div class="row align-items-center">
+            <div class="col-md-auto text-center mb-3 mb-md-0">
+              <div class="doctor-avatar-list bg-gradient-purple text-white">
+                <span class="fs-4 fw-bold">{{ getDoctorInitial(doctor.name) }}</span>
+              </div>
+            </div>
+            <div class="col-md">
+              <div class="row">
+                <div class="col-md-8">
+                  <div class="d-flex align-items-center gap-2 mb-2">
+                    <h5 class="fw-bold mb-0">{{ doctor.name }}</h5>
+                    <span *ngIf="doctor.verified" class="badge bg-success">
+                      <i class="bi bi-patch-check-fill me-1"></i>Verified
+                    </span>
+                  </div>
+                  <p class="text-muted mb-2">
+                    <i class="bi bi-stethoscope me-1"></i>{{ doctor.specialization }}
+                  </p>
+                  <p class="text-muted small mb-2">
+                    <i class="bi bi-hospital me-1"></i>{{ doctor.hospital }}
+                  </p>
+                  <div class="d-flex flex-wrap gap-3 small text-muted mb-2">
+                    <span>
+                      <i class="bi bi-award text-success me-1"></i>{{ doctor.experience }}
+                    </span>
+                    <span>
+                      <i class="bi bi-calendar-week text-info me-1"></i>{{ doctor.available }}
+                    </span>
+                    <span class="text-danger fw-semibold">
+                      <i class="bi bi-currency-rupee me-1"></i>{{ doctor.fee }}
+                    </span>
+                  </div>
+                  <!-- Consultation Types -->
+                  <div class="d-flex flex-wrap gap-1" *ngIf="doctor.consultationTypes">
+                    <span 
+                      *ngFor="let type of doctor.consultationTypes"
+                      class="badge bg-info bg-opacity-10 text-info small"
+                    >
+                      {{ type }}
+                    </span>
+                  </div>
+                </div>
+                <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                  <div class="rating-badge-large mb-3">
+                    <i class="bi bi-star-fill text-warning me-1"></i>
+                    <span class="fw-bold">{{ doctor.rating }}</span>
+                    <span class="text-muted">/5.0</span>
+                  </div>
+                  <p class="small text-muted mb-2" *ngIf="doctor.totalPatients">
+                    <i class="bi bi-people me-1"></i>{{ doctor.totalPatients }}+ Patients
+                  </p>
+                  <button class="btn btn-primary btn-sm w-100">
+                    <i class="bi bi-calendar-check me-1"></i>Book Now
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- No Results -->
+  <div *ngIf="filteredDoctors.length === 0" class="text-center py-5">
+    <i class="bi bi-search fs-1 text-muted mb-3 d-block"></i>
+    <h3 class="text-muted mb-2">No Doctors Found</h3>
+    <p class="text-muted mb-3">Try adjusting your search criteria or filters</p>
+    <button class="btn btn-primary" (click)="resetFilters()">
+      <i class="bi bi-arrow-clockwise me-2"></i>Reset Filters
+    </button>
+  </div>
+
+</div>
+
+<!-- Featured Specializations Banner -->
+<div class="container my-5" *ngIf="filteredDoctors.length > 0">
+  <div class="card bg-gradient-primary text-white border-0 shadow">
+    <div class="card-body text-center py-5">
+      <h2 class="fw-bold mb-3">Looking for a Specific Specialty?</h2>
+      <p class="lead mb-4">Browse our comprehensive list of specialists across all medical fields</p>
+      <div class="d-flex flex-wrap gap-2 justify-content-center">
+        <button 
+          *ngFor="let spec of specializations.slice(1, 7)"
+          class="btn btn-light btn-lg"
+          (click)="filterBySpecialization(spec)"
+        >
+          {{ spec }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Quick Stats -->
+<div class="container my-5" *ngIf="filteredDoctors.length > 0">
+  <div class="row g-4">
+    <div class="col-md-3 col-6">
+      <div class="card text-center border-0 bg-primary bg-opacity-10">
+        <div class="card-body">
+          <i class="bi bi-person-badge fs-1 text-primary mb-2"></i>
+          <h3 class="fw-bold mb-0">{{ doctors.length }}+</h3>
+          <p class="text-muted mb-0 small">Expert Doctors</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 col-6">
+      <div class="card text-center border-0 bg-success bg-opacity-10">
+        <div class="card-body">
+          <i class="bi bi-hospital fs-1 text-success mb-2"></i>
+          <h3 class="fw-bold mb-0">{{ hospitals.length - 1 }}+</h3>
+          <p class="text-muted mb-0 small">Partner Hospitals</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 col-6">
+      <div class="card text-center border-0 bg-info bg-opacity-10">
+        <div class="card-body">
+          <i class="bi bi-heart-pulse fs-1 text-info mb-2"></i>
+          <h3 class="fw-bold mb-0">{{ specializations.length - 1 }}+</h3>
+          <p class="text-muted mb-0 small">Specializations</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 col-6">
+      <div class="card text-center border-0 bg-warning bg-opacity-10">
+        <div class="card-body">
+          <i class="bi bi-people fs-1 text-warning mb-2"></i>
+          <h3 class="fw-bold mb-0">50K+</h3>
+          <p class="text-muted mb-0 small">Happy Patients</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

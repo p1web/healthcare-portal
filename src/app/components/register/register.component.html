@@ -1,0 +1,315 @@
+<div class="register-container min-vh-100 d-flex align-items-center py-5">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-10">
+        <div class="card shadow-lg border-0 overflow-hidden">
+          <div class="row g-0">
+            
+            <!-- Left Side - Branding -->
+            <div class="col-md-5 bg-gradient-success text-white d-none d-md-flex flex-column justify-content-center p-5">
+              <div class="text-center">
+                <i class="bi bi-person-plus-fill display-1 mb-4"></i>
+                <h2 class="fw-bold mb-3">Join HealthConnect</h2>
+                <p class="lead mb-4">Start your healthcare journey with us</p>
+                
+                <!-- Progress Steps -->
+                <div class="progress-steps mb-4">
+                  <div class="step" [class.active]="currentStep >= 1" [class.completed]="currentStep > 1">
+                    <div class="step-circle">
+                      <i class="bi" [ngClass]="currentStep > 1 ? 'bi-check-lg' : 'bi-1-circle'"></i>
+                    </div>
+                    <p class="small mt-2">Account Type</p>
+                  </div>
+                  <div class="step" [class.active]="currentStep >= 2" [class.completed]="currentStep > 2">
+                    <div class="step-circle">
+                      <i class="bi" [ngClass]="currentStep > 2 ? 'bi-check-lg' : 'bi-2-circle'"></i>
+                    </div>
+                    <p class="small mt-2">Personal Info</p>
+                  </div>
+                  <div class="step" [class.active]="currentStep >= 3">
+                    <div class="step-circle">
+                      <i class="bi bi-3-circle"></i>
+                    </div>
+                    <p class="small mt-2">Security</p>
+                  </div>
+                </div>
+
+                <ul class="list-unstyled text-start mt-4">
+                  <li class="mb-3">
+                    <i class="bi bi-shield-check me-2"></i>
+                    Secure and encrypted data
+                  </li>
+                  <li class="mb-3">
+                    <i class="bi bi-lightning-fill me-2"></i>
+                    Quick registration process
+                  </li>
+                  <li class="mb-3">
+                    <i class="bi bi-gift-fill me-2"></i>
+                    Welcome bonus on signup
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Right Side - Registration Form -->
+            <div class="col-md-7 bg-white p-5">
+              <div class="register-form-container">
+                
+                <!-- Logo for Mobile -->
+                <div class="text-center mb-4 d-md-none">
+                  <i class="bi bi-hospital text-primary fs-1"></i>
+                  <h4 class="fw-bold mt-2">HealthConnect</h4>
+                </div>
+
+                <h3 class="fw-bold mb-2">Create Account</h3>
+                <p class="text-muted mb-4">Fill in your details to get started</p>
+
+                <!-- Success Alert -->
+                <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show" role="alert">
+                  <i class="bi bi-check-circle-fill me-2"></i>
+                  {{ successMessage }}
+                  <button type="button" class="btn-close" (click)="successMessage = ''"></button>
+                </div>
+
+                <!-- Error Alert -->
+                <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show" role="alert">
+                  <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                  {{ errorMessage }}
+                  <button type="button" class="btn-close" (click)="errorMessage = ''"></button>
+                </div>
+
+                <!-- Progress Bar for Mobile -->
+                <div class="progress mb-4 d-md-none" style="height: 5px;">
+                  <div class="progress-bar bg-success" [style.width.%]="(currentStep / 3) * 100"></div>
+                </div>
+
+                <!-- Registration Form -->
+                <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+                  
+                  <!-- Step 1: Account Type & Name -->
+                  <div *ngIf="currentStep === 1" class="step-content">
+                    <h5 class="fw-bold mb-3">Step 1: Account Type</h5>
+                    
+                    <!-- Role Selection -->
+                    <div class="mb-4">
+                      <label class="form-label fw-semibold">I am a:</label>
+                      <div class="row g-3">
+                        <div class="col-4">
+                          <input type="radio" class="btn-check" formControlName="role" value="patient" id="rolePatient">
+                          <label class="btn btn-outline-primary w-100 text-center py-3" for="rolePatient">
+                            <i class="bi bi-person fs-4 d-block mb-2"></i>
+                            Patient
+                          </label>
+                        </div>
+                        <div class="col-4">
+                          <input type="radio" class="btn-check" formControlName="role" value="doctor" id="roleDoctor">
+                          <label class="btn btn-outline-primary w-100 text-center py-3" for="roleDoctor">
+                            <i class="bi bi-stethoscope fs-4 d-block mb-2"></i>
+                            Doctor
+                          </label>
+                        </div>
+                        <div class="col-4">
+                          <input type="radio" class="btn-check" formControlName="role" value="hospital" id="roleHospital">
+                          <label class="btn btn-outline-primary w-100 text-center py-3" for="roleHospital">
+                            <i class="bi bi-hospital fs-4 d-block mb-2"></i>
+                            Hospital
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Full Name -->
+                    <div class="mb-4">
+                      <label class="form-label fw-semibold">Full Name</label>
+                      <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0">
+                          <i class="bi bi-person"></i>
+                        </span>
+                        <input
+                          type="text"
+                          formControlName="name"
+                          class="form-control border-start-0 ps-0"
+                          [class.is-invalid]="isFieldInvalid('name')"
+                          placeholder="Enter your full name"
+                        />
+                      </div>
+                      <div *ngIf="isFieldInvalid('name')" class="invalid-feedback d-block">
+                        {{ getErrorMessage('name') }}
+                      </div>
+                    </div>
+
+                    <button type="button" class="btn btn-primary w-100 py-3" (click)="nextStep()">
+                      Next <i class="bi bi-arrow-right ms-2"></i>
+                    </button>
+                  </div>
+
+                  <!-- Step 2: Contact Information -->
+                  <div *ngIf="currentStep === 2" class="step-content">
+                    <h5 class="fw-bold mb-3">Step 2: Contact Information</h5>
+                    
+                    <!-- Email -->
+                    <div class="mb-3">
+                      <label class="form-label fw-semibold">Email Address</label>
+                      <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0">
+                          <i class="bi bi-envelope"></i>
+                        </span>
+                        <input
+                          type="email"
+                          formControlName="email"
+                          class="form-control border-start-0 ps-0"
+                          [class.is-invalid]="isFieldInvalid('email')"
+                          placeholder="your.email@example.com"
+                        />
+                      </div>
+                      <div *ngIf="isFieldInvalid('email')" class="invalid-feedback d-block">
+                        {{ getErrorMessage('email') }}
+                      </div>
+                    </div>
+
+                    <!-- Phone -->
+                    <div class="mb-4">
+                      <label class="form-label fw-semibold">Phone Number</label>
+                      <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0">
+                          <i class="bi bi-telephone"></i>
+                        </span>
+                        <input
+                          type="tel"
+                          formControlName="phone"
+                          class="form-control border-start-0 ps-0"
+                          [class.is-invalid]="isFieldInvalid('phone')"
+                          placeholder="10-digit phone number"
+                          maxlength="10"
+                        />
+                      </div>
+                      <div *ngIf="isFieldInvalid('phone')" class="invalid-feedback d-block">
+                        {{ getErrorMessage('phone') }}
+                      </div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                      <button type="button" class="btn btn-outline-secondary py-3 flex-fill" (click)="previousStep()">
+                        <i class="bi bi-arrow-left me-2"></i>Back
+                      </button>
+                      <button type="button" class="btn btn-primary py-3 flex-fill" (click)="nextStep()">
+                        Next <i class="bi bi-arrow-right ms-2"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Step 3: Security -->
+                  <div *ngIf="currentStep === 3" class="step-content">
+                    <h5 class="fw-bold mb-3">Step 3: Create Password</h5>
+                    
+                    <!-- Password -->
+                    <div class="mb-3">
+                      <label class="form-label fw-semibold">Password</label>
+                      <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0">
+                          <i class="bi bi-lock"></i>
+                        </span>
+                        <input
+                          [type]="showPassword ? 'text' : 'password'"
+                          formControlName="password"
+                          class="form-control border-start-0 border-end-0 ps-0"
+                          [class.is-invalid]="isFieldInvalid('password')"
+                          placeholder="Create a strong password"
+                        />
+                        <span 
+                          class="input-group-text bg-light border-start-0 cursor-pointer"
+                          (click)="togglePasswordVisibility()"
+                        >
+                          <i class="bi" [ngClass]="showPassword ? 'bi-eye-slash' : 'bi-eye'"></i>
+                        </span>
+                      </div>
+                      <div *ngIf="isFieldInvalid('password')" class="invalid-feedback d-block">
+                        {{ getErrorMessage('password') }}
+                      </div>
+                    </div>
+
+                    <!-- Confirm Password -->
+                    <div class="mb-3">
+                      <label class="form-label fw-semibold">Confirm Password</label>
+                      <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0">
+                          <i class="bi bi-lock-fill"></i>
+                        </span>
+                        <input
+                          [type]="showConfirmPassword ? 'text' : 'password'"
+                          formControlName="confirmPassword"
+                          class="form-control border-start-0 border-end-0 ps-0"
+                          [class.is-invalid]="isFieldInvalid('confirmPassword') || registerForm.errors?.['passwordMismatch']"
+                          placeholder="Re-enter your password"
+                        />
+                        <span 
+                          class="input-group-text bg-light border-start-0 cursor-pointer"
+                          (click)="toggleConfirmPasswordVisibility()"
+                        >
+                          <i class="bi" [ngClass]="showConfirmPassword ? 'bi-eye-slash' : 'bi-eye'"></i>
+                        </span>
+                      </div>
+                      <div *ngIf="registerForm.errors?.['passwordMismatch'] && registerForm.get('confirmPassword')?.touched" class="invalid-feedback d-block">
+                        Passwords do not match
+                      </div>
+                    </div>
+
+                    <!-- Terms & Conditions -->
+                    <div class="mb-4">
+                      <div class="form-check">
+                        <input
+                          type="checkbox"
+                          formControlName="termsAccepted"
+                          class="form-check-input"
+                          [class.is-invalid]="isFieldInvalid('termsAccepted')"
+                          id="termsAccepted"
+                        />
+                        <label class="form-check-label small" for="termsAccepted">
+                          I agree to the <a href="#" class="text-primary">Terms & Conditions</a> and <a href="#" class="text-primary">Privacy Policy</a>
+                        </label>
+                      </div>
+                      <div *ngIf="isFieldInvalid('termsAccepted')" class="invalid-feedback d-block">
+                        You must accept the terms and conditions
+                      </div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                      <button type="button" class="btn btn-outline-secondary py-3 flex-fill" (click)="previousStep()">
+                        <i class="bi bi-arrow-left me-2"></i>Back
+                      </button>
+                      <button
+                        type="submit"
+                        class="btn btn-success py-3 flex-fill"
+                        [disabled]="isSubmitting"
+                      >
+                        <span *ngIf="!isSubmitting">
+                          <i class="bi bi-check-circle me-2"></i>Create Account
+                        </span>
+                        <span *ngIf="isSubmitting">
+                          <span class="spinner-border spinner-border-sm me-2"></span>
+                          Creating...
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Sign In Link -->
+                  <div class="text-center mt-4">
+                    <p class="text-muted small mb-0">
+                      Already have an account? 
+                      <a routerLink="/login" class="text-primary text-decoration-none fw-semibold">
+                        Sign in
+                      </a>
+                    </p>
+                  </div>
+
+                </form>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

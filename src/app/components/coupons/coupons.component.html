@@ -1,0 +1,350 @@
+<div class="container my-5">
+  
+  <!-- Page Header -->
+  <div class="text-center mb-5">
+    <h1 class="display-4 fw-bold mb-3">
+      <i class="bi bi-tags-fill text-primary me-3"></i>
+      Exclusive Coupons & Offers
+    </h1>
+    <p class="lead text-muted">Save big on healthcare services with our special discount codes</p>
+  </div>
+
+  <!-- Search and Filter Section -->
+  <div class="row mb-4">
+    <div class="col-lg-8 mx-auto">
+      <div class="card shadow-sm border-0">
+        <div class="card-body p-4">
+          <!-- Search Bar -->
+          <div class="input-group input-group-lg mb-3">
+            <span class="input-group-text bg-white border-end-0">
+              <i class="bi bi-search"></i>
+            </span>
+            <input
+              type="text"
+              class="form-control border-start-0"
+              placeholder="Search coupons by code, title or description..."
+              [(ngModel)]="searchQuery"
+              (input)="searchCoupons()"
+            />
+          </div>
+
+          <!-- Filter Buttons -->
+          <div class="d-flex flex-wrap gap-2 justify-content-center">
+            <button
+              class="btn btn-outline-secondary"
+              [class.active]="selectedFilter === 'all'"
+              (click)="filterCoupons('all')"
+            >
+              <i class="bi bi-grid me-1"></i>All Coupons
+            </button>
+            <button
+              class="btn btn-outline-primary"
+              [class.active]="selectedFilter === 'consultation'"
+              (click)="filterCoupons('consultation')"
+            >
+              <i class="bi bi-stethoscope me-1"></i>Consultation
+            </button>
+            <button
+              class="btn btn-outline-danger"
+              [class.active]="selectedFilter === 'surgery'"
+              (click)="filterCoupons('surgery')"
+            >
+              <i class="bi bi-heart-pulse me-1"></i>Surgery
+            </button>
+            <button
+              class="btn btn-outline-info"
+              [class.active]="selectedFilter === 'diagnostic'"
+              (click)="filterCoupons('diagnostic')"
+            >
+              <i class="bi bi-clipboard2-pulse me-1"></i>Diagnostics
+            </button>
+            <button
+              class="btn btn-outline-success"
+              [class.active]="selectedFilter === 'pharmacy'"
+              (click)="filterCoupons('pharmacy')"
+            >
+              <i class="bi bi-capsule me-1"></i>Pharmacy
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Coupons Grid -->
+  <div class="row g-4">
+    <div *ngFor="let coupon of filteredCoupons" class="col-lg-6">
+      <div class="card coupon-card h-100 shadow-sm border-0">
+        <div class="card-body p-4">
+          <div class="row">
+            <!-- Left Side - Discount Badge -->
+            <div class="col-auto">
+              <div class="discount-badge bg-gradient-{{ getCategoryColor(coupon.applicableFor) }} text-white">
+                <div class="discount-value">{{ coupon.discount }}</div>
+                <div class="discount-label">
+                  <i [class]="getCategoryIcon(coupon.applicableFor)"></i>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Side - Coupon Details -->
+            <div class="col">
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <h5 class="fw-bold mb-0">{{ coupon.title }}</h5>
+                <span 
+                  *ngIf="isExpiringSoon(coupon)" 
+                  class="badge bg-warning text-dark"
+                >
+                  <i class="bi bi-clock me-1"></i>Expiring Soon
+                </span>
+              </div>
+
+              <p class="text-muted small mb-3">{{ coupon.description }}</p>
+
+              <!-- Coupon Code -->
+              <div class="coupon-code-container mb-3">
+                <div class="d-flex align-items-center justify-content-between bg-light border border-dashed rounded p-3">
+                  <div>
+                    <small class="text-muted d-block mb-1">Coupon Code</small>
+                    <code class="fs-5 fw-bold text-{{ getCategoryColor(coupon.applicableFor) }}">
+                      {{ coupon.code }}
+                    </code>
+                  </div>
+                  <button
+                    class="btn btn-sm btn-{{ getCategoryColor(coupon.applicableFor) }}"
+                    (click)="copyCouponCode(coupon.code)"
+                  >
+                    <i class="bi" [ngClass]="copiedCode === coupon.code ? 'bi-check-lg' : 'bi-clipboard'"></i>
+                    {{ copiedCode === coupon.code ? 'Copied!' : 'Copy' }}
+                  </button>
+                </div>
+              </div>
+
+              <!-- Coupon Info -->
+              <div class="row g-2 small mb-3">
+                <div class="col-6">
+                  <i class="bi bi-calendar-check text-success me-1"></i>
+                  <span class="text-muted">Valid till {{ coupon.validUntil | date:'mediumDate' }}</span>
+                </div>
+                <div class="col-6" *ngIf="coupon.minAmount">
+                  <i class="bi bi-cash text-primary me-1"></i>
+                  <span class="text-muted">Min: ₹{{ coupon.minAmount }}</span>
+                </div>
+                <div class="col-6" *ngIf="coupon.usageLimit">
+                  <i class="bi bi-people text-info me-1"></i>
+                  <span class="text-muted">{{ coupon.usedCount }}/{{ coupon.usageLimit }} used</span>
+                </div>
+                <div class="col-6">
+                  <i class="bi bi-hourglass-split text-warning me-1"></i>
+                  <span class="text-muted">{{ getDaysRemaining(coupon) }} days left</span>
+                </div>
+              </div>
+
+              <!-- Usage Progress Bar -->
+              <div *ngIf="coupon.usageLimit" class="mb-3">
+                <div class="progress" style="height: 6px;">
+                  <div
+                    class="progress-bar bg-{{ getCategoryColor(coupon.applicableFor) }}"
+                    [style.width.%]="getUsagePercentage(coupon)"
+                  ></div>
+                </div>
+              </div>
+
+              <!-- Action Buttons -->
+              <div class="d-flex gap-2">
+                <button
+                  class="btn btn-outline-{{ getCategoryColor(coupon.applicableFor) }} flex-grow-1"
+                  (click)="viewCouponDetails(coupon)"
+                >
+                  <i class="bi bi-info-circle me-1"></i>View Details
+                </button>
+                <button class="btn btn-{{ getCategoryColor(coupon.applicableFor) }}">
+                  <i class="bi bi-cart-plus me-1"></i>Use Now
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- No Results Message -->
+  <div *ngIf="filteredCoupons.length === 0" class="text-center py-5">
+    <i class="bi bi-inbox fs-1 text-muted"></i>
+    <h3 class="mt-3 text-muted">No coupons found</h3>
+    <p class="text-muted">Try adjusting your search or filter criteria</p>
+  </div>
+
+  <!-- How to Use Section -->
+  <div class="card bg-light border-0 mt-5">
+    <div class="card-body p-5">
+      <h3 class="fw-bold mb-4 text-center">
+        <i class="bi bi-lightbulb text-warning me-2"></i>
+        How to Use Coupons
+      </h3>
+      <div class="row g-4">
+        <div class="col-md-3 text-center">
+          <div class="mb-3">
+            <i class="bi bi-1-circle-fill fs-1 text-primary"></i>
+          </div>
+          <h5 class="fw-bold">Browse Coupons</h5>
+          <p class="text-muted small">Choose the coupon that suits your needs</p>
+        </div>
+        <div class="col-md-3 text-center">
+          <div class="mb-3">
+            <i class="bi bi-2-circle-fill fs-1 text-primary"></i>
+          </div>
+          <h5 class="fw-bold">Copy Code</h5>
+          <p class="text-muted small">Click the copy button to copy the coupon code</p>
+        </div>
+        <div class="col-md-3 text-center">
+          <div class="mb-3">
+            <i class="bi bi-3-circle-fill fs-1 text-primary"></i>
+          </div>
+          <h5 class="fw-bold">Book Service</h5>
+          <p class="text-muted small">Book your consultation or service</p>
+        </div>
+        <div class="col-md-3 text-center">
+          <div class="mb-3">
+            <i class="bi bi-4-circle-fill fs-1 text-primary"></i>
+          </div>
+          <h5 class="fw-bold">Apply & Save</h5>
+          <p class="text-muted small">Apply the code at checkout and save money</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Coupon Details Modal -->
+<div
+  class="modal fade"
+  [class.show]="selectedCoupon !== null"
+  [style.display]="selectedCoupon !== null ? 'block' : 'none'"
+  tabindex="-1"
+  *ngIf="selectedCoupon"
+>
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-{{ getCategoryColor(selectedCoupon.applicableFor) }} bg-gradient text-white">
+        <h5 class="modal-title fw-bold">
+          <i [class]="getCategoryIcon(selectedCoupon.applicableFor)" class="me-2"></i>
+          {{ selectedCoupon.title }}
+        </h5>
+        <button type="button" class="btn-close btn-close-white" (click)="closeCouponDetails()"></button>
+      </div>
+      <div class="modal-body p-4">
+        <!-- Discount Badge -->
+        <div class="text-center mb-4">
+          <div class="display-3 fw-bold text-{{ getCategoryColor(selectedCoupon.applicableFor) }}">
+            {{ selectedCoupon.discount }}
+          </div>
+          <p class="lead">{{ selectedCoupon.description }}</p>
+        </div>
+
+        <!-- Coupon Code -->
+        <div class="alert alert-{{ getCategoryColor(selectedCoupon.applicableFor) }} bg-opacity-10 border-0 text-center">
+          <p class="mb-2 fw-bold">Use Coupon Code:</p>
+          <div class="d-flex align-items-center justify-content-center gap-3">
+            <code class="fs-3 fw-bold">{{ selectedCoupon.code }}</code>
+            <button
+              class="btn btn-{{ getCategoryColor(selectedCoupon.applicableFor) }} btn-sm"
+              (click)="copyCouponCode(selectedCoupon.code)"
+            >
+              <i class="bi" [ngClass]="copiedCode === selectedCoupon.code ? 'bi-check-lg' : 'bi-clipboard'"></i>
+              {{ copiedCode === selectedCoupon.code ? 'Copied!' : 'Copy Code' }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Details Grid -->
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <div class="card bg-light border-0">
+              <div class="card-body">
+                <h6 class="fw-bold mb-2">
+                  <i class="bi bi-percent text-primary me-2"></i>Discount Details
+                </h6>
+                <ul class="list-unstyled small mb-0">
+                  <li class="mb-1">
+                    <strong>Type:</strong> 
+                    {{ selectedCoupon.discountType === 'percentage' ? 'Percentage' : 'Fixed Amount' }}
+                  </li>
+                  <li class="mb-1">
+                    <strong>Value:</strong> 
+                    {{ selectedCoupon.discountType === 'percentage' ? selectedCoupon.discountValue + '%' : '₹' + selectedCoupon.discountValue }}
+                  </li>
+                  <li class="mb-1" *ngIf="selectedCoupon.maxDiscount">
+                    <strong>Max Discount:</strong> ₹{{ selectedCoupon.maxDiscount }}
+                  </li>
+                  <li *ngIf="selectedCoupon.minAmount">
+                    <strong>Min Amount:</strong> ₹{{ selectedCoupon.minAmount }}
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card bg-light border-0">
+              <div class="card-body">
+                <h6 class="fw-bold mb-2">
+                  <i class="bi bi-calendar-range text-success me-2"></i>Validity
+                </h6>
+                <ul class="list-unstyled small mb-0">
+                  <li class="mb-1">
+                    <strong>Valid From:</strong> {{ selectedCoupon.validFrom | date:'mediumDate' }}
+                  </li>
+                  <li class="mb-1">
+                    <strong>Valid Until:</strong> {{ selectedCoupon.validUntil | date:'mediumDate' }}
+                  </li>
+                  <li class="mb-1">
+                    <strong>Days Remaining:</strong> {{ getDaysRemaining(selectedCoupon) }} days
+                  </li>
+                  <li *ngIf="selectedCoupon.usageLimit">
+                    <strong>Usage:</strong> {{ selectedCoupon.usedCount }}/{{ selectedCoupon.usageLimit }}
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Applicable Hospitals -->
+        <div *ngIf="selectedCoupon.hospitals && selectedCoupon.hospitals.length > 0" class="mb-4">
+          <h6 class="fw-bold mb-2">
+            <i class="bi bi-hospital text-info me-2"></i>Applicable Hospitals
+          </h6>
+          <div class="d-flex flex-wrap gap-2">
+            <span
+              *ngFor="let hospital of selectedCoupon.hospitals"
+              class="badge bg-info bg-opacity-10 text-info"
+            >
+              {{ hospital }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Terms and Conditions -->
+        <div *ngIf="selectedCoupon.terms && selectedCoupon.terms.length > 0">
+          <h6 class="fw-bold mb-2">
+            <i class="bi bi-file-text text-warning me-2"></i>Terms & Conditions
+          </h6>
+          <ul class="small text-muted">
+            <li *ngFor="let term of selectedCoupon.terms" class="mb-1">{{ term }}</li>
+          </ul>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeCouponDetails()">
+          Close
+        </button>
+        <button type="button" class="btn btn-{{ getCategoryColor(selectedCoupon.applicableFor) }}">
+          <i class="bi bi-cart-plus me-2"></i>Use This Coupon
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal-backdrop fade" [class.show]="selectedCoupon !== null" *ngIf="selectedCoupon"></div>

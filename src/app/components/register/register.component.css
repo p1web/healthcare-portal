@@ -1,0 +1,183 @@
+.register-container {
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+.card {
+  border-radius: 16px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.bg-gradient-success {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.bg-gradient-success::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%23ffffff" fill-opacity="0.1" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,138.7C960,139,1056,117,1152,106.7C1248,96,1344,96,1392,96L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') no-repeat bottom;
+  background-size: cover;
+}
+
+.register-form-container {
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.progress-steps {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  position: relative;
+  padding: 0 20px;
+}
+
+.progress-steps::before {
+  content: '';
+  position: absolute;
+  top: 20px;
+  left: 20%;
+  right: 20%;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.3);
+  z-index: 0;
+}
+
+.step {
+  flex: 1;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+.step-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  transition: all 0.3s ease;
+}
+
+.step.active .step-circle {
+  background: white;
+  color: #10b981;
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.3);
+}
+
+.step.completed .step-circle {
+  background: white;
+  color: #10b981;
+}
+
+.step p {
+  margin-top: 8px;
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+.step.active p {
+  opacity: 1;
+  font-weight: 600;
+}
+
+.btn-check:checked + .btn-outline-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: #667eea;
+  color: white;
+}
+
+.input-group-text {
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+}
+
+.form-control {
+  border: 1px solid #dee2e6;
+}
+
+.form-control:focus {
+  border-color: #10b981;
+  box-shadow: 0 0 0 0.2rem rgba(16, 185, 129, 0.15);
+}
+
+.input-group:focus-within .input-group-text {
+  border-color: #10b981;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  font-weight: 600;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #5568d3 0%, #6941a0 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.btn-success {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border: none;
+  font-weight: 600;
+}
+
+.btn-success:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.step-content {
+  animation: fadeInUp 0.4s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .register-container {
+    padding: 2rem 0;
+  }
+
+  .card {
+    border-radius: 12px;
+  }
+
+  .register-form-container {
+    padding: 1rem 0;
+  }
+}
+
+.form-check-input:checked {
+  background-color: #10b981;
+  border-color: #10b981;
+}
+
+.alert {
+  border-radius: 8px;
+  border: none;
+}

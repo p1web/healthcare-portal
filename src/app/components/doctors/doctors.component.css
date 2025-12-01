@@ -1,0 +1,438 @@
+/* Doctor Cards */
+.doctor-card {
+  transition: all 0.3s ease;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.doctor-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Doctor Avatar */
+.doctor-avatar {
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.1) 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  transition: transform 0.3s ease;
+}
+
+.doctor-card:hover .doctor-avatar {
+  transform: scale(1.1);
+}
+
+.doctor-avatar-list {
+  width: 100px;
+  height: 100px;
+  background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);
+}
+
+/* Gradient Backgrounds */
+.bg-gradient-purple {
+  background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%) !important;
+}
+
+.card-header.bg-gradient-purple {
+  border-bottom: none;
+}
+
+/* Rating Badges */
+.rating-badge-dark {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  font-size: 0.9rem;
+  backdrop-filter: blur(10px);
+}
+
+.rating-badge-large {
+  display: inline-flex;
+  align-items:center;
+  padding: 0.5rem 1rem;
+  background-color: #fff3cd;
+  border-radius: 25px;
+  font-size: 1rem;
+}
+
+/* Info List Styling */
+.list-unstyled li {
+  transition: all 0.3s ease;
+  padding: 0.25rem 0;
+}
+
+.list-unstyled li:hover {
+  padding-left: 5px;
+  color: var(--bs-primary);
+}
+
+/* Consultation Type Badges */
+.badge.bg-info.bg-opacity-10 {
+  border: 1px solid rgba(13, 110, 253, 0.1);
+}
+
+/* Search Input */
+.input-group-text {
+  border-right: none;
+}
+
+.input-group .form-control {
+  border-left: none;
+}
+
+.input-group .form-control:focus {
+  border-left: none;
+  box-shadow: none;
+}
+
+/* Filter Buttons */
+.btn-sm {
+  transition: all 0.3s ease;
+  font-size: 0.85rem;
+}
+
+.btn-sm:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Form Select Styling */
+.form-select {
+  transition: all 0.3s ease;
+}
+
+.form-select:focus {
+  border-color: #a855f7;
+  box-shadow: 0 0 0 0.25rem rgba(168, 85, 247, 0.15);
+}
+
+/* Card Body Hover Effect */
+.doctor-card .card-body {
+  position: relative;
+  z-index: 1;
+}
+
+/* Verified Badge */
+.badge.bg-success {
+  font-size: 0.75rem;
+}
+
+/* Stats Cards */
+.card.bg-primary.bg-opacity-10,
+.card.bg-success.bg-opacity-10,
+.card.bg-info.bg-opacity-10,
+.card.bg-warning.bg-opacity-10 {
+  transition: all 0.3s ease;
+}
+
+.card.bg-primary.bg-opacity-10:hover,
+.card.bg-success.bg-opacity-10:hover,
+.card.bg-info.bg-opacity-10:hover,
+.card.bg-warning.bg-opacity-10:hover {
+  transform: translateY(-5px);
+}
+
+.card.bg-primary.bg-opacity-10:hover {
+  box-shadow: 0 8px 16px rgba(13, 110, 253, 0.2);
+}
+
+.card.bg-success.bg-opacity-10:hover {
+  box-shadow: 0 8px 16px rgba(25, 135, 84, 0.2);
+}
+
+.card.bg-info.bg-opacity-10:hover {
+  box-shadow: 0 8px 16px rgba(13, 202, 240, 0.2);
+}
+
+.card.bg-warning.bg-opacity-10:hover {
+  box-shadow: 0 8px 16px rgba(255, 193, 7, 0.2);
+}
+
+/* Featured Banner */
+.bg-gradient-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+}
+
+.bg-gradient-primary .btn-light {
+  transition: all 0.3s ease;
+}
+
+.bg-gradient-primary .btn-light:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* Button Hover Effects */
+.btn {
+  transition: all 0.3s ease;
+}
+
+.btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #5568d3 0%, #6941a0 100%);
+}
+
+/* Icon Colors */
+.bi-hospital {
+  color: var(--bs-primary);
+}
+
+.bi-award {
+  color: var(--bs-success);
+}
+
+.bi-calendar-week {
+  color: var(--bs-info);
+}
+
+.bi-currency-rupee {
+  color: var(--bs-danger);
+}
+
+.bi-people {
+  color: var(--bs-warning);
+}
+
+.bi-stethoscope {
+  color: var(--bs-primary);
+}
+
+/* Smooth Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.doctor-card {
+  animation: fadeIn 0.5s ease-in;
+}
+
+/* Loading State */
+.spinner-border {
+  width: 3rem;
+  height: 3rem;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .display-5 {
+    font-size: 2rem;
+  }
+
+  .doctor-avatar {
+    width: 70px;
+    height: 70px;
+  }
+
+  .doctor-avatar-list {
+    width: 80px;
+    height: 80px;
+  }
+
+  .card-header.bg-gradient-purple {
+    padding: 1.5rem 1rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .doctor-avatar {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .btn-lg {
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+  }
+}
+
+/* View Toggle Button */
+.btn-outline-primary i {
+  font-size: 1.2rem;
+}
+
+/* No Results Section */
+.text-center .bi-search {
+  color: #cbd5e1;
+}
+
+/* Card Header Shadow */
+.card-header {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Consultation Type Icons */
+.badge .bi {
+  font-size: 0.9em;
+  margin-right: 0.25rem;
+}
+
+/* Info Icon Alignment */
+.list-unstyled li .bi {
+  font-size: 1.1em;
+  vertical-align: middle;
+}
+
+/* Star Icon in Rating Filter */
+.btn .bi-star-fill {
+  font-size: 0.85rem;
+}
+
+/* Active Filter State */
+.btn-warning.active,
+.btn-outline-warning.active {
+  box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25);
+}
+
+/* Card Body Padding */
+.card-body {
+  padding: 1.25rem;
+}
+
+/* Verified Badge Animation */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+.badge.bg-success {
+  animation: pulse 2s infinite;
+}
+
+/* Consultation Type Badge Hover */
+.badge.bg-info.bg-opacity-10:hover {
+  background-color: rgba(13, 202, 240, 0.2) !important;
+  transform: scale(1.05);
+  transition: all 0.3s ease;
+}
+
+/* Stats Card Icons */
+.card.text-center .bi {
+  transition: transform 0.3s ease;
+}
+
+.card.text-center:hover .bi {
+  transform: scale(1.2);
+}
+
+/* List View Responsive */
+@media (max-width: 992px) {
+  .rating-badge-large {
+    padding: 0.35rem 0.75rem;
+    font-size: 0.9rem;
+  }
+}
+
+/* Smooth Scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Focus Styles */
+*:focus-visible {
+  outline: 2px solid #a855f7;
+  outline-offset: 2px;
+}
+
+/* Print Styles */
+@media print {
+  .btn,
+  .input-group,
+  .form-select {
+    display: none !important;
+  }
+
+  .doctor-card {
+    page-break-inside: avoid;
+    box-shadow: none !important;
+    border: 1px solid #dee2e6 !important;
+  }
+}
+
+/* Backdrop Blur Effect */
+.rating-badge-dark {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Gradient Text */
+.text-gradient-purple {
+  background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Card Border Radius */
+.card {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* Button Group Spacing */
+.d-flex.gap-2 {
+  gap: 0.5rem !important;
+}
+
+.d-flex.gap-3 {
+  gap: 1rem !important;
+}
+
+/* Info Text Styling */
+.text-muted.small {
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+/* Featured Section Background */
+.bg-gradient-primary {
+  position: relative;
+  overflow: hidden;
+}
+
+.bg-gradient-primary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%23ffffff" fill-opacity="0.1" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,138.7C960,139,1056,117,1152,106.7C1248,96,1344,96,1392,96L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') no-repeat bottom;
+  background-size: cover;
+  opacity: 0.3;
+}

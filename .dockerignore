@@ -1,0 +1,15 @@
+# ====================
+# .dockerignore (Frontend - Root directory)
+# ====================
+# File: .dockerignore
+node_modules
+dist
+.angular
+.git
+.gitignore
+*.md
+.editorconfig
+.vscode
+coverage
+.nyc_output
+*.log

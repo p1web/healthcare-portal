@@ -64,13 +64,13 @@ export class DoctorService {
   constructor(private http: HttpClient) {}
 
   getDoctors(): Observable<Doctor[]> {
-    // return this.http.get<Doctor[]>(this.apiUrl);
-    return of(this.mockDoctors); // Use mock data for now
+    return this.http.get<Doctor[]>(this.apiUrl);
+    // return of(this.mockDoctors); // Use mock data for now
   }
 
   getDoctorById(id: number): Observable<Doctor | undefined> {
-    // return this.http.get<Doctor>(`${this.apiUrl}/${id}`);
-    return of(this.mockDoctors.find(d => d.id === id));
+    return this.http.get<Doctor>(`${this.apiUrl}/${id}`);
+    // return of(this.mockDoctors.find(d => d.id === id));
   }
 
   searchDoctors(query: string, type: string = 'all'): Observable<Doctor[]> {

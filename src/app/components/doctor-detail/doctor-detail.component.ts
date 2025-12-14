@@ -43,10 +43,17 @@ export class DoctorDetailComponent implements OnInit {
   }
 
   loadDoctor(id: number) {
-    this.doctorService.getDoctorById(id).subscribe(
-      data => this.doctor = data
-    );
+    this.doctorService.getDoctorById(id).subscribe({
+      next: (res: any) => {
+        this.doctor = res.data;  // <- assign the actual doctor object
+        // console.log('Loaded doctor:', this.doctor);
+      },
+      error: (err) => {
+        console.error('Failed to load doctor', err);
+      }
+    });
   }
+
 
   getDoctorInitial(): string {
     if (!this.doctor) return '';

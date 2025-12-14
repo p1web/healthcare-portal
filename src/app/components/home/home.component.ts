@@ -41,7 +41,7 @@ export class HomeComponent implements OnInit {
 
   loadHospitals() {
     this.hospitalService.getHospitals().subscribe(
-      data => this.hospitals = data
+      res => this.hospitals = res.data
     );
   }
 

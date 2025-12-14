@@ -5,6 +5,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { DoctorService } from '../../services/doctor.service';
 import { Doctor } from '../../models/doctor.model';
 
+
 @Component({
   selector: 'app-doctors',
   standalone: true,
@@ -80,14 +81,19 @@ export class DoctorsComponent implements OnInit {
   }
 
   loadDoctors() {
-    this.doctorService.getDoctors().subscribe(
-      data => {
-        this.doctors = data;
-        this.filteredDoctors = data;
+    this.doctorService.getDoctors().subscribe({
+      next: (res: any) => {
+        // console.log(res);
+        this.doctors = res.data;
+        this.filteredDoctors = res.data;
         this.applyFiltersAndSort();
+      },
+      error: (err) => {
+        console.error('Failed to load doctors', err);
       }
-    );
+    });
   }
+
 
   searchDoctors() {
     this.applyFiltersAndSort();

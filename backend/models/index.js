@@ -9,6 +9,10 @@ const HospitalImage = require("./hospitalImage")(sequelize, DataTypes);
 const HospitalSpecialty = require("./hospitalSpecialty")(sequelize, DataTypes);
 const HospitalFacility = require("./hospitalFacility")(sequelize, DataTypes);
 const HospitalAccreditation = require("./hospitalAccreditation")(sequelize, DataTypes);
+const Doctor = require("./doctor")(sequelize, DataTypes);
+const Specialization = require("./specialization")(sequelize, DataTypes);
+const DoctorAvailability = require("./doctorAvailability")(sequelize, DataTypes);
+
 
 // Run associations
 Hospital.associate({ Specialty, Facility, Accreditation, HospitalImage, HospitalSpecialty, HospitalFacility, HospitalAccreditation });
@@ -19,6 +23,10 @@ HospitalImage.associate({ Hospital });
 HospitalSpecialty.associate({ Hospital, Specialty });
 HospitalFacility.associate({ Hospital, Facility });
 HospitalAccreditation.associate({ Hospital, Accreditation });
+Doctor.associate({ Specialization, Hospital, DoctorAvailability });
+Specialization.associate({ Doctor });
+DoctorAvailability.associate({ Doctor });
+
 
 module.exports = {
   sequelize,
@@ -29,5 +37,8 @@ module.exports = {
   HospitalImage,
   HospitalSpecialty,
   HospitalFacility,
-  HospitalAccreditation
+  HospitalAccreditation,
+  Doctor,
+  Specialization,
+  DoctorAvailability,
 };

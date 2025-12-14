@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, provideHttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { Hospital } from '../models/hospital.model';
 
@@ -127,26 +127,23 @@ export class HospitalService {
     }
   ];
 
+  constructor(private http: HttpClient) { }
+  
   // Update the getHospitals method to return extended data
-  getHospitals(): Observable<Hospital[]> {
-    return of(this.mockHospitalsExtended);
+  // getHospitals(): Observable<Hospital[]> {
+  //   return this.http.get<Hospital[]>(this.apiUrl);
+  // }
+  getHospitals(): Observable<{ success: boolean, count: number, data: Hospital[] }> {
+    return this.http.get<{ success: boolean, count: number, data: Hospital[] }>(this.apiUrl);
   }
 
-  constructor(private http: HttpClient) { }
 
-
-  getHospitalById(id: number): Observable<Hospital | undefined> {
-    // return this.http.get<Hospital>(`${this.apiUrl}/${id}`);
-    return of(this.mockHospitalsExtended.find(h => h.id === id));
+  getHospitalById(id: number): Observable<Hospital> {
+    return this.http.get<Hospital>(`${this.apiUrl}/${id}`);
   }
 
   searchHospitals(query: string): Observable<Hospital[]> {
-    const filtered = this.mockHospitalsExtended.filter(h =>
-      h.name.toLowerCase().includes(query.toLowerCase()) ||
-      h.location.toLowerCase().includes(query.toLowerCase()) ||
-      h.specialties.some(s => s.toLowerCase().includes(query.toLowerCase()))
-    );
-    return of(filtered);
+    return this.http.get<Hospital[]>(`${this.apiUrl}?search=${query}`);
   }
 
 }

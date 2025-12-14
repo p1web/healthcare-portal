@@ -1,12 +1,13 @@
 const express = require('express');
 const router = express.Router();
+const controller = require("../controllers/doctor.controller"); // Fixed: "controler" → "controller"
 
-router.get('/', (req, res) => {
-  res.json({ message: "Doctors list route working" });
-});
 
-router.post('/', (req, res) => {
-  res.json({ message: "Add doctor route working" });
-});
+// Main CRUD routes
+router.get("/", controller.getAll);           // Get all doctors (component does filtering)
+router.get("/:id", controller.getById);       // Get single doctor
+router.post("/", controller.create);          // Create doctor
+router.put("/:id", controller.update);        // Update doctor
+router.delete("/:id", controller.delete);     // Delete doctor
 
 module.exports = router;

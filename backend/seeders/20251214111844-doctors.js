@@ -1,0 +1,174 @@
+'use strict';
+
+/** @type {import('sequelize-cli').Seeder} */
+module.exports = {
+  async up(queryInterface) {
+
+    await queryInterface.bulkInsert('doctors', [
+      {
+        name: 'Dr. Rajesh Kumar',
+        specialization_id: 1,
+        hospital_id: 1,
+        experience: 15,
+        rating: 4.8,
+        fee: 1000,
+        email: 'rajesh.kumar@citygeneral.com',
+        phone: '+91 98765 00001',
+        qualification: 'MBBS, MD (Cardiology), DM',
+        bio: 'Experienced cardiologist specializing in interventional cardiology and heart disease management.',
+        image: 'https://via.placeholder.com/300x300',
+        consultation_duration: 30,
+        created_at: new Date(),
+        updated_at: new Date()
+      },
+      {
+        name: 'Dr. Priya Sharma',
+        specialization_id: 4,
+        hospital_id: 2,
+        experience: 10,
+        rating: 4.6,
+        fee: 800,
+        email: 'priya.sharma@medicareplus.com',
+        phone: '+91 98765 00002',
+        qualification: 'MBBS, MD (Pediatrics)',
+        bio: 'Dedicated pediatrician with expertise in child healthcare and vaccination.',
+        image: 'https://via.placeholder.com/300x300',
+        consultation_duration: 20,
+        created_at: new Date(),
+        updated_at: new Date()
+      },
+      {
+        name: 'Dr. Amit Patel',
+        specialization_id: 3,
+        hospital_id: 2,
+        experience: 12,
+        rating: 4.7,
+        fee: 1200,
+        email: 'amit.patel@medicareplus.com',
+        phone: '+91 98765 00003',
+        qualification: 'MBBS, MS (Orthopedics)',
+        bio: 'Specialist in joint replacement surgeries and sports medicine.',
+        image: 'https://via.placeholder.com/300x300',
+        consultation_duration: 30,
+        created_at: new Date(),
+        updated_at: new Date()
+      },
+      {
+        name: 'Dr. Sneha Desai',
+        specialization_id: 6,
+        hospital_id: 3,
+        experience: 8,
+        rating: 4.5,
+        fee: 900,
+        email: 'sneha.desai@healthfirst.com',
+        phone: '+91 98765 00004',
+        qualification: 'MBBS, MD (Dermatology)',
+        bio: 'Expert in skin treatments, cosmetic dermatology, and laser therapy.',
+        image: 'https://via.placeholder.com/300x300',
+        consultation_duration: 25,
+        created_at: new Date(),
+        updated_at: new Date()
+      },
+      {
+        name: 'Dr. Vikram Singh',
+        specialization_id: 2,
+        hospital_id: 5,
+        experience: 18,
+        rating: 4.9,
+        fee: 1500,
+        email: 'vikram.singh@neurocare.com',
+        phone: '+91 98765 00005',
+        qualification: 'MBBS, MD, DM (Neurology)',
+        bio: 'Leading neurologist specializing in stroke management and epilepsy treatment.',
+        image: 'https://via.placeholder.com/300x300',
+        consultation_duration: 40,
+        created_at: new Date(),
+        updated_at: new Date()
+      },
+      {
+        name: 'Dr. Kavita Menon',
+        specialization_id: 12,
+        hospital_id: 6,
+        experience: 14,
+        rating: 4.7,
+        fee: 1100,
+        email: 'kavita.menon@womenandchild.com',
+        phone: '+91 98765 00006',
+        qualification: 'MBBS, MS (Gynecology)',
+        bio: 'Experienced gynecologist specializing in high-risk pregnancies and laparoscopic surgeries.',
+        image: 'https://via.placeholder.com/300x300',
+        consultation_duration: 30,
+        created_at: new Date(),
+        updated_at: new Date()
+      },
+      {
+        name: 'Dr. Arjun Reddy',
+        specialization_id: 8,
+        hospital_id: 4,
+        experience: 20,
+        rating: 4.9,
+        fee: 2000,
+        email: 'arjun.reddy@apolloheart.com',
+        phone: '+91 98765 00007',
+        qualification: 'MBBS, MS, MCh (Cardiac Surgery)',
+        bio: 'Renowned cardiac surgeon with expertise in complex heart surgeries.',
+        image: 'https://via.placeholder.com/300x300',
+        consultation_duration: 45,
+        created_at: new Date(),
+        updated_at: new Date()
+      },
+      {
+        name: 'Dr. Neha Gupta',
+        specialization_id: 4,
+        hospital_id: 6,
+        experience: 9,
+        rating: 4.6,
+        fee: 850,
+        email: 'neha.gupta@womenandchild.com',
+        phone: '+91 98765 00008',
+        qualification: 'MBBS, MD (Pediatrics)',
+        bio: 'Caring pediatrician specializing in neonatal care and child nutrition.',
+        image: 'https://via.placeholder.com/300x300',
+        consultation_duration: 20,
+        created_at: new Date(),
+        updated_at: new Date()
+      },
+      {
+        name: 'Dr. Suresh Iyer',
+        specialization_id: 7,
+        hospital_id: 3,
+        experience: 11,
+        rating: 4.4,
+        fee: 750,
+        email: 'suresh.iyer@healthfirst.com',
+        phone: '+91 98765 00009',
+        qualification: 'MBBS, MS (ENT)',
+        bio: 'ENT specialist with expertise in ear surgeries and voice disorders.',
+        image: 'https://via.placeholder.com/300x300',
+        consultation_duration: 25,
+        created_at: new Date(),
+        updated_at: new Date()
+      },
+      {
+        name: 'Dr. Ananya Krishnan',
+        specialization_id: 10,
+        hospital_id: 5,
+        experience: 16,
+        rating: 4.8,
+        fee: 1400,
+        email: 'ananya.krishnan@neurocare.com',
+        phone: '+91 98765 00010',
+        qualification: 'MBBS, MS, MCh (Neurosurgery)',
+        bio: 'Expert neurosurgeon specializing in brain and spine surgeries.',
+        image: 'https://via.placeholder.com/300x300',
+        consultation_duration: 40,
+        created_at: new Date(),
+        updated_at: new Date()
+      }
+    ]);
+  },
+
+  async down(queryInterface) {
+    await queryInterface.bulkDelete('doctors', null, {});
+  }
+};

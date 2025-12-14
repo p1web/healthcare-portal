@@ -9,10 +9,14 @@ const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(helmet());
+app.use(cors());
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:3001',
+  // origin: process.env.CORS_ORIGIN || 'http://localhost:4200',
+  origin: ['http://localhost:4200', 'http://localhost:3000'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true
 }));
+
 app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -21,6 +25,7 @@ app.use(express.urlencoded({ extended: true }));
 const authRoutes = require('./routes/auth.routes');
 const doctorRoutes = require('./routes/doctor.routes');
 const hospitalRoutes = require('./routes/hospital.routes');
+const specialtiesRoutes = require('./routes/specialties.routes'); // adjust path
 const appointmentRoutes = require('./routes/appointment.routes');
 const couponRoutes = require('./routes/coupon.routes');
 
@@ -28,6 +33,7 @@ const couponRoutes = require('./routes/coupon.routes');
 app.use('/api/auth', authRoutes);
 app.use('/api/doctors', doctorRoutes);
 app.use('/api/hospitals', hospitalRoutes);
+app.use('/api/specialties', specialtiesRoutes);
 app.use('/api/appointments', appointmentRoutes);
 app.use('/api/coupons', couponRoutes);
 

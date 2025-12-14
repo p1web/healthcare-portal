@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HospitalService } from '../../services/hospital.service';
+import { SpecialtyService } from '../../services/specialty.service';
+
 import { Hospital } from '../../models/hospital.model';
 
 @Component({
@@ -22,28 +24,17 @@ export class HospitalsComponent implements OnInit {
   sortBy: string = 'rating';
   viewMode: 'grid' | 'list' = 'grid';
   selectedHospital: Hospital | null = null;
-
-  specialties = [
-    'All Specialties',
-    'Cardiology',
-    'Neurology',
-    'Orthopedics',
-    'Pediatrics',
-    'Dermatology',
-    'General Medicine',
-    'Oncology',
-    'Gynecology',
-    'ENT',
-    'Ophthalmology'
-  ];
+  specialties: string[] = ['All Specialties'];
 
   constructor(
     private hospitalService: HospitalService,
+    private specialtyService: SpecialtyService,
     private route: ActivatedRoute,
     private router: Router
   ) {}
 
   ngOnInit() {
+    this.loadSpecialties();
     this.loadHospitals();
     
     // Check for search query parameter
@@ -55,18 +46,31 @@ export class HospitalsComponent implements OnInit {
     });
   }
 
+  loadSpecialties() {
+    this.specialtyService.getSpecialties().subscribe(data => {
 
+      // console.log(data);
+
+      this.specialties = [
+        'All Specialties',
+        ...data.map(s => s.name)
+      ];
+    });
+  }
+  
   
 
   loadHospitals() {
     this.hospitalService.getHospitals().subscribe(
-      data => {
-        this.hospitals = data;
-        this.filteredHospitals = data;
+      res => {
+        this.hospitals = res.data;       // extract the array
+        this.filteredHospitals = res.data;
         this.applyFiltersAndSort();
       }
     );
   }
+  
+  
 
   searchHospitals() {
     this.applyFiltersAndSort();

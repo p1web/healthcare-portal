@@ -27,13 +27,17 @@ export class CouponsComponent implements OnInit {
   }
 
   loadCoupons() {
-    this.couponService.getCoupons().subscribe(
-      data => {
-        this.coupons = data;
-        this.filteredCoupons = data;
-      }
-    );
-  }
+  this.couponService.getCoupons().subscribe(res => {
+    if (res?.success) {
+      this.coupons = res.data;
+      this.filteredCoupons = res.data;
+    } else {
+      this.coupons = [];
+      this.filteredCoupons = [];
+    }
+  });
+}
+
 
   filterCoupons(type: string) {
     this.selectedFilter = type;
@@ -77,19 +81,30 @@ export class CouponsComponent implements OnInit {
 
   isExpiringSoon(coupon: Coupon): boolean {
     const now = new Date();
-    const daysUntilExpiry = Math.floor((coupon.validUntil.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    const validUntil = new Date(coupon.validUntil); // ✅ convert
+
+    const daysUntilExpiry = Math.floor(
+      (validUntil.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+    );
+
     return daysUntilExpiry <= 7 && daysUntilExpiry >= 0;
   }
+
 
   getUsagePercentage(coupon: Coupon): number {
     if (!coupon.usageLimit) return 0;
     return (coupon.usedCount / coupon.usageLimit) * 100;
   }
 
-  getDaysRemaining(coupon: Coupon): number {
-    const now = new Date();
-    return Math.floor((coupon.validUntil.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-  }
+ getDaysRemaining(coupon: Coupon): number {
+  const now = new Date();
+  const validUntil = new Date(coupon.validUntil); // ✅ convert
+
+  return Math.floor(
+    (validUntil.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+  );
+}
+
 
   getCategoryIcon(category: string): string {
     const icons: { [key: string]: string } = {

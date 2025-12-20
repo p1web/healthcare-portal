@@ -152,21 +152,21 @@ export class CouponService {
     }
   ];
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
-  getCoupons(): Observable<Coupon[]> {
-    // return this.http.get<Coupon[]>(this.apiUrl);
-    return of(this.mockCoupons);
+  getCoupons(): Observable<any> {
+    return this.http.get<any>(this.apiUrl);
   }
 
+
   getCouponByCode(code: string): Observable<Coupon | undefined> {
-    // return this.http.get<Coupon>(`${this.apiUrl}/code/${code}`);
-    return of(this.mockCoupons.find(c => c.code.toLowerCase() === code.toLowerCase()));
+    return this.http.get<Coupon>(`${this.apiUrl}/code/${code}`);
+    // return of(this.mockCoupons.find(c => c.code.toLowerCase() === code.toLowerCase()));
   }
 
   validateCoupon(code: string, amount: number): Observable<{ valid: boolean; message: string; discount?: number }> {
     const coupon = this.mockCoupons.find(c => c.code.toLowerCase() === code.toLowerCase());
-    
+
     if (!coupon) {
       return of({ valid: false, message: 'Invalid coupon code' });
     }
@@ -198,8 +198,8 @@ export class CouponService {
       discountAmount = coupon.discountValue;
     }
 
-    return of({ 
-      valid: true, 
+    return of({
+      valid: true,
       message: 'Coupon applied successfully!',
       discount: discountAmount
     });

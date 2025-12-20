@@ -13,6 +13,10 @@ const Doctor = require("./doctor")(sequelize, DataTypes);
 const Specialization = require("./specialization")(sequelize, DataTypes);
 const DoctorAvailability = require("./doctorAvailability")(sequelize, DataTypes);
 
+const Coupon = require("./coupon")(sequelize, DataTypes);
+const CouponCategory = require("./coupon-category")(sequelize, DataTypes);
+const CouponUsage = require("./coupon-usage")(sequelize, DataTypes);
+
 
 // Run associations
 Hospital.associate({ Specialty, Facility, Accreditation, HospitalImage, HospitalSpecialty, HospitalFacility, HospitalAccreditation });
@@ -26,6 +30,10 @@ HospitalAccreditation.associate({ Hospital, Accreditation });
 Doctor.associate({ Specialization, Hospital, DoctorAvailability });
 Specialization.associate({ Doctor });
 DoctorAvailability.associate({ Doctor });
+
+Coupon.associate({ CouponCategory, Hospital, CouponUsage });
+CouponCategory.associate({ Coupon });
+CouponUsage.associate({ Coupon });
 
 
 module.exports = {
@@ -41,4 +49,7 @@ module.exports = {
   Doctor,
   Specialization,
   DoctorAvailability,
+  Coupon,
+  CouponCategory,
+  CouponUsage
 };

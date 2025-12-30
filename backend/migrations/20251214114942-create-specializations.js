@@ -19,6 +19,7 @@ module.exports = {
         type: Sequelize.TEXT,
         allowNull: true
       },
+      icon: Sequelize.STRING(50),
       created_at: {
         allowNull: false,
         type: Sequelize.DATE,

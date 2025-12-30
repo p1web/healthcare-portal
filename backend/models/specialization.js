@@ -28,6 +28,7 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       unique: true
     },
+    icon: DataTypes.STRING,
     created_at: {
       type: DataTypes.DATE,
       allowNull: false,

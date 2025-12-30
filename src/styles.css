@@ -590,7 +590,7 @@ body {
    =========================== */
 
 .bi-hospital {
-  color: var(--bs-primary);
+  color: var(--bs-info);
 }
 
 .bi-star-fill {

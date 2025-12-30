@@ -34,7 +34,8 @@ export class RegisterComponent {
       password: ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', Validators.required],
       termsAccepted: [false, Validators.requiredTrue]
-    }, {
+    }, 
+    {
       validators: this.passwordMatchValidator
     });
   }
@@ -67,8 +68,8 @@ export class RegisterComponent {
       };
 
       // Mock API call - replace with actual API
-      // this.http.post('http://localhost:3000/api/auth/register', registerData).subscribe({
-      of({ success: true, message: 'Registration successful!', userId: 1 }).subscribe({
+      this.http.post('http://localhost:3000/api/auth/register', registerData).subscribe({
+      // of({ success: true, message: 'Registration successful!', userId: 1 }).subscribe({
         next: (response: any) => {
           this.isSubmitting = false;
           if (response.success) {

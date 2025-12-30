@@ -21,39 +21,41 @@ export class AuthService {
   }
 
   login(credentials: LoginRequest): Observable<LoginResponse> {
-    // Mock login - replace with actual API call
-    // return this.http.post<LoginResponse>(`${this.apiUrl}/login`, credentials);
-    
-    // Mock response with proper typing
-    const mockUser: User = {
-      id: 1,
-      email: credentials.email,
-      name: 'John Doe',
-      role: 'patient' as const,
-      phone: '+91 98765 43210'
-    };
-
-    return of({
-      success: true,
-      message: 'Login successful',
-      user: mockUser,
-      token: 'mock-jwt-token-12345'
-    }).pipe(
-      tap(response => {
-        if (response.success && response.user) {
-          localStorage.setItem('currentUser', JSON.stringify(response.user));
-          localStorage.setItem('token', response.token || '');
-          this.currentUserSubject.next(response.user);
-        }
-      })
-    );
+    return this.http.post<LoginResponse>(`${this.apiUrl}/login`, credentials);
   }
+
+  // login(credentials: LoginRequest): Observable<LoginResponse> {
+
+  //   // Mock response with proper typing
+  //   const mockUser: User = {
+  //     id: 1,
+  //     email: credentials.email,
+  //     name: 'John Doe',
+  //     role: 'patient' as const,
+  //     phone: '+91 98765 43210'
+  //   };
+
+  //   return of({
+  //     success: true,
+  //     message: 'Login successful',
+  //     user: mockUser,
+  //     token: 'mock-jwt-token-12345'
+  //   }).pipe(
+  //     tap(response => {
+  //       if (response.success && response.user) {
+  //         localStorage.setItem('currentUser', JSON.stringify(response.user));
+  //         localStorage.setItem('token', response.token || '');
+  //         this.currentUserSubject.next(response.user);
+  //       }
+  //     })
+  //   );
+  // }
 
   logout(): void {
-    localStorage.removeItem('currentUser');
-    localStorage.removeItem('token');
+    localStorage.clear();
     this.currentUserSubject.next(null);
   }
+
 
   getCurrentUser(): User | null {
     return this.currentUserSubject.value;

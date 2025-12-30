@@ -137,6 +137,11 @@ export class HospitalService {
     return this.http.get<{ success: boolean, count: number, data: Hospital[] }>(this.apiUrl);
   }
 
+  getHospitalList(): Observable<Partial<Hospital>[]> {
+    return this.http.get<Partial<Hospital>[]>(
+      `${this.apiUrl}/getHospitalist`
+    );
+  }
 
   getHospitalById(id: number): Observable<Hospital> {
     return this.http.get<Hospital>(`${this.apiUrl}/${id}`);

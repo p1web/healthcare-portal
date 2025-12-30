@@ -1,20 +1,24 @@
 export interface Doctor {
   id: number;
+
+  //  IDs (used for filtering)
+  specialization_id: number | null;
+  hospital_id: number | null;
+
+  // Display fields
   name: string;
-  specialization: string;
-  hospital: string;
+  specialization: string; // specialization name (for UI & search)
+  hospital: string;       // hospital name (for UI & search)
+
   experience: string;
   rating: number;
   fee: string;
   available: string;
+
   email?: string;
   phone?: string;
-  about?: string;
-  education?: string[];
-  languages?: string[];
-  awards?: string[];
-  consultationTypes?: string[];
-  nextAvailable?: Date;
-  totalPatients?: number;
-  verified?: boolean;
+  qualification?: string;
+  bio?: string;
+  image?: string;
+  consultationDuration?: number;
 }

@@ -6,6 +6,12 @@ import { DoctorsComponent } from './components/doctors/doctors.component';
 import { CouponsComponent } from './components/coupons/coupons.component';
 import { LoginComponent } from './components/login/login.component';
 import { RegisterComponent } from './components/register/register.component';
+import { AuthGuard } from './guards/auth.guard';
+
+import { LayoutComponent  } from './components/user/layout/layout.component';
+import { ProfileComponent } from './components/user/profile/profile.component';
+import { ChangePasswordComponent } from './components/user/change-password/change-password.component';
+import { ResetPasswordComponent } from './components/user/reset-password/reset-password.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -15,5 +21,32 @@ export const routes: Routes = [
   { path: 'coupons', component: CouponsComponent },
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
+  // {
+  //   path: 'profile',
+  //   component: ProfileComponent,
+  //   canActivate: [AuthGuard]
+  // },
+  // {
+  //   path: 'change-password',
+  //   component: ChangePasswordComponent,
+  //   canActivate: [AuthGuard]
+  // },
+  // {
+  //   path: 'reset-password',
+  //   component: ResetPasswordComponent
+  // },
+  // { path: '**', redirectTo: '', canActivate: [AuthGuard] }
+
+  // User pages wrapped in layout
+  {
+    path: '',
+    component: LayoutComponent,
+    canActivate: [AuthGuard],
+    children: [
+      { path: 'profile', component: ProfileComponent },
+      { path: 'change-password', component: ChangePasswordComponent },
+      { path: 'reset-password', component: ResetPasswordComponent }
+    ]
+  },
   { path: '**', redirectTo: '' }
 ];

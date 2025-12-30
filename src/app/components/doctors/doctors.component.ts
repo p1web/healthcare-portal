@@ -3,7 +3,10 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { DoctorService } from '../../services/doctor.service';
+import { SpecializationService, Specializations } from '../../services/specialization.service';
+import { HospitalService } from '../../services/hospital.service';
 import { Doctor } from '../../models/doctor.model';
+import { Hospital } from '../../models/hospital.model';
 
 
 @Component({
@@ -13,40 +16,107 @@ import { Doctor } from '../../models/doctor.model';
   templateUrl: './doctors.component.html',
   styleUrls: ['./doctors.component.css']
 })
+
 export class DoctorsComponent implements OnInit {
+
   doctors: Doctor[] = [];
+  specializations: Specializations[] = [];
+  hospitals: any[] = [];
+  hospitalList: any[] = [];
+  selectedSpecialization: any = '';
+
   filteredDoctors: Doctor[] = [];
+  searchType: 'all' | 'doctor' | 'hospital' | 'specialization' = 'all';
   searchQuery: string = '';
-  selectedSpecialization: string = 'all';
-  selectedHospital: string = 'all';
+  // selectedSpecialization: string = 'all';
+  selectedHospital: any = '';
   selectedExperience: string = 'all';
   selectedRating: number = 0;
   sortBy: string = 'rating';
   viewMode: 'grid' | 'list' = 'grid';
 
-  specializations = [
-    'All Specializations',
-    'Cardiologist',
-    'Pediatrician',
-    'Orthopedic',
-    'Dermatologist',
-    'Neurologist',
-    'General Physician',
-    'Psychiatrist',
-    'Gynecologist',
-    'ENT Specialist',
-    'Ophthalmologist'
-  ];
 
-  hospitals = [
-    'All Hospitals',
-    'City General Hospital',
-    'MediCare Plus',
-    'HealthFirst Clinic',
-    'Apollo Heart Center',
-    'Neuro Care Hospital',
-    'Women & Child Hospital'
-  ];
+  constructor(
+    private doctorService: DoctorService,
+    private specializationService: SpecializationService,
+    private hospitalService: HospitalService,
+    private route: ActivatedRoute,
+    private router: Router
+  ) {}
+
+  ngOnInit() {
+  // Load specializations, hospitals, doctors
+  this.loadSpecializations();
+  this.loadhospitals();
+  this.loadDoctors();
+
+  // Handle query parameters
+    this.route.queryParams.subscribe(params => {
+      const search = params['search'];
+      const type = params['type'];
+
+      if (type === 'specialization' && search) {
+        // Wait until specializations are loaded
+        const spec = this.specializations.find(s => s.id === Number(search));
+        if (spec) {
+          this.selectedSpecialization = spec.id; // for filtering
+          this.searchQuery = spec.name;          // for input display
+        } else {
+          // If not found yet, just store ID; you can later map after loadSpecializations()
+          this.selectedSpecialization = Number(search);
+        }
+      } else if (search) {
+        this.searchQuery = search; // normal text search
+      }
+
+      if (params['hospital']) {
+        this.selectedHospital = Number(params['hospital']);
+      }
+
+      if (type) {
+        this.searchType = type;
+      }
+
+      this.applyFiltersAndSort();
+    });
+  }
+
+
+
+  loadSpecializations(): void {
+    this.specializationService.getSpecializations().subscribe({
+      next: (data) => {
+        this.specializations = data;
+      },
+      error: (err) => {
+        console.error('Failed to load specializations', err);
+      }
+    });
+  }
+  
+  loadhospitals(): void {
+    this.hospitalService.getHospitalList().subscribe({
+      next: (res) => {
+        this.hospitalList = res;
+      },
+      error: (err) => {
+        console.error('Failed to load hospitals', err);
+      }
+    });
+  }
+
+
+
+  // hospitals = [
+  //   'All Hospitals',
+  //   'City General Hospital',
+  //   'MediCare Plus',
+  //   'HealthFirst Clinic',
+  //   'Apollo Heart Center',
+  //   'Neuro Care Hospital',
+  //   'Women & Child Hospital'
+  // ];
+  
 
   experienceRanges = [
     { label: 'All Experience', value: 'all' },
@@ -55,30 +125,6 @@ export class DoctorsComponent implements OnInit {
     { label: '10-15 years', value: '10-15' },
     { label: '15+ years', value: '15+' }
   ];
-
-  constructor(
-    private doctorService: DoctorService,
-    private route: ActivatedRoute,
-    private router: Router
-  ) {}
-
-  ngOnInit() {
-    this.loadDoctors();
-    
-    // Check for query parameters
-    this.route.queryParams.subscribe(params => {
-      if (params['search']) {
-        this.searchQuery = params['search'];
-      }
-      if (params['type'] === 'specialization' && params['search']) {
-        this.selectedSpecialization = params['search'];
-      }
-      if (params['hospital']) {
-        this.selectedHospital = params['hospital'];
-      }
-      this.applyFiltersAndSort();
-    });
-  }
 
   loadDoctors() {
     this.doctorService.getDoctors().subscribe({
@@ -99,22 +145,23 @@ export class DoctorsComponent implements OnInit {
     this.applyFiltersAndSort();
   }
 
-  filterBySpecialization(specialization: string) {
-    this.selectedSpecialization = specialization;
+  filterBySpecialization(specId: any ) {
+    this.searchQuery = '';
+    this.selectedSpecialization = specId;
     this.applyFiltersAndSort();
   }
 
-  filterByHospital(hospital: string) {
-    this.selectedHospital = hospital;
+  filterByHospital(hospitalId: any) {
+    this.selectedHospital = hospitalId;
     this.applyFiltersAndSort();
   }
 
-  filterByExperience(experience: string) {
+  filterByExperience(experience: any) {
     this.selectedExperience = experience;
     this.applyFiltersAndSort();
   }
 
-  filterByRating(rating: number) {
+  filterByRating(rating: any) {
     this.selectedRating = rating;
     this.applyFiltersAndSort();
   }
@@ -127,6 +174,7 @@ export class DoctorsComponent implements OnInit {
   applyFiltersAndSort() {
     let filtered = [...this.doctors];
 
+
     // Apply search filter
     if (this.searchQuery.trim()) {
       const query = this.searchQuery.toLowerCase();
@@ -138,16 +186,16 @@ export class DoctorsComponent implements OnInit {
     }
 
     // Apply specialization filter
-    if (this.selectedSpecialization !== 'all' && this.selectedSpecialization !== 'All Specializations') {
+    if (this.selectedSpecialization !== '' && this.selectedSpecialization != null) {
       filtered = filtered.filter(d =>
-        d.specialization.toLowerCase() === this.selectedSpecialization.toLowerCase()
+        d.specialization_id === Number(this.selectedSpecialization)
       );
     }
 
     // Apply hospital filter
-    if (this.selectedHospital !== 'all' && this.selectedHospital !== 'All Hospitals') {
+    if (this.selectedHospital !== '') {
       filtered = filtered.filter(d =>
-        d.hospital.toLowerCase() === this.selectedHospital.toLowerCase()
+        d.hospital_id === Number(this.selectedHospital)
       );
     }
 
@@ -197,6 +245,7 @@ export class DoctorsComponent implements OnInit {
 
     this.filteredDoctors = filtered;
   }
+  
 
   toggleViewMode() {
     this.viewMode = this.viewMode === 'grid' ? 'list' : 'grid';
@@ -204,8 +253,8 @@ export class DoctorsComponent implements OnInit {
 
   resetFilters() {
     this.searchQuery = '';
-    this.selectedSpecialization = 'all';
-    this.selectedHospital = 'all';
+    this.selectedSpecialization = '';
+    this.selectedHospital = '';
     this.selectedExperience = 'all';
     this.selectedRating = 0;
     this.sortBy = 'rating';

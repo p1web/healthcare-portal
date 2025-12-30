@@ -9,6 +9,22 @@ const {
 const { Op, Sequelize } = require("sequelize");
 
 module.exports = {
+
+  async getHospitalist(req, res) {
+    try {
+      const hospitals = await Hospital.findAll({
+        attributes: ['id', 'name'],
+      });
+
+      res.status(200).json(hospitals);
+
+    } catch (error) {
+      console.error("Error fetching hospitals:", error);
+      res.status(500).json({ message: "Failed to fetch hospitals" });
+    }
+  },
+
+
   // ============================================
   // GET ALL HOSPITALS WITH FILTERS
   // ============================================
@@ -138,6 +154,8 @@ module.exports = {
       });
     }
   },
+
+
 
 
   // ============================================

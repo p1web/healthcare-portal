@@ -1,5 +1,5 @@
 <div class="container-fluid px-0">
-  
+
   <!-- Hero Section -->
   <div class="hero-section bg-gradient text-white py-5">
     <div class="container py-5">
@@ -7,35 +7,37 @@
         <div class="col-lg-8 text-center">
           <h1 class="display-4 fw-bold mb-3">Find the Best Healthcare Services</h1>
           <p class="lead mb-4">Search doctors, hospitals and get exclusive discounts up to 30%</p>
-          
+
           <!-- Search Bar -->
           <div class="card shadow-lg border-0">
             <div class="card-body p-4">
               <form (ngSubmit)="onSearch()">
                 <div class="row g-3">
                   <div class="col-md-3">
-                    <select 
-                      [(ngModel)]="searchType"
-                      name="searchType"
-                      class="form-select form-select-lg"
-                    >
-                      <option value="all">All</option>
+                    <select [(ngModel)]="searchType" name="searchType" class="form-select form-select-lg">
+                      <option value="">Select</option>
                       <option value="doctor">Doctor</option>
                       <option value="hospital">Hospital</option>
                       <option value="specialization">Specialization</option>
                     </select>
                   </div>
                   <div class="col-md-6">
-                    <input
-                      type="text"
-                      [(ngModel)]="searchQuery"
-                      name="searchQuery"
-                      placeholder="Search doctors, hospitals or specializations..."
-                      class="form-control form-control-lg"
-                    />
+                    <input *ngIf="searchType !== 'specialization'" type="text" [(ngModel)]="searchQuery"
+                      name="searchQuery" placeholder="Search doctors, hospitals or specializations..."
+                      class="form-control form-control-lg" />
+
+                    <!-- Specialization dropdown when searchType = 'specialization' -->
+                    <select *ngIf="searchType === 'specialization'" [(ngModel)]="selectedSpecialization"
+                      name="selectedSpecialization" class="form-select form-select-lg">
+                      <option value="">Select Specialization</option>
+                      <option *ngFor="let spec of specializations" [value]="spec.id">
+                        {{ spec.name }}
+                      </option>
+                    </select>
                   </div>
                   <div class="col-md-3">
-                    <button type="submit" class="btn btn-primary btn-lg w-100">
+                    <button type="submit" class="btn btn-primary btn-lg w-100"
+                      [disabled]="searchType === 'specialization' && !selectedSpecialization">
                       <i class="bi bi-search me-2"></i>Search
                     </button>
                   </div>
@@ -50,22 +52,30 @@
 
   <!-- Main Content -->
   <div class="container my-5">
-    
+
     <!-- Specializations -->
     <section class="mb-5">
       <h2 class="fw-bold mb-4">Browse by Specialization</h2>
+      <!-- Loader -->
+
       <div class="row g-3">
-        <div 
-          *ngFor="let spec of specializations" 
-          class="col-6 col-md-4 col-lg-2"
-        >
-          <div class="card h-100 text-center border-0 shadow-sm specialty-card">
-            <div class="card-body d-flex flex-column align-items-center justify-content-center">
-              <i class="bi bi-heart-pulse fs-1 text-primary mb-2"></i>
-              <p class="mb-0 fw-semibold small">{{ spec }}</p>
-            </div>
+        <div *ngIf="isLoadingSpecialization" class="d-flex justify-content-center py-5">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
           </div>
         </div>
+        <ng-container *ngIf="!isLoadingSpecialization">
+          <div *ngFor="let spec of specializations" class="col-6 col-md-4 col-lg-2">
+            <div class="card h-100 text-center border-0 shadow-sm specialty-card"
+              (click)="searchBySpecialization(spec.id)">
+              <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                <i [class]="'bi fs-1 text-primary mb-2 ' + spec.icon"></i>
+                <p class="mb-0 fw-semibold small">{{ spec.name }}</p>
+              </div>
+            </div>
+          </div>
+        </ng-container>
+
       </div>
     </section>
 
@@ -73,99 +83,107 @@
     <section class="mb-5">
       <h2 class="fw-bold mb-4">Featured Hospitals</h2>
       <div class="row g-4">
-        <div 
-          *ngFor="let hospital of hospitals" 
-          class="col-md-6 col-lg-4"
-        >
-          <div class="card h-100 shadow-sm hospital-card border-0">
-            <div class="card-header bg-primary bg-gradient text-white">
-              <div class="d-flex align-items-center">
-                <i class="bi bi-hospital fs-2 me-3"></i>
+        <div *ngIf="isLoadingHospitals" class="d-flex flex-column align-items-center py-5">
+          <div class="spinner-border text-primary mb-2" role="status"></div>
+          <small class="text-muted">Loading hospitals...</small>
+        </div>
+        <ng-container *ngIf="!isLoadingHospitals">
+          <div *ngFor="let hospital of hospitals" class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm hospital-card border-0">
+              <div class="card-header bg-primary bg-gradient text-white">
+                <div class="d-flex align-items-center">
+                  <i class="bi bi-hospital fs-2 me-3"></i>
+                  <div>
+                    <h5 class="mb-1 fw-bold">{{ hospital.name }}</h5>
+                    <p class="mb-0 small">
+                      <i class="bi bi-geo-alt me-1"></i>{{ hospital.location }}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                  <i class="bi bi-star-fill text-warning me-1"></i>
+                  <span class="fw-semibold">{{ hospital.rating }}</span>
+                </div>
+
+                <div class="mb-3">
+                  <p class="small text-muted mb-2">Specialties:</p>
+                  <div class="d-flex flex-wrap gap-2">
+                    <span *ngFor="let spec of hospital.specialties" class="badge bg-primary bg-opacity-10 text-primary">
+                      {{ spec }}
+                    </span>
+                  </div>
+                </div>
+
+                <div class="alert alert-success mb-0">
+                  <div class="d-flex align-items-center justify-content-between">
+                    <span class="fw-bold">Get {{ hospital.discount }} OFF</span>
+                    <i class="bi bi-tag-fill"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </ng-container>
+      </div>
+    </section>
+
+    <!-- Featured Doctors -->
+
+    <section class="mb-5">
+      <h2 class="fw-bold mb-4">Top Rated Doctors</h2>
+      <div class="row g-4">
+        <div *ngIf="isLoadingDoctors" class="d-flex justify-content-center py-5">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
+        <ng-container *ngIf="!isLoadingDoctors">
+          <div *ngFor="let doctor of doctors" class="col-md-6 col-lg-3">
+            <div class="card h-100 shadow-sm doctor-card border-0" role="button" (click)="viewDoctorDetail(doctor.id)">
+              <div class="card-header bg-light text-center py-4">
+                <div
+                  class="doctor-avatar rounded-circle bg-gradient-purple text-white mx-auto mb-3 d-flex align-items-center justify-content-center">
+                  <span class="fs-3 fw-bold">{{ getDoctorInitial(doctor.name) }}</span>
+                </div>
+                <h5 class="fw-bold mb-1">{{ doctor.name }}</h5>
+                <p class="text-muted small mb-2">{{ doctor.specialization }}</p>
                 <div>
-                  <h5 class="mb-1 fw-bold">{{ hospital.name }}</h5>
-                  <p class="mb-0 small">
-                    <i class="bi bi-geo-alt me-1"></i>{{ hospital.location }}
-                  </p>
+                  <i class="bi bi-star-fill text-warning me-1"></i>
+                  <span class="fw-semibold">{{ doctor.rating }}</span>
                 </div>
+              </div>
+              <div class="card-body">
+                <ul class="list-unstyled small mb-3">
+                  <li class="mb-2">
+                    <i class="bi bi-award text-primary me-2"></i>
+                    {{ doctor.experience }} experience
+                  </li>
+                  <li class="mb-2">
+                    <i class="bi bi-hospital text-primary me-2"></i>
+                    {{ doctor.hospital }}
+                  </li>
+                  <li class="mb-2">
+                    <i class="bi bi-currency-rupee text-primary me-2"></i>
+                    Consultation: {{ doctor.fee }}
+                  </li>
+                </ul>
+                <button class="btn btn-primary w-100">
+                  <i class="bi bi-calendar-check me-2"></i>Book Appointment
+                </button>
               </div>
             </div>
-            <div class="card-body">
-              <div class="d-flex align-items-center mb-3">
-                <i class="bi bi-star-fill text-warning me-1"></i>
-                <span class="fw-semibold">{{ hospital.rating }}</span>
-              </div>
-              
-              <div class="mb-3">
-                <p class="small text-muted mb-2">Specialties:</p>
-                <div class="d-flex flex-wrap gap-2">
-                  <span 
-                    *ngFor="let spec of hospital.specialties" 
-                    class="badge bg-primary bg-opacity-10 text-primary"
-                  >
-                    {{ spec }}
-                  </span>
-                </div>
-              </div>
-              
-              <div class="alert alert-success mb-0">
-                <div class="d-flex align-items-center justify-content-between">
-                  <span class="fw-bold">Get {{ hospital.discount }} OFF</span>
-                  <i class="bi bi-tag-fill"></i>
-                </div>
-              </div>
-            </div>
+          </div>
+        </ng-container>
+        <div *ngIf="isLoadingDoctors" class="d-flex justify-content-center py-5">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Featured Doctors -->
-    <section class="mb-5">
-      <h2 class="fw-bold mb-4">Top Rated Doctors</h2>
-      <div class="row g-4">
-        <div 
-          *ngFor="let doctor of doctors" 
-          class="col-md-6 col-lg-3"
-        >
-          <div 
-            class="card h-100 shadow-sm doctor-card border-0"
-            role="button"
-            (click)="viewDoctorDetail(doctor.id)"
-          >
-            <div class="card-header bg-light text-center py-4">
-              <div class="doctor-avatar rounded-circle bg-gradient-purple text-white mx-auto mb-3 d-flex align-items-center justify-content-center">
-                <span class="fs-3 fw-bold">{{ getDoctorInitial(doctor.name) }}</span>
-              </div>
-              <h5 class="fw-bold mb-1">{{ doctor.name }}</h5>
-              <p class="text-muted small mb-2">{{ doctor.specialization }}</p>
-              <div>
-                <i class="bi bi-star-fill text-warning me-1"></i>
-                <span class="fw-semibold">{{ doctor.rating }}</span>
-              </div>
-            </div>
-            <div class="card-body">
-              <ul class="list-unstyled small mb-3">
-                <li class="mb-2">
-                  <i class="bi bi-award text-primary me-2"></i>
-                  {{ doctor.experience }} experience
-                </li>
-                <li class="mb-2">
-                  <i class="bi bi-hospital text-primary me-2"></i>
-                  {{ doctor.hospital }}
-                </li>
-                <li class="mb-2">
-                  <i class="bi bi-currency-rupee text-primary me-2"></i>
-                  Consultation: {{ doctor.fee }}
-                </li>
-              </ul>
-              <button class="btn btn-primary w-100">
-                <i class="bi bi-calendar-check me-2"></i>Book Appointment
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
 
     <!-- Discount Banner -->
     <section>

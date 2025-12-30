@@ -9,6 +9,7 @@ export interface Specialty {
 @Injectable({
   providedIn: 'root'
 })
+
 export class SpecialtyService {
   private apiUrl = 'http://localhost:3000/api/specialties';
 

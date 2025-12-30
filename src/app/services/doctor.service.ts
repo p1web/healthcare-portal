@@ -9,58 +9,6 @@ import { Doctor } from '../models/doctor.model';
 export class DoctorService {
   private apiUrl = 'http://localhost:3000/api/doctors'; // Replace with your API
 
-  // Mock data for development
-  private mockDoctors: Doctor[] = [
-    {
-      id: 1,
-      name: "Dr. Rajesh Kumar",
-      specialization: "Cardiologist",
-      hospital: "City General Hospital",
-      experience: "15 years",
-      rating: 4.8,
-      fee: "₹1000",
-      available: "Mon-Fri",
-      email: "rajesh.kumar@citygeneral.com",
-      phone: "+91 98765 00001"
-    },
-    {
-      id: 2,
-      name: "Dr. Priya Sharma",
-      specialization: "Pediatrician",
-      hospital: "MediCare Plus",
-      experience: "10 years",
-      rating: 4.6,
-      fee: "₹800",
-      available: "Tue-Sat",
-      email: "priya.sharma@medicareplus.com",
-      phone: "+91 98765 00002"
-    },
-    {
-      id: 3,
-      name: "Dr. Amit Patel",
-      specialization: "Orthopedic",
-      hospital: "MediCare Plus",
-      experience: "12 years",
-      rating: 4.7,
-      fee: "₹1200",
-      available: "Mon-Sat",
-      email: "amit.patel@medicareplus.com",
-      phone: "+91 98765 00003"
-    },
-    {
-      id: 4,
-      name: "Dr. Sneha Desai",
-      specialization: "Dermatologist",
-      hospital: "HealthFirst Clinic",
-      experience: "8 years",
-      rating: 4.5,
-      fee: "₹900",
-      available: "Wed-Sun",
-      email: "sneha.desai@healthfirst.com",
-      phone: "+91 98765 00004"
-    }
-  ];
-
   constructor(private http: HttpClient) {}
 
   getDoctors(): Observable<Doctor[]> {
@@ -74,21 +22,12 @@ export class DoctorService {
   }
 
   searchDoctors(query: string, type: string = 'all'): Observable<Doctor[]> {
-    const filtered = this.mockDoctors.filter(d => {
-      const queryLower = query.toLowerCase();
-      switch(type) {
-        case 'doctor':
-          return d.name.toLowerCase().includes(queryLower);
-        case 'specialization':
-          return d.specialization.toLowerCase().includes(queryLower);
-        case 'hospital':
-          return d.hospital.toLowerCase().includes(queryLower);
-        default:
-          return d.name.toLowerCase().includes(queryLower) ||
-                 d.specialization.toLowerCase().includes(queryLower) ||
-                 d.hospital.toLowerCase().includes(queryLower);
+    return this.http.get<Doctor[]>(`${this.apiUrl}/search`, {
+      params: {
+        q: query,
+        type: type
       }
     });
-    return of(filtered);
   }
+
 }

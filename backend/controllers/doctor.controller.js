@@ -42,8 +42,13 @@ function formatDoctorForFrontend(doctor) {
   return {
     id: doctorJSON.id,
     name: doctorJSON.name,
+
+    specialization_id: doctorJSON.specialization_id,
+    hospital_id: doctorJSON.hospital_id,
+  
     specialization: doctorJSON.specialization?.name || '',
     hospital: doctorJSON.hospital?.name || '',
+
     experience: `${doctorJSON.experience} years`,
     rating: parseFloat(doctorJSON.rating || 0),
     fee: `${doctorJSON.fee}`,

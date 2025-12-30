@@ -28,6 +28,7 @@ const hospitalRoutes = require('./routes/hospital.routes');
 const specialtiesRoutes = require('./routes/specialties.routes'); // adjust path
 const appointmentRoutes = require('./routes/appointment.routes');
 const couponRoutes = require('./routes/coupon.routes');
+const specializationRoutes = require('./routes/specialization.routes');
 
 // Use routes
 app.use('/api/auth', authRoutes);
@@ -36,6 +37,7 @@ app.use('/api/hospitals', hospitalRoutes);
 app.use('/api/specialties', specialtiesRoutes);
 app.use('/api/appointments', appointmentRoutes);
 app.use('/api/coupons', couponRoutes);
+app.use('/api/specializations', specializationRoutes);
 
 
 

@@ -1,7 +1,10 @@
 // controllers/auth.controller.js
-const { User, PatientProfile, DoctorProfile, HospitalProfile } = require('../models');
+const { User, PatientProfile, DoctorProfile, HospitalProfile, sequelize } = require('../models');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
+const patientProfile = require('../models/patient-profile');
+const doctorProfile = require('../models/doctor-profile');
+const hospitalProfile = require('../models/hospital-profile');
 
 // Generate JWT token
 const generateToken = (user) => {
@@ -17,42 +20,54 @@ const generateToken = (user) => {
 };
 
 // Format user response
-const formatUserResponse = (user, includeProfile = false) => {
-  const userJSON = user.toJSON();
-  
-  const response = {
-    id: userJSON.id,
-    name: userJSON.name,
-    email: userJSON.email,
-    phone: userJSON.phone,
-    role: userJSON.role,
-    isEmailVerified: userJSON.isEmailVerified,
-    isPhoneVerified: userJSON.isPhoneVerified,
-    profileImage: userJSON.profileImage,
-    dateOfBirth: userJSON.dateOfBirth,
-    gender: userJSON.gender,
-    address: userJSON.address,
-    city: userJSON.city,
-    state: userJSON.state,
-    pincode: userJSON.pincode,
-    country: userJSON.country,
-    isActive: userJSON.isActive
-  };
+function formatUserResponse(user) {
+  if (!user) return null;
 
-  if (includeProfile) {
-    if (user.patientProfile) response.profile = user.patientProfile;
-    if (user.doctorProfile) response.profile = user.doctorProfile;
-    if (user.hospitalProfile) response.profile = user.hospitalProfile;
+  let patientProfile = null;
+  let doctorProfile = null;
+  let hospitalProfile = null;
+
+  if (user.role === 'patient' && user.patientProfile) {
+    patientProfile = user.patientProfile.toJSON();
   }
 
-  return response;
-};
+  if (user.role === 'doctor' && user.doctorProfile) {
+    doctorProfile = user.doctorProfile.toJSON();
+  }
+
+  if (user.role === 'hospital' && user.hospitalProfile) {
+    hospitalProfile =user.hospitalProfile.toJSON();
+  }
+  
+
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    phone: user.phone,
+    role: user.role,
+    dateOfBirth: user.dateOfBirth,
+    gender: user.gender,
+    address: user.address,
+    city: user.city,
+    state: user.state,
+    pincode: user.pincode,
+    country: user.country,
+    profileImage: user.profileImage,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
+    patientProfile,
+    doctorProfile,
+    hospitalProfile,
+  };
+}
+
 
 // REGISTER
 exports.register = async (req, res) => {
 
   try {
-    
+
     const { name, email, phone, password, role, termsAccepted } = req.body;
 
     // Validation
@@ -132,7 +147,7 @@ exports.register = async (req, res) => {
 
   } catch (error) {
     console.error('Registration error:', error);
-    
+
     if (error.name === 'SequelizeValidationError') {
       return res.status(400).json({
         success: false,
@@ -240,13 +255,13 @@ exports.login = async (req, res) => {
 
 exports.getCurrentUser = async (req, res) => {
   try {
-    const userId = req.user.id; // From auth middleware
+    const userId = req.user.id;
 
     const user = await User.findByPk(userId, {
       include: [
-        { model: PatientProfile, as: 'patientProfile' },
-        { model: DoctorProfile, as: 'doctorProfile' },
-        { model: HospitalProfile, as: 'hospitalProfile' }
+        { model: PatientProfile, as: 'patientProfile', required: false },
+        { model: DoctorProfile, as: 'doctorProfile', required: false },
+        { model: HospitalProfile, as: 'hospitalProfile', required: false }
       ]
     });
 
@@ -257,66 +272,138 @@ exports.getCurrentUser = async (req, res) => {
       });
     }
 
-    res.status(200).json({
+    return res.json({
       success: true,
-      data: formatUserResponse(user, true)
+      data: formatUserResponse(user)
     });
 
   } catch (error) {
     console.error('Get current user error:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
-      message: 'Failed to fetch user',
-      error: error.message
+      message: 'Failed to fetch user'
     });
   }
 };
 
+
+const normalizeArray = (value) => {
+  if (!value) return [];
+  if (Array.isArray(value)) return value;
+  if (typeof value === 'string') {
+    return value
+      .split(',')
+      .map(v => v.trim())
+      .filter(Boolean);
+  }
+  return [];
+};
+
 // UPDATE PROFILE
-exports.updateProfile = async (req, res) => {
+exports.updatePatientProfile = async (req, res) => {
+  const t = await sequelize.transaction();
+
   try {
     const userId = req.user.id;
-    const updateData = req.body;
+    const { user = {}, patientProfile = {} } = req.body;
 
-    const user = await User.findByPk(userId);
-
-    if (!user) {
+    const dbUser = await User.findByPk(userId, { transaction: t });
+    if (!dbUser) {
+      await t.rollback();
       return res.status(404).json({
         success: false,
         message: 'User not found'
       });
     }
 
-    // Fields that can be updated
-    const allowedFields = [
-      'name', 'phone', 'dateOfBirth', 'gender', 
-      'address', 'city', 'state', 'pincode', 'country', 'profileImage'
+    /* -------- UPDATE USER -------- */
+    const userFields = [
+      'name', 'phone', 'dateOfBirth', 'gender',
+      'address', 'city', 'state',
+      'pincode', 'country', 'profileImage'
     ];
 
-    const updates = {};
-    allowedFields.forEach(field => {
-      if (updateData[field] !== undefined) {
-        updates[field] = updateData[field];
+    const userUpdates = Object.fromEntries(
+      userFields
+        .filter(f => user[f] !== undefined)
+        .map(f => [f, user[f]])
+    );
+
+    if (Object.keys(userUpdates).length) {
+      await dbUser.update(userUpdates, { transaction: t });
+    }
+
+    /* ------ UPDATE PATIENT PROFILE ------ */
+    if (dbUser.role === 'patient') {
+
+      const normalizeArray = (val) => {
+        if (!val) return [];
+        if (Array.isArray(val)) return val;
+        if (typeof val === 'string') {
+          return val.split(',').map(v => v.trim()).filter(Boolean);
+        }
+        return [];
+      };
+
+      const patientFields = [
+        'bloodGroup', 'height', 'weight',
+        'allergies', 'medicalConditions',
+        'emergencyContactName',
+        'emergencyContactPhone',
+        'emergencyContactRelation'
+      ];
+
+      const patientUpdates = Object.fromEntries(
+        patientFields
+          .filter(f => patientProfile[f] !== undefined)
+          .map(f => {
+            if (['allergies', 'medicalConditions'].includes(f)) {
+              return [f, normalizeArray(patientProfile[f])];
+            }
+            return [f, patientProfile[f]];
+          })
+      );
+
+      if (Object.keys(patientUpdates).length) {
+        await PatientProfile.upsert(
+          { userId, ...patientUpdates },
+          { transaction: t }
+        );
       }
+    }
+
+
+    await t.commit();
+
+    /* -------- FETCH UPDATED USER -------- */
+    const updatedUser = await User.findByPk(userId, {
+      include: [{
+        model: PatientProfile,
+        as: 'patientProfile',
+        required: false
+      }]
     });
 
-    await user.update(updates);
-
-    res.status(200).json({
+    return res.json({
       success: true,
       message: 'Profile updated successfully',
-      data: formatUserResponse(user)
+      data: formatUserResponse(updatedUser)
     });
 
-  } catch (error) {
-    console.error('Update profile error:', error);
-    res.status(500).json({
+  } catch (err) {
+    if (!t.finished) {
+      await t.rollback();
+    }
+
+    console.error('Error updating profile:', err);
+
+    return res.status(500).json({
       success: false,
-      message: 'Failed to update profile',
-      error: error.message
+      message: err.message || 'Profile update failed'
     });
   }
 };
+
 
 // CHANGE PASSWORD
 exports.changePassword = async (req, res) => {

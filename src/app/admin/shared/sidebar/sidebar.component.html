@@ -1,0 +1,179 @@
+<!-- ======= Sidebar ======= -->
+<aside id="sidebar" class="sidebar">
+
+  <ul class="sidebar-nav" id="sidebar-nav">
+
+    <!-- Dashboard -->
+    <li class="nav-item">
+      <a class="nav-link collapsed" href="admin/dashboard" >
+        <i class="bi bi-speedometer2"></i>
+        <span>Dashboard</span>
+      </a>
+    </li>
+
+    <!-- User Management -->
+    <li class="nav-heading">User Management</li>
+
+    <li class="nav-item">
+      <a class="nav-link collapsed" [routerLink]="['users']" [queryParams]="{status:'ALL'}">
+        <i class="bi bi-people"></i>
+        <span>All Users</span>
+      </a>
+    </li>
+
+    <li class="nav-item">
+      <a class="nav-link collapsed" [routerLink]="['users']" [queryParams]="{status:'ACTIVE'}">
+        <i class="bi bi-person-check"></i>
+        <span>Active Users</span>
+      </a>
+    </li>
+
+    <li class="nav-item">
+      <a class="nav-link collapsed" [routerLink]="['users']" [queryParams]="{status:'BLOCKED'}">
+        <i class="bi bi-person-x"></i>
+        <span>Blocked / Inactive Users</span>
+      </a>
+    </li>
+
+    <!-- Doctor Management -->
+    <li class="nav-heading">Doctors Management</li>
+
+    <li class="nav-item">
+      <a class="nav-link collapsed" href="#">
+        <i class="bi bi-file-medical"></i>
+        <span>All Doctor Profiles</span>
+      </a>
+    </li>
+
+    <li class="nav-item">
+      <a class="nav-link collapsed" href="#">
+        <i class="bi bi-hourglass-split"></i>
+        <span>Pending Doctor Approvals</span>
+      </a>
+    </li>
+
+    <li class="nav-item">
+      <a class="nav-link collapsed" href="#">
+        <i class="bi bi-patch-check"></i>
+        <span>Verified Doctors</span>
+      </a>
+    </li>
+
+    <li class="nav-item">
+      <a class="nav-link collapsed" href="#">
+        <i class="bi bi-patch-minus"></i>
+        <span>Rejected / Inactive Doctors</span>
+      </a>
+    </li>
+
+    <li class="nav-item">
+      <a class="nav-link collapsed" href="#">
+        <i class="bi bi-globe"></i>
+        <span>Public Doctor Listings</span>
+      </a>
+    </li>
+
+    <!-- Hospital Management -->
+    <li class="nav-heading">Hospital Management</li>
+
+    <li class="nav-item">
+      <a class="nav-link collapsed" href="#">
+        <i class="bi bi-hospital"></i>
+        <span>All Hospital Profiles</span>
+      </a>
+    </li>
+
+    <li class="nav-item">
+      <a class="nav-link collapsed" href="#">
+        <i class="bi bi-hourglass-split"></i>
+        <span>Pending Hospital Approvals</span>
+      </a>
+    </li>
+
+    <li class="nav-item">
+      <a class="nav-link collapsed" href="#">
+        <i class="bi bi-patch-check"></i>
+        <span>Verified Hospitals</span>
+      </a>
+    </li>
+
+    <li class="nav-item">
+      <a class="nav-link collapsed" href="#">
+        <i class="bi bi-patch-minus"></i>
+        <span>Rejected / Inactive Hospitals</span>
+      </a>
+    </li>
+
+    <li class="nav-item">
+      <a class="nav-link collapsed" href="#">
+        <i class="bi bi-globe"></i>
+        <span>Public Hospital Listings</span>
+      </a>
+    </li>
+
+    <!-- Appointments -->
+    <li class="nav-heading">Appointments</li>
+
+    <li class="nav-item">
+      <a class="nav-link collapsed" href="#">
+        <i class="bi bi-calendar-check"></i>
+        <span>All Appointments</span>
+      </a>
+    </li>
+
+    <li class="nav-item">
+      <a class="nav-link collapsed" href="#">
+        <i class="bi bi-calendar-x"></i>
+        <span>Cancelled / No-Show Appointments</span>
+      </a>
+    </li>
+
+    <li class="nav-item">
+      <a class="nav-link collapsed" href="#">
+        <i class="bi bi-bar-chart"></i>
+        <span>Reports</span>
+      </a>
+    </li>
+
+    <!-- Masters -->
+    <li class="nav-heading">Masters</li>
+
+    <li class="nav-item">
+      <a class="nav-link collapsed" href="#">
+        <i class="bi bi-diagram-3"></i>
+        <span>Specialties</span>
+      </a>
+    </li>
+
+    <li class="nav-item">
+      <a class="nav-link collapsed" href="#">
+        <i class="bi bi-diagram-2"></i>
+        <span>Specializations</span>
+      </a>
+    </li>
+
+    <li class="nav-item">
+      <a class="nav-link collapsed" href="#">
+        <i class="bi bi-link-45deg"></i>
+        <span>Doctor–Specialization Mapping</span>
+      </a>
+    </li>
+
+    <li class="nav-item">
+      <a class="nav-link collapsed" href="#">
+        <i class="bi bi-link-45deg"></i>
+        <span>Hospital–Specialities Mapping</span>
+      </a>
+    </li>
+
+    <!-- Blank -->
+    <li class="nav-item">
+      <a class="nav-link" href="pages-blank.html">
+        <i class="bi bi-file-earmark-text"></i>
+        <span>Blank</span>
+      </a>
+    </li>
+
+  </ul>
+
+</aside>

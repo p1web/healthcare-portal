@@ -13,7 +13,6 @@ export class DoctorService {
 
   getDoctors(): Observable<Doctor[]> {
     return this.http.get<Doctor[]>(this.apiUrl);
-    // return of(this.mockDoctors); // Use mock data for now
   }
 
   getDoctorById(id: number): Observable<Doctor | undefined> {

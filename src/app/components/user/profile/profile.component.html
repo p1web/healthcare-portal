@@ -1,34 +1,452 @@
-<app-breadcrumb title="My Profile"></app-breadcrumb>
-
 <div class="card border mb-3">
   <div class="card-header border-bottom">
     <h5>My Profile</h5>
   </div>
+
   <div class="card-body">
+
+    <!-- SUCCESS / ERROR MESSAGES -->
+    <div *ngIf="success" class="alert alert-success alert-dismissible fade show">
+      {{ success }}
+      <button type="button" class="btn-close" (click)="success = ''"></button>
+    </div>
+
+    <div *ngIf="error" class="alert alert-danger alert-dismissible fade show">
+      {{ error }}
+      <button type="button" class="btn-close" (click)="error = ''"></button>
+    </div>
+
+    <!-- STEP INDICATOR -->
+    <div class="step-indicator mb-4">
+      <div class="step-wrapper">
+
+        <!-- STEP 1 -->
+        <div class="step" [class.active]="currentStep >= 1">
+          <div class="step-circle">1</div>
+          <span class="step-label" [class.fw-bold]="currentStep === 1">
+            Basic Profile
+          </span>
+        </div>
+
+        <div class="step-line" [class.active]="currentStep >= 2"></div>
+
+        <!-- STEP 2 -->
+        <div class="step" [class.active]="currentStep >= 2">
+          <div class="step-circle">2</div>
+          <span class="step-label" [class.fw-bold]="currentStep === 2">
+            {{ profileTitle }} 
+          </span>
+        </div>
+
+      </div>
+    </div>
+
+
+    <!-- MAIN FORM -->
     <form [formGroup]="profileForm" (ngSubmit)="onSubmit()">
-      <div class="mb-3">
-        <label>Name</label>
-        <input type="text" class="form-control" formControlName="name">
+
+      <!-- STEP 1 : BASIC PROFILE -->
+      <div *ngIf="currentStep === 1" formGroupName="basic">
+        <h6 class="mb-3 text-primary">Basic Information</h6>
+
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Name <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" formControlName="name"
+              [class.is-invalid]="profileForm.get('basic.name')?.invalid && profileForm.get('basic.name')?.touched" />
+            <div class="invalid-feedback"
+              *ngIf="profileForm.get('basic.name')?.invalid && profileForm.get('basic.name')?.touched">
+              <span *ngIf="profileForm.get('basic.name')?.errors?.['required']">Name is required</span>
+              <span *ngIf="profileForm.get('basic.name')?.errors?.['minlength']">Name must be at least 3
+                characters</span>
+            </div>
+          </div>
+
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Email</label>
+            <input type="email" class="form-control" formControlName="email" readonly />
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Phone <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" formControlName="phone" placeholder="10 digit mobile number"
+              [class.is-invalid]="profileForm.get('basic.phone')?.invalid && profileForm.get('basic.phone')?.touched" />
+            <div class="invalid-feedback"
+              *ngIf="profileForm.get('basic.phone')?.invalid && profileForm.get('basic.phone')?.touched">
+              <span *ngIf="profileForm.get('basic.phone')?.errors?.['required']">Phone is required</span>
+              <span *ngIf="profileForm.get('basic.phone')?.errors?.['pattern']">Please enter a valid 10 digit phone
+                number</span>
+            </div>
+          </div>
+
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Role</label>
+            <input type="text" class="form-control" formControlName="role" readonly />
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Date of Birth <span class="text-danger">*</span></label>
+            <input type="date" class="form-control" formControlName="dateOfBirth"
+              [class.is-invalid]="profileForm.get('basic.dateOfBirth')?.invalid && profileForm.get('basic.dateOfBirth')?.touched" />
+            <div class="invalid-feedback"
+              *ngIf="profileForm.get('basic.dateOfBirth')?.invalid && profileForm.get('basic.dateOfBirth')?.touched">
+              Date of birth is required
+            </div>
+          </div>
+
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Gender <span class="text-danger">*</span></label>
+            <select class="form-control" formControlName="gender"
+              [class.is-invalid]="profileForm.get('basic.gender')?.invalid && profileForm.get('basic.gender')?.touched">
+              <option value="">Select Gender</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="transgender">Transgender</option>
+            </select>
+            <div class="invalid-feedback"
+              *ngIf="profileForm.get('basic.gender')?.invalid && profileForm.get('basic.gender')?.touched">
+              Gender is required
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Address <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" formControlName="address"
+              [class.is-invalid]="profileForm.get('basic.address')?.invalid && profileForm.get('basic.address')?.touched" />
+            <div class="invalid-feedback"
+              *ngIf="profileForm.get('basic.address')?.invalid && profileForm.get('basic.address')?.touched">
+              Address is required
+            </div>
+          </div>
+
+          <div class="col-md-6 mb-3">
+            <label class="form-label">City <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" formControlName="city"
+              [class.is-invalid]="profileForm.get('basic.city')?.invalid && profileForm.get('basic.city')?.touched" />
+            <div class="invalid-feedback"
+              *ngIf="profileForm.get('basic.city')?.invalid && profileForm.get('basic.city')?.touched">
+              City is required
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label class="form-label">State <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" formControlName="state"
+              [class.is-invalid]="profileForm.get('basic.state')?.invalid && profileForm.get('basic.state')?.touched" />
+            <div class="invalid-feedback"
+              *ngIf="profileForm.get('basic.state')?.invalid && profileForm.get('basic.state')?.touched">
+              State is required
+            </div>
+          </div>
+
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Pincode <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" formControlName="pincode" placeholder="6 digit pincode"
+              [class.is-invalid]="profileForm.get('basic.pincode')?.invalid && profileForm.get('basic.pincode')?.touched" />
+            <div class="invalid-feedback"
+              *ngIf="profileForm.get('basic.pincode')?.invalid && profileForm.get('basic.pincode')?.touched">
+              <span *ngIf="profileForm.get('basic.pincode')?.errors?.['required']">Pincode is required</span>
+              <span *ngIf="profileForm.get('basic.pincode')?.errors?.['pattern']">Please enter a valid 6 digit
+                pincode</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="text-end">
+          <button type="button" class="btn btn-primary px-4" (click)="nextStep()">
+            Next <i class="bi bi-arrow-right ms-1"></i>
+          </button>
+        </div>
       </div>
 
-      <div class="mb-3">
-        <label>Email</label>
-        <input type="email" class="form-control" formControlName="email" readonly>
+      <!-- STEP 2 : PATIENT PROFILE -->
+      <div *ngIf="currentStep === 2 && isPatient()" formGroupName="patient">
+        <h6 class="mb-3 text-primary">Medical Information</h6>
+
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label class="form-label" for="bloodGroup">Blood Group <span class="text-danger">*</span></label>
+            <select class="form-control" id="bloodGroup" formControlName="bloodGroup"
+              [class.is-invalid]="profileForm.get('patient.bloodGroup')?.invalid && profileForm.get('patient.bloodGroup')?.touched">
+              <option value="">Select Blood Group</option>
+              <option *ngFor="let bg of bloodGroups" [value]="bg">
+                {{ bg }}
+              </option>
+            </select>
+            <div class="invalid-feedback"
+              *ngIf="profileForm.get('patient.bloodGroup')?.invalid && profileForm.get('patient.bloodGroup')?.touched">
+              Blood group is required
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Height (cm) <span class="text-danger">*</span></label>
+            <input type="number" class="form-control" formControlName="height" placeholder="Enter height in cm"
+              [class.is-invalid]="profileForm.get('patient.height')?.invalid && profileForm.get('patient.height')?.touched" />
+            <div class="invalid-feedback"
+              *ngIf="profileForm.get('patient.height')?.invalid && profileForm.get('patient.height')?.touched">
+              <span *ngIf="profileForm.get('patient.height')?.errors?.['required']">Height is required</span>
+              <span
+                *ngIf="profileForm.get('patient.height')?.errors?.['min'] || profileForm.get('patient.height')?.errors?.['max']">
+                Height must be between 50 and 300 cm
+              </span>
+            </div>
+          </div>
+
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Weight (kg) <span class="text-danger">*</span></label>
+            <input type="number" class="form-control" formControlName="weight" placeholder="Enter weight in kg"
+              [class.is-invalid]="profileForm.get('patient.weight')?.invalid && profileForm.get('patient.weight')?.touched" />
+            <div class="invalid-feedback"
+              *ngIf="profileForm.get('patient.weight')?.invalid && profileForm.get('patient.weight')?.touched">
+              <span *ngIf="profileForm.get('patient.weight')?.errors?.['required']">Weight is required</span>
+              <span
+                *ngIf="profileForm.get('patient.weight')?.errors?.['min'] || profileForm.get('patient.weight')?.errors?.['max']">
+                Weight must be between 20 and 500 kg
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="alert alert-info" *ngIf="bmi !== null">
+          <i class="bi bi-info-circle me-2"></i>
+          <strong>BMI:</strong> {{ bmi }}
+          <span *ngIf="bmiCategory" class="ms-2">
+            <span class="badge" [class.bg-success]="bmiCategory === 'Normal weight'"
+              [class.bg-warning]="bmiCategory === 'Overweight' || bmiCategory === 'Underweight'"
+              [class.bg-danger]="bmiCategory === 'Obese'">
+              {{ bmiCategory }}
+            </span>
+          </span>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Allergies</label>
+          <textarea class="form-control" rows="2" formControlName="allergies"
+            placeholder="List any known allergies (e.g., Penicillin, Peanuts)"></textarea>
+          <small class="text-muted">Separate multiple allergies with commas</small>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Medical Conditions</label>
+          <textarea class="form-control" rows="2" formControlName="medicalConditions"
+            placeholder="List any existing medical conditions (e.g., Diabetes, Hypertension)"></textarea>
+          <small class="text-muted">Separate multiple conditions with commas</small>
+        </div>
+
+        <h6 class="mt-4 mb-3 text-primary">Emergency Contact</h6>
+
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Name <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" formControlName="emergencyContactName"
+              placeholder="Emergency contact name"
+              [class.is-invalid]="profileForm.get('patient.emergencyContactName')?.invalid && profileForm.get('patient.emergencyContactName')?.touched" />
+            <div class="invalid-feedback"
+              *ngIf="profileForm.get('patient.emergencyContactName')?.invalid && profileForm.get('patient.emergencyContactName')?.touched">
+              Emergency contact name is required
+            </div>
+          </div>
+
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Phone <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" formControlName="emergencyContactPhone"
+              placeholder="10 digit mobile number"
+              [class.is-invalid]="profileForm.get('patient.emergencyContactPhone')?.invalid && profileForm.get('patient.emergencyContactPhone')?.touched" />
+            <div class="invalid-feedback"
+              *ngIf="profileForm.get('patient.emergencyContactPhone')?.invalid && profileForm.get('patient.emergencyContactPhone')?.touched">
+              <span *ngIf="profileForm.get('patient.emergencyContactPhone')?.errors?.['required']">Emergency contact
+                phone is required</span>
+              <span *ngIf="profileForm.get('patient.emergencyContactPhone')?.errors?.['pattern']">Please enter a valid
+                10 digit phone number</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Relation <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" formControlName="emergencyContactRelation"
+              placeholder="e.g., Spouse, Parent, Sibling"
+              [class.is-invalid]="profileForm.get('patient.emergencyContactRelation')?.invalid && profileForm.get('patient.emergencyContactRelation')?.touched" />
+            <div class="invalid-feedback"
+              *ngIf="profileForm.get('patient.emergencyContactRelation')?.invalid && profileForm.get('patient.emergencyContactRelation')?.touched">
+              Emergency contact relation is required
+            </div>
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-between mt-4">
+          <button type="button" class="btn btn-secondary px-4" (click)="previousStep()">
+            <i class="bi bi-arrow-left me-1"></i> Back
+          </button>
+
+          <button type="submit" class="btn btn-success px-4" [disabled]="isSubmitting">
+            <span *ngIf="!isSubmitting">
+              <i class="bi bi-check-circle me-1"></i> Save Profile
+            </span>
+            <span *ngIf="isSubmitting">
+              <span class="spinner-border spinner-border-sm me-2"></span>
+              Saving...
+            </span>
+          </button>
+        </div>
       </div>
 
-      <div class="mb-3">
-        <label>Phone</label>
-        <input type="text" class="form-control" formControlName="phone">
+
+      <!-- STEP 2 : DOCTOR PROFILE -->
+      <div *ngIf="currentStep === 2 && isDoctor()" formGroupName="doctor">
+        <h6 class="mb-3 text-primary">Doctor Information</h6>
+
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Registration Number <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" formControlName="registrationNumber" />
+          </div>
+
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Qualification <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" formControlName="qualification" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label class="form-label" for="specializationId">Specialization <span class="text-danger">*</span></label>
+            <select class="form-control" id="specializationId" formControlName="specializationId">
+              <option value="">Select specialization</option>
+              <option *ngFor="let sp of specializations" [value]="sp.id">
+                {{ sp.name }}
+              </option>
+            </select>
+          </div>
+
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Years of Experience</label>
+            <input type="number" class="form-control" formControlName="yearsOfExperience" min="0" max="100" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Consultation Fee (₹)</label>
+            <input type="number" class="form-control" formControlName="consultationFee" min="0" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="mb-3">
+            <label class="form-label"> Verification Documents <i class="text-muted">(Medical license, certificates, etc.)</i></label>
+            <input type="file" class="form-control" multiple accept=".pdf,.jpg,.jpeg,.png"
+              (change)="onDoctorDocumentsSelected($event)" />
+        
+            <small class="text-muted d-block mt-1">
+              Allowed formats: PDF, JPG, PNG
+            </small>
+        
+            <!-- PREVIEW LIST -->
+            <ul class="list-group mt-2" *ngIf="doctorDocuments.length">
+              <li class="list-group-item d-flex justify-content-between align-items-center"
+                *ngFor="let doc of doctorDocuments; let i = index">
+                {{ doc.name }}
+                <button type="button" class="btn btn-sm btn-outline-danger" (click)="removeDoctorDocument(i)">
+                  Remove
+                </button>
+              </li>
+            </ul>
+          </div>
+
+        </div>
+        <!-- <div class="alert alert-warning" *ngIf="user?.doctorProfile?.isVerified === false">
+          <i class="bi bi-exclamation-triangle"></i>
+          Profile pending admin verification
+        </div> -->
+
+        <div class="d-flex justify-content-between mt-4">
+          <button type="button" class="btn btn-secondary" (click)="previousStep()">Back</button>
+          <button type="submit" class="btn btn-success">Save Profile</button>
+        </div>
       </div>
 
-      <div class="mb-3">
-        <label>Role</label>
-        <input type="text" class="form-control" formControlName="role" readonly>
+      <div *ngIf="currentStep === 2 && isHospital()" formGroupName="hospital">
+      
+        <h5 class="mb-3">Hospital Details</h5>
+        <div class="row">
+          <!-- Registration Number -->
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Registration Number</label>
+            <input type="text" class="form-control" formControlName="registrationNumber">
+          </div>
+      
+          <!-- Established Year -->
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Established Year</label>
+            <input type="number" class="form-control" formControlName="establishedYear" min="1900">
+          </div>
+        </div>
+      
+        <div class="row">
+          <!-- Total Beds -->
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Total Beds</label>
+            <input type="number" class="form-control" formControlName="totalBeds" min="0">
+          </div>
+      
+          <!-- Hospital Type -->
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Hospital Type</label>
+            <select class="form-select" formControlName="hospitalType">
+              <option value="">Select Type</option>
+              <option value="private">Private</option>
+              <option value="government">Government</option>
+              <option value="charity">Charity</option>
+              <option value="clinic">Clinic</option>
+            </select>
+          </div>
+        </div>
+      
+        <div class="row">
+          <!-- Operating Hours -->
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Operating Hours</label>
+            <input type="text" class="form-control" placeholder="e.g. 24x7 / 9AM - 6PM" formControlName="operatingHours">
+          </div>
+
+          <!-- Verification Documents -->
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Upload Verification Documents</label>
+            <input type="file" class="form-control" multiple (change)="onHospitalDocumentsSelected($event)">
+          </div>
+      
+          <!-- Services -->
+          <div class="col-md-6 mb-3">
+            <div class="form-check">
+              <input type="checkbox" class="form-check-input" formControlName="emergencyServices">
+              <label class="form-check-label">Emergency Services Available</label>
+            </div>
+            <div class="form-check">
+              <input type="checkbox" class="form-check-input" formControlName="ambulanceServices">
+              <label class="form-check-label">Ambulance Services Available</label>
+            </div>
+          </div>
+        </div>
+      
+        <div class="d-flex justify-content-between mt-4">
+          <button type="button" class="btn btn-secondary" (click)="previousStep()">Back</button>
+          <button type="submit" class="btn btn-success">Save Profile</button>
+        </div>
+      
       </div>
 
-      <button type="submit" class="btn btn-primary" [disabled]="profileForm.invalid">
-        Save Changes
-      </button>
     </form>
   </div>
-</div>

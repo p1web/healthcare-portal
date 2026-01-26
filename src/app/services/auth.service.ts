@@ -7,6 +7,7 @@ import { User, LoginRequest, LoginResponse } from '../models/user.model';
 @Injectable({
   providedIn: 'root'
 })
+
 export class AuthService {
   private apiUrl = 'http://localhost:3000/api/auth';
   private currentUserSubject = new BehaviorSubject<User | null>(null);
@@ -20,46 +21,52 @@ export class AuthService {
     }
   }
 
+  // login(credentials: LoginRequest): Observable<LoginResponse> {
+  //   return this.http.post<LoginResponse>(`${this.apiUrl}/login`, credentials);
+  // }
+
   login(credentials: LoginRequest): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${this.apiUrl}/login`, credentials);
+    return this.http.post<LoginResponse>(`${this.apiUrl}/login`, credentials).pipe(
+      tap(res => {
+        if (res.success) {
+          this.setCurrentUser(res.data.user, res.data.token);
+        }
+      })
+    );
   }
 
-  // login(credentials: LoginRequest): Observable<LoginResponse> {
-
-  //   // Mock response with proper typing
-  //   const mockUser: User = {
-  //     id: 1,
-  //     email: credentials.email,
-  //     name: 'John Doe',
-  //     role: 'patient' as const,
-  //     phone: '+91 98765 43210'
-  //   };
-
-  //   return of({
-  //     success: true,
-  //     message: 'Login successful',
-  //     user: mockUser,
-  //     token: 'mock-jwt-token-12345'
-  //   }).pipe(
-  //     tap(response => {
-  //       if (response.success && response.user) {
-  //         localStorage.setItem('currentUser', JSON.stringify(response.user));
-  //         localStorage.setItem('token', response.token || '');
-  //         this.currentUserSubject.next(response.user);
-  //       }
-  //     })
-  //   );
-  // }
 
   logout(): void {
     localStorage.clear();
     this.currentUserSubject.next(null);
   }
 
+  getCurrentUserFromApi() {
+    return this.http.get<User>(`${this.apiUrl}/me`);
+  }
+
 
   getCurrentUser(): User | null {
     return this.currentUserSubject.value;
   }
+
+  setCurrentUser(user: User | null, token?: string): void {
+    this.currentUserSubject.next(user);
+    
+    if (user) {
+      localStorage.setItem('currentUser', JSON.stringify(user));
+      
+      if (token || token !== undefined) {
+        localStorage.setItem('token', token);
+      }
+
+    } else {
+      localStorage.removeItem('currentUser');
+      localStorage.removeItem('token');
+    }
+  }
+
+
 
   isLoggedIn(): boolean {
     return !!this.currentUserSubject.value;
@@ -68,4 +75,10 @@ export class AuthService {
   getToken(): string | null {
     return localStorage.getItem('token');
   }
+
+  getUserRole(): 'patient' | 'doctor' | 'hospital' | 'admin' | null {
+    const user = this.currentUserSubject.value;
+    return user ? user.role : null;
+  }
+
 }

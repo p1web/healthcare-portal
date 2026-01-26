@@ -1,21 +1,19 @@
-<div class="container mt-4">
-  <!-- Breadcrumb -->
-  <!-- <nav aria-label="breadcrumb">
-    <ol class="breadcrumb">
-      <li class="breadcrumb-item"><a routerLink="/">Home</a></li>
-      <li class="breadcrumb-item active" aria-current="page">My Profile</li>
-    </ol>
-  </nav> -->
-
-  <div class="row">
-    <!-- Sidebar -->
-    <div class="col-md-3">
-      <app-sidebar></app-sidebar>
+<div class="d-flex flex-column min-vh-100">
+      <app-header></app-header>
+      <main class="flex-grow-1">
+        <div class="container mt-4">
+          <app-breadcrumb [title]="pageTitle"></app-breadcrumb>
+          <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3">
+              <app-sidebar></app-sidebar>
+            </div>
+            <!-- Main Content -->
+            <div class="col-md-9">
+              <router-outlet></router-outlet>
+            </div>
+          </div>
+        </div>  
+      </main>
+      <app-footer></app-footer>
     </div>
-
-    <!-- Main Content -->
-    <div class="col-md-9">
-      <router-outlet></router-outlet>
-    </div>
-  </div>
-</div>

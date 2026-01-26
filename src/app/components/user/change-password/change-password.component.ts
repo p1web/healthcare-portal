@@ -1,16 +1,15 @@
-import { Component, NgModule } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { BreadcrumbComponent } from '../../../shared/breadcrumb/breadcrumb.component';
 
 @Component({
   standalone: true,
   selector: 'app-change-password',
-  imports: [ReactiveFormsModule, BreadcrumbComponent],
+  imports: [ReactiveFormsModule],
   templateUrl: './change-password.component.html'
 })
 
-export class ChangePasswordComponent {
+export class ChangePasswordComponent implements OnInit{
 
   changePasswordForm: FormGroup;
 
@@ -20,6 +19,10 @@ export class ChangePasswordComponent {
       newPassword: ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', Validators.required]
     });
+  }
+
+  ngOnInit(): void {
+    
   }
 
   onSubmit(): void {

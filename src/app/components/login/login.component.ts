@@ -44,10 +44,13 @@ export class LoginComponent {
         next: (response) => {
           this.isSubmitting = false;
           if (response.success) {
-            this.saveUserSession(response);
-
+            // this.saveUserSession(response);
+            if(this.isAdministrator()){
+              this.router.navigate(['/admin/dashboard']);
+              return;
+            }
             // Redirect to home page after successful login
-            this.router.navigate(['/']);
+            this.router.navigate(['/profile']);
           } else {
             this.errorMessage = response.message || 'Login failed';
           }
@@ -105,5 +108,21 @@ export class LoginComponent {
       return 'Password must be at least 6 characters';
     }
     return '';
+  }
+
+  isPatient(): boolean {
+    return this.authService.getUserRole() === 'patient';
+  }
+
+  isDoctor(): boolean {
+    return this.authService.getUserRole() === 'doctor';
+  }
+
+  isHospital(): boolean {
+    return this.authService.getUserRole() === 'hospital';
+  }
+
+  isAdministrator(): boolean {
+    return this.authService.getUserRole() === 'admin';
   }
 }

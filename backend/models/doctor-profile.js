@@ -10,8 +10,8 @@ module.exports = (sequelize, DataTypes) => {
         as: 'user'
       });
 
-      DoctorProfile.belongsTo(models.Doctor, {
-        foreignKey: 'doctor_id',
+      DoctorProfile.hasOne(models.Doctor, {
+        foreignKey: 'doctor_profile_id',
         as: 'doctor'
       });
 
@@ -33,11 +33,6 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       unique: true,
       field: 'user_id'
-    },
-    doctorId: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      field: 'doctor_id'
     },
     registrationNumber: {
       type: DataTypes.STRING(50),

@@ -29,7 +29,7 @@ const specialtiesRoutes = require('./routes/specialties.routes'); // adjust path
 const appointmentRoutes = require('./routes/appointment.routes');
 const couponRoutes = require('./routes/coupon.routes');
 const specializationRoutes = require('./routes/specialization.routes');
-const userRoutes = require('./routes/user.routes');
+const adminRoutes = require('./routes/admin.routes');
 
 // Use routes
 app.use('/api/auth', authRoutes);
@@ -39,7 +39,7 @@ app.use('/api/specialties', specialtiesRoutes);
 app.use('/api/appointments', appointmentRoutes);
 app.use('/api/coupons', couponRoutes);
 app.use('/api/specializations', specializationRoutes);
-app.use('/api/users', userRoutes);
+app.use('/api/admin', adminRoutes);
 
 // add user routes
 

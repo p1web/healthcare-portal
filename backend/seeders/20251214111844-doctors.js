@@ -5,6 +5,7 @@ module.exports = {
 
     await queryInterface.bulkInsert('doctors', [
       {
+        doctor_profile_id: 0,
         name: 'Dr. Rajesh Kumar',
         specialization_id: 1,
         hospital_id: 1,
@@ -17,10 +18,13 @@ module.exports = {
         bio: 'Experienced cardiologist specializing in interventional cardiology and heart disease management.',
         image: 'https://via.placeholder.com/300x300',
         consultation_duration: 30,
+        is_published: true,
+        published_at: new Date(),
         created_at: new Date(),
         updated_at: new Date()
       },
       {
+        doctor_profile_id: 0,
         name: 'Dr. Priya Sharma',
         specialization_id: 4,
         hospital_id: 2,
@@ -33,10 +37,13 @@ module.exports = {
         bio: 'Dedicated pediatrician with expertise in child healthcare and vaccination.',
         image: 'https://via.placeholder.com/300x300',
         consultation_duration: 20,
+        is_published: true,
+        published_at: new Date(),
         created_at: new Date(),
         updated_at: new Date()
       },
       {
+        doctor_profile_id: 0,
         name: 'Dr. Amit Patel',
         specialization_id: 3,
         hospital_id: 2,
@@ -49,10 +56,13 @@ module.exports = {
         bio: 'Specialist in joint replacement surgeries and sports medicine.',
         image: 'https://via.placeholder.com/300x300',
         consultation_duration: 30,
+        is_published: true,
+        published_at: new Date(),
         created_at: new Date(),
         updated_at: new Date()
       },
       {
+        doctor_profile_id: 0,
         name: 'Dr. Sneha Desai',
         specialization_id: 6,
         hospital_id: 3,
@@ -65,10 +75,13 @@ module.exports = {
         bio: 'Expert in skin treatments, cosmetic dermatology, and laser therapy.',
         image: 'https://via.placeholder.com/300x300',
         consultation_duration: 25,
+        is_published: true,
+        published_at: new Date(),
         created_at: new Date(),
         updated_at: new Date()
       },
       {
+        doctor_profile_id: 0,
         name: 'Dr. Vikram Singh',
         specialization_id: 2,
         hospital_id: 5,
@@ -81,10 +94,13 @@ module.exports = {
         bio: 'Leading neurologist specializing in stroke management and epilepsy treatment.',
         image: 'https://via.placeholder.com/300x300',
         consultation_duration: 40,
+        is_published: true,
+        published_at: new Date(),
         created_at: new Date(),
         updated_at: new Date()
       },
       {
+        doctor_profile_id: 0,
         name: 'Dr. Kavita Menon',
         specialization_id: 12,
         hospital_id: 6,
@@ -97,10 +113,13 @@ module.exports = {
         bio: 'Experienced gynecologist specializing in high-risk pregnancies and laparoscopic surgeries.',
         image: 'https://via.placeholder.com/300x300',
         consultation_duration: 30,
+        is_published: true,
+        published_at: new Date(),
         created_at: new Date(),
         updated_at: new Date()
       },
       {
+        doctor_profile_id: 0,
         name: 'Dr. Arjun Reddy',
         specialization_id: 8,
         hospital_id: 4,
@@ -113,10 +132,13 @@ module.exports = {
         bio: 'Renowned cardiac surgeon with expertise in complex heart surgeries.',
         image: 'https://via.placeholder.com/300x300',
         consultation_duration: 45,
+        is_published: true,
+        published_at: new Date(),
         created_at: new Date(),
         updated_at: new Date()
       },
       {
+        doctor_profile_id: 0,
         name: 'Dr. Neha Gupta',
         specialization_id: 4,
         hospital_id: 6,
@@ -129,11 +151,13 @@ module.exports = {
         bio: 'Caring pediatrician specializing in neonatal care and child nutrition.',
         image: 'https://via.placeholder.com/300x300',
         consultation_duration: 20,
+        is_published: true,
+        published_at: new Date(),
         created_at: new Date(),
         updated_at: new Date()
       },
       {
-        name: 'Dr. Suresh Iyer',
+        doctor_profile_id: 0,
         specialization_id: 7,
         hospital_id: 3,
         experience: 11,
@@ -149,6 +173,7 @@ module.exports = {
         updated_at: new Date()
       },
       {
+        doctor_profile_id: 0,
         name: 'Dr. Ananya Krishnan',
         specialization_id: 10,
         hospital_id: 5,
@@ -161,6 +186,8 @@ module.exports = {
         bio: 'Expert neurosurgeon specializing in brain and spine surgeries.',
         image: 'https://via.placeholder.com/300x300',
         consultation_duration: 40,
+        is_published: true,
+        published_at: new Date(),
         created_at: new Date(),
         updated_at: new Date()
       }

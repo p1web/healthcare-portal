@@ -4,6 +4,12 @@ const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class Doctor extends Model {
     static associate(models) {
+
+      Doctor.belongsTo(models.DoctorProfile, {
+        foreignKey: 'doctor_profile_id',
+        as: 'profile'
+      });
+
       // Each doctor belongs to a specialization
       Doctor.belongsTo(models.Specialization, {
         foreignKey: 'specialization_id',
@@ -29,6 +35,15 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true
+    },
+    doctor_profile_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      unique: true,
+      references: {
+        model: 'doctor_profiles',
+        key: 'id'
+      }
     },
     name: {
       type: DataTypes.STRING(255),
@@ -97,7 +112,16 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.DATE,
       allowNull: false,
       defaultValue: DataTypes.NOW
-    }
+    },
+    is_published: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
+    },
+    published_at: {
+      type: DataTypes.DATE,
+      allowNull: true
+    } 
   }, {
     sequelize,
     modelName: 'Doctor',

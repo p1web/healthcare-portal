@@ -1,0 +1,303 @@
+<div class="pagetitle">
+    <h1>{{pageTitle}} Doctors</h1>
+    <nav>
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="admin/dashboard">Home</a></li>
+            <li class="breadcrumb-item">User Management</li>
+            <li class="breadcrumb-item active">All Doctors</li>
+        </ol>
+    </nav>
+</div><!-- End Page Title -->
+
+<section class="section dashboard">
+    <div class="row">
+        <div class="col-12">
+            <div class="card recent-sales overflow-auto">
+
+                <div class="filter">
+                    <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                        <li class="dropdown-header text-start">
+                            <h6>Filter</h6>
+                        </li>
+
+                        <li><a class="dropdown-item" href="#">Today</a></li>
+                        <li><a class="dropdown-item" href="#">This Month</a></li>
+                        <li><a class="dropdown-item" href="#">This Year</a></li>
+                    </ul>
+                </div>
+
+                <div class="card-body">
+                    <h5 class="card-title">{{pageTitle}} Doctor List</h5>
+
+                    <table class="table table-borderless datatable">
+                        <thead>
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">Name</th>
+                                <th scope="col">Email</th>
+                                <th scope="col">Phone</th>
+                                <th scope="col">Gender</th>
+                                <th scope="col" *ngIf="showStatusColumns()">Is Verified</th>
+                                <th scope="col">Created At</th>
+                                <th scope="col">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let doc of doctorList; let i = index">
+                                <th scope="row">{{ i + 1 }}</th>
+                                <td>
+                                    <a class="btn-link text-primary" (click)="openDoctorModal(doc)" data-bs-toggle="modal"
+                                        data-bs-target="#doctorDetailsModal">{{ doc.user.name }}</a>
+                                </td>
+                                <td>{{ doc.user.email }}</td>
+                                <td>{{ doc.user.phone }}</td>
+                                <td>{{ doc.user.gender }}</td>
+                                <td *ngIf="showStatusColumns()">{{ doc.isVerified ? 'Yes' : 'No' }}</td>
+                                <td>{{ doc.user.created_at | date:'dd MMM yyyy' }}</td>
+                                <td>
+                                
+                                    <button class="btn btn-sm btn-outline-primary" *ngIf="!doc.isVerified"
+                                        (click)="toggleDoctorVerification(doc)">Verify</button>
+                                
+                                    <button class="btn btn-sm btn-outline-primary" 
+                                    *ngIf="statusFilter=='VERIFIED' && doc.isVerified" (click)="openCreateModal(doc)" data-bs-toggle="modal"
+                                        data-bs-target="#createDoctorDetailsModal">
+                                    Create Public Profile</button>
+                                
+                                </td>
+                            </tr>
+                        </tbody>
+
+                    </table>
+
+
+                    <div class="modal fade" id="doctorDetailsModal" tabindex="-1">
+                        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+                            <div class="modal-content"> <!-- Modal Header -->
+                                <div class="modal-header">
+                                    <h5 class="modal-title"> Doctor Profile </h5> <button type="button" class="btn-close"
+                                        data-bs-dismiss="modal"></button>
+                                </div>
+                                <!-- Modal Body -->
+                                <div class="modal-body" *ngIf="selectedDoctor">
+                                    <!-- Basic Info -->
+                                    <h6 class="mb-3 text-primary">Basic Information</h6>
+                                    <div class="row">
+                                        <div class="col-md-3 mb-3"><strong>Name:</strong> {{ selectedDoctor.user?.name }}</div>
+                                        <div class="col-md-3 mb-3"><strong>Email:</strong> {{ selectedDoctor.user?.email }}</div>
+                                        <div class="col-md-3 mb-3"><strong>Phone:</strong> {{ selectedDoctor.user?.phone }}</div>
+                                        <div class="col-md-3 mb-3"><strong>Gender:</strong> {{ selectedDoctor.user?.gender }}</div>
+                                    </div>
+                                     <hr> <!-- Contact Information -->
+                                    <h6 class="mb-3 text-primary">Contact Information</h6>
+                                    <div class="row">
+                                        <div class="col-md-3 mb-3"><strong>Address:</strong> {{ selectedDoctor.user?.address }}</div>
+                                        <div class="col-md-3 mb-3"><strong>City:</strong> {{ selectedDoctor.user?.city }}</div>
+                                        <div class="col-md-3 mb-3"><strong>State:</strong> {{ selectedDoctor.user?.state }}</div>
+                                        <div class="col-md-3 mb-3"><strong>Country:</strong> {{ selectedDoctor.user?.country }}</div>
+                                        <div class="col-md-3 mb-3"><strong>Pincode:</strong> {{ selectedDoctor.user?.pincode }}</div>
+                                    </div>
+
+                                    <hr> <!-- Professional Info -->
+                                    <h6 class="mb-3 text-primary">Professional Details</h6>
+                                    <div class="row">
+                                        <div class="col-md-3 mb-3"> <strong>Qualification:</strong> {{ selectedDoctor.qualification }}
+                                        </div>
+                                        <div class="col-md-3 mb-3"> <strong>Experience:</strong> {{ selectedDoctor.yearsOfExperience }} years </div>
+                                        <div class="col-md-3 mb-3"> <strong>Consultation Fee:</strong> ₹{{ selectedDoctor.consultationFee }} </div>
+                                        <div class="col-md-3 mb-3"> <strong>Specialization:</strong> {{ selectedDoctor.specialization?.name }}</div>
+                                        <div class="col-md-3 mb-3"> <strong>Registration No.:</strong> {{ selectedDoctor.registrationNumber }}</div>
+                                    </div>
+                                    <hr> <!-- Profile Verification -->
+                                    <h6 class="mb-3 text-primary">Verification</h6>
+                                    <span class="badge bg-success" *ngIf="selectedDoctor?.isVerified"> Verified </span>
+                                    <span class="badge bg-warning" *ngIf="!selectedDoctor?.isVerified"> Pending </span>
+                                    
+                                </div>
+                                <!-- Modal Footer -->
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"> Close </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal fade" id="createDoctorDetailsModal" tabindex="-1">
+                        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+                            <div class="modal-content"> <!-- Modal Header -->
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Create Doctor's Public Profile </h5> <button type="button" class="btn-close"
+                                        data-bs-dismiss="modal"></button>
+                                </div>
+                                <!-- Modal Body -->
+                                <div class="modal-body">
+                                    <form class="container mt-4">
+                                    
+                                        <!-- ================= Basic Info ================= -->
+                                        <div class="card mb-4">
+                                            <div class="card-header fw-bold">Basic Information</div>
+                                            <div class="card-body row g-3">
+                                    
+                                                <div class="col-md-6">
+                                                    <label class="form-label">Doctor Name</label>
+                                                    <input type="text" class="form-control" name="name" placeholder="Dr. Amit Patel">
+                                                </div>
+                                    
+                                                <div class="col-md-3">
+                                                    <label class="form-label">Specialization</label>
+                                                    <select class="form-select" name="specialization_id">
+                                                        <option value="">Select Specialization</option>
+                                                        <option *ngFor="let spec of specializationList" [value]="spec.id">{{ spec.name }}</option>
+                                                    </select>
+                                                </div>
+                                    
+                                                <div class="col-md-3">
+                                                    <label class="form-label">Hospital</label>
+                                                    <select class="form-select" name="hospital_id">
+                                                        <option value="">Select Hospital</option>
+                                                        <option *ngFor="let hospital of hospitalsList" [value]="hospital.id">{{ hospital.name }}</option>
+                                                    </select>
+                                                </div>
+                                    
+                                            </div>
+                                        </div>
+                                    
+                                        <!-- ================= Professional Details ================= -->
+                                        <div class="card mb-4">
+                                            <div class="card-header fw-bold">Professional Details</div>
+                                            <div class="card-body row g-3">
+                                    
+                                                <div class="col-md-4">
+                                                    <label class="form-label">Qualification</label>
+                                                    <input type="text" class="form-control" name="qualification" placeholder="MBBS, MS (Orthopedics)">
+                                                </div>
+                                    
+                                                <div class="col-md-4">
+                                                    <label class="form-label">Years of Experience</label>
+                                                    <input type="number" class="form-control" name="experience" min="0">
+                                                </div>
+                                    
+                                                <div class="col-md-4">
+                                                    <label class="form-label">Registration Number</label>
+                                                    <input type="text" class="form-control" name="registrationNumber">
+                                                </div>
+                                    
+                                            </div>
+                                        </div>
+                                    
+                                        <!-- ================= Contact Details ================= -->
+                                        <div class="card mb-4">
+                                            <div class="card-header fw-bold">Contact Details</div>
+                                            <div class="card-body row g-3">
+                                    
+                                                <div class="col-md-4">
+                                                    <label class="form-label">Email</label>
+                                                    <input type="email" class="form-control" name="email">
+                                                </div>
+                                    
+                                                <div class="col-md-4">
+                                                    <label class="form-label">Phone</label>
+                                                    <input type="text" class="form-control" name="phone">
+                                                </div>
+                                    
+                                                <div class="col-md-4">
+                                                    <label class="form-label">Gender</label>
+                                                    <select class="form-select" name="gender">
+                                                        <option value="">Select</option>
+                                                        <option value="male">Male</option>
+                                                        <option value="female">Female</option>
+                                                    </select>
+                                                </div>
+                                    
+                                            </div>
+                                        </div>
+                                    
+                                        <!-- ================= Public Profile Content ================= -->
+                                        <div class="card mb-4">
+                                            <div class="card-header fw-bold">Public Profile</div>
+                                            <div class="card-body row g-3">
+                                    
+                                                <div class="col-md-12">
+                                                    <label class="form-label">Bio / About Doctor</label>
+                                                    <textarea class="form-control" rows="4" name="bio"
+                                                        placeholder="Specialist in joint replacement surgeries and sports medicine."></textarea>
+                                                </div>
+                                    
+                                                <div class="col-md-6">
+                                                    <label class="form-label">Profile Image</label>
+                                                    <input type="file" class="form-control" name="image">
+                                                </div>
+                                    
+                                                <div class="col-md-6">
+                                                    <label class="form-label">Rating</label>
+                                                    <input type="text" class="form-control" name="rating" readonly>
+                                                    <small class="text-muted">Auto-calculated</small>
+                                                </div>
+                                    
+                                            </div>
+                                        </div>
+                                    
+                                        <!-- ================= Consultation Settings ================= -->
+                                        <div class="card mb-4">
+                                            <div class="card-header fw-bold">Consultation Settings</div>
+                                            <div class="card-body row g-3">
+                                    
+                                                <div class="col-md-4">
+                                                    <label class="form-label">Consultation Fee (₹)</label>
+                                                    <input type="number" class="form-control" name="fee">
+                                                </div>
+                                    
+                                                <div class="col-md-4">
+                                                    <label class="form-label">Consultation Duration (mins)</label>
+                                                    <input type="number" class="form-control" name="consultation_duration">
+                                                </div>
+                                    
+                                                <div class="col-md-4">
+                                                    <label class="form-label">Profile Published</label>
+                                                    <select class="form-select" name="is_published">
+                                                        <option value="0">No</option>
+                                                        <option value="1">Yes</option>
+                                                    </select>
+                                                </div>
+                                    
+                                            </div>
+                                        </div>
+                                    
+                                        <!-- ================= Verification ================= -->
+                                        <div class="card mb-4">
+                                            <div class="card-header fw-bold">Verification</div>
+                                            <div class="card-body row g-3">
+                                    
+                                                <div class="col-md-6">
+                                                    <label class="form-label">Verification Documents</label>
+                                                    <input type="file" class="form-control" multiple>
+                                                    <small class="text-muted">Degree, Registration, Certificates</small>
+                                                </div>
+                                                                                    
+                                    
+                                            </div>
+                                        </div>
+                                    
+                                        <!-- ================= Actions ================= -->
+                                        <div class="text-end mb-5">
+                                            <button type="submit" class="btn btn-primary px-4">Save Profile</button>
+                                            <button type="reset" class="btn btn-outline-secondary ms-2">Reset</button>
+                                        </div>
+                                    
+                                    </form>                                    
+                                </div>
+                                <!-- Modal Footer -->
+                                <!-- <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"> Close </button>
+                                </div> -->
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+</section>

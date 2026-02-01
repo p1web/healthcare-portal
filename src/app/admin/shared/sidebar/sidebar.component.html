@@ -39,35 +39,36 @@
     <li class="nav-heading">Doctors Management</li>
 
     <li class="nav-item">
-      <a class="nav-link collapsed" href="#">
+      <a class="nav-link collapsed" [routerLink]="['doctors-profile']" [queryParams]="{status:'ALL'}">
         <i class="bi bi-file-medical"></i>
         <span>All Doctor Profiles</span>
       </a>
     </li>
 
+    
     <li class="nav-item">
-      <a class="nav-link collapsed" href="#">
-        <i class="bi bi-hourglass-split"></i>
-        <span>Pending Doctor Approvals</span>
-      </a>
-    </li>
-
-    <li class="nav-item">
-      <a class="nav-link collapsed" href="#">
+      <a class="nav-link collapsed" [routerLink]="['doctors-profile']" [queryParams]="{status:'VERIFIED'}">
         <i class="bi bi-patch-check"></i>
         <span>Verified Doctors</span>
       </a>
     </li>
 
-    <li class="nav-item">
-      <a class="nav-link collapsed" href="#">
-        <i class="bi bi-patch-minus"></i>
-        <span>Rejected / Inactive Doctors</span>
+    <!-- <li class="nav-item">
+      <a class="nav-link collapsed" [routerLink]="['doctors-profile']" [queryParams]="{status:'ACTIVE'}">
+        <i class="bi bi-hourglass-split"></i>
+        <span>Active Doctor Profile</span>
       </a>
     </li>
 
+     <li class="nav-item">
+      <a class="nav-link collapsed" [routerLink]="['doctors-profile']" [queryParams]="{status:'BLOCKED'}">
+        <i class="bi bi-patch-minus"></i>
+        <span>Blocked / Inactive Doctors</span>
+      </a>
+    </li> -->
+
     <li class="nav-item">
-      <a class="nav-link collapsed" href="#">
+      <a class="nav-link collapsed" [routerLink]="['public-doctors']">
         <i class="bi bi-globe"></i>
         <span>Public Doctor Listings</span>
       </a>

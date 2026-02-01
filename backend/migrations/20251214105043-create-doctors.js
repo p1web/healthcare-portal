@@ -10,6 +10,17 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
+      doctorProfileId: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        field: 'doctor_profile_id',
+        references: {
+          model: 'doctor_profiles',
+          key: 'id'
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE'
+      },
       name: {
         type: Sequelize.STRING(255),
         allowNull: false
@@ -85,6 +96,16 @@ module.exports = {
         type: Sequelize.BOOLEAN,
         defaultValue: true,
         field: 'is_active'
+      },
+      isPublished: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: false,
+        field: 'is_published'
+      },
+      publishedAt: {
+        type: Sequelize.DATE,
+        allowNull: true,
+        field: 'published_at'
       },
       createdAt: {
         allowNull: false,

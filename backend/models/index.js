@@ -33,7 +33,7 @@ HospitalImage.associate({ Hospital });
 HospitalSpecialty.associate({ Hospital, Specialty });
 HospitalFacility.associate({ Hospital, Facility });
 HospitalAccreditation.associate({ Hospital, Accreditation });
-Doctor.associate({ Specialization, Hospital, DoctorAvailability });
+Doctor.associate({ DoctorProfile, Specialization, Hospital, DoctorAvailability });
 Specialization.associate({ Doctor });
 DoctorAvailability.associate({ Doctor });
 
@@ -42,8 +42,7 @@ CouponCategory.associate({ Coupon });
 CouponUsage.associate({ Coupon });
 
 // User associations
-User.associate({ PatientProfile, DoctorProfile, HospitalProfile 
-});
+User.associate({ PatientProfile, DoctorProfile, HospitalProfile });
 
 // Profile associations
 PatientProfile.associate({ User });

@@ -1,0 +1,247 @@
+<div class="pagetitle">
+    <h1>{{pageTitle}} Doctors</h1>
+    <nav>
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="admin/dashboard">Home</a></li>
+            <li class="breadcrumb-item">User Management</li>
+            <li class="breadcrumb-item active">All Doctors</li>
+        </ol>
+    </nav>
+</div><!-- End Page Title -->
+
+<section class="section dashboard">
+    <div class="row">
+        <div class="col-12">
+            <div class="card recent-sales overflow-auto">
+
+                <div class="filter">
+                    <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                        <li class="dropdown-header text-start">
+                            <h6>Filter</h6>
+                        </li>
+
+                        <li><a class="dropdown-item" href="#">Today</a></li>
+                        <li><a class="dropdown-item" href="#">This Month</a></li>
+                        <li><a class="dropdown-item" href="#">This Year</a></li>
+                    </ul>
+                </div>
+
+                <div class="card-body">
+                    <h5 class="card-title">{{pageTitle}} Doctor List</h5>
+
+                    <table class="table table-borderless datatable">
+                        <thead>
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">Name</th>
+                                <th scope="col">Email</th>
+                                <th scope="col">Phone</th>
+                                <th scope="col">Specialization</th>
+                                <th scope="col">Qualification</th>
+                                <th scope="col">Is Published</th>
+                                <th scope="col">Created At</th>
+                                <th scope="col">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let d of doctorList; let i = index">
+                                <th scope="row">{{ i + 1 }}</th>
+                                <td>
+                                    <a class="btn-link" (click)="openDoctorModal(d)" data-bs-toggle="modal"
+                                        data-bs-target="#doctorDetailsModal">{{ d.name }}</a>
+                                </td>
+                                <td>{{ d.email }}</td>
+                                <td>{{ d.phone }}</td>
+                                <td>{{ d.specialization.name }}</td>
+                                <td>{{ d.profile.qualification }}</td>
+                                <td>{{ d.is_published ? 'Yes' : 'No' }}</td>
+                                <td>{{ d.created_at | date:'dd MMM yyyy' }}</td>
+                                <td>
+                                    
+                                    <button class="btn btn-sm btn-outline-primary" (click)="openDoctorModal(d)" data-bs-toggle="modal"
+                                        data-bs-target="#doctorDetailsModal">
+                                        <i class="bi bi-eye"></i> View
+                                    </button>
+
+                                </td>
+                            </tr>
+                        </tbody>
+
+                    </table>
+
+                    <div class="modal fade" id="doctorDetailsModal" tabindex="-1">
+                        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+                            <div class="modal-content">
+                    
+                                <!-- Header -->
+                                <div class="modal-header bg-light">
+                                    <h5 class="modal-title d-flex align-items-center gap-2">
+                                        <i class="bi bi-person-badge text-primary fs-4"></i>
+                                        Doctor Profile Details
+                                    </h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                    
+                                <!-- Body -->
+                                <div class="modal-body" *ngIf="selectedDoctor">
+                    
+                                    <!-- TOP SUMMARY -->
+                                    <div class="row mb-4">
+                                        <div class="col-md-3 text-center">
+                                            <img [src]="selectedDoctor.image || 'https://via.placeholder.com/200'"
+                                                class="img-fluid rounded shadow-sm mb-2" alt="Doctor Image" />
+                                            <div class="fw-bold fs-5">
+                                                {{ selectedDoctor.name }}
+                                            </div>
+                                            <span class="badge bg-success" *ngIf="selectedDoctor.profile?.isVerified">
+                                                <i class="bi bi-patch-check-fill"></i> Verified
+                                            </span>
+                                            <span class="badge bg-warning" *ngIf="!selectedDoctor.profile?.isVerified">
+                                                Pending Verification
+                                            </span>
+                                        </div>
+                    
+                                        <div class="col-md-9">
+                                            <div class="row g-3">
+                    
+                                                <div class="col-md-4">
+                                                    <i class="bi bi-heart-pulse text-danger"></i>
+                                                    <strong> Specialization</strong>
+                                                    <div>{{ selectedDoctor.specialization?.name }}</div>
+                                                </div>
+                    
+                                                <div class="col-md-4">
+                                                    <i class="bi bi-award text-warning"></i>
+                                                    <strong> Experience</strong>
+                                                    <div>{{ selectedDoctor.experience }} years</div>
+                                                </div>
+                    
+                                                <div class="col-md-4">
+                                                    <i class="bi bi-star-fill text-warning"></i>
+                                                    <strong> Rating</strong>
+                                                    <div>{{ selectedDoctor.rating || 'N/A' }}</div>
+                                                </div>
+                    
+                                                <div class="col-md-4">
+                                                    <i class="bi bi-currency-rupee text-success"></i>
+                                                    <strong> Consultation Fee</strong>
+                                                    <div>₹{{ selectedDoctor.fee }}</div>
+                                                </div>
+                    
+                                                <div class="col-md-4">
+                                                    <i class="bi bi-clock text-info"></i>
+                                                    <strong> Duration</strong>
+                                                    <div>{{ selectedDoctor.consultation_duration }} mins</div>
+                                                </div>
+                    
+                                                <div class="col-md-4">
+                                                    <i class="bi bi-card-checklist text-primary"></i>
+                                                    <strong> Registration No.</strong>
+                                                    <div>{{ selectedDoctor.profile?.registrationNumber }}</div>
+                                                </div>
+                    
+                                            </div>
+                                        </div>
+                                    </div>
+                    
+                                    <!-- CONTACT INFO -->
+                                    <div class="card mb-3">
+                                        <div class="card-header fw-bold text-primary">
+                                            <i class="bi bi-telephone"></i> Contact Information
+                                        </div>
+                                        <div class="card-body row">
+                                            <div class="col-md-4">
+                                                <strong>Email:</strong><br>
+                                                {{ selectedDoctor.profile?.user?.email }}
+                                            </div>
+                                            <div class="col-md-4">
+                                                <strong>Phone:</strong><br>
+                                                {{ selectedDoctor.profile?.user?.phone }}
+                                            </div>
+                                            <div class="col-md-4">
+                                                <strong>Gender:</strong><br>
+                                                {{ selectedDoctor.profile?.user?.gender | titlecase }}
+                                            </div>
+                                        </div>
+                                    </div>
+                    
+                                    <!-- PROFESSIONAL DETAILS -->
+                                    <div class="card mb-3">
+                                        <div class="card-header fw-bold text-primary">
+                                            <i class="bi bi-briefcase"></i> Professional Details
+                                        </div>
+                                        <div class="card-body row">
+                                            <div class="col-md-6">
+                                                <strong>Qualification</strong>
+                                                <div>{{ selectedDoctor.qualification }}</div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <strong>Profile Experience</strong>
+                                                <div>{{ selectedDoctor.profile?.yearsOfExperience }} years</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                    
+                                    <!-- BIO -->
+                                    <div class="card mb-3">
+                                        <div class="card-header fw-bold text-primary">
+                                            <i class="bi bi-file-text"></i> Doctor Bio
+                                        </div>
+                                        <div class="card-body">
+                                            {{ selectedDoctor.bio || 'No bio provided' }}
+                                        </div>
+                                    </div>
+                    
+                                    <!-- VERIFICATION DOCUMENTS -->
+                                    <div class="card mb-3">
+                                        <div class="card-header fw-bold text-primary">
+                                            <i class="bi bi-folder-check"></i> Verification Documents
+                                        </div>
+                                        <div class="card-body">
+                                            <ul class="list-group list-group-flush">
+                                                <li class="list-group-item"
+                                                    *ngFor="let doc of selectedDoctor.profile?.verificationDocuments">
+                                                    <i class="bi bi-file-earmark-pdf text-danger"></i>
+                                                    <a [href]="doc" target="_blank" class="ms-2">
+                                                        View Document
+                                                    </a>
+                                                </li>
+                                                <li *ngIf="!selectedDoctor.profile?.verificationDocuments?.length" class="text-muted">
+                                                    No documents uploaded
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                    
+                                    <!-- METADATA -->
+                                    <div class="row text-muted small">
+                                        <div class="col-md-6">
+                                            Created At: {{ selectedDoctor.created_at | date:'medium' }}
+                                        </div>
+                                        <div class="col-md-6 text-end">
+                                            Updated At: {{ selectedDoctor.updated_at | date:'medium' }}
+                                        </div>
+                                    </div>
+                    
+                                </div>
+                    
+                                <!-- Footer -->
+                                <div class="modal-footer">
+                                    <button class="btn btn-secondary" data-bs-dismiss="modal">
+                                        Close
+                                    </button>
+                                </div>
+                    
+                            </div>
+                        </div>
+                    </div>
+
+
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+</section>

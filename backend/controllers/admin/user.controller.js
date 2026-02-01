@@ -6,7 +6,7 @@ const {
   Doctor,
   Hospital,
   Specialization
-} = require("../models");
+} = require("../../models");
 
 const { Op, Sequelize } = require("sequelize");
 
@@ -26,7 +26,8 @@ module.exports = {
       if (status === "BLOCKED") {
         where.isBlocked = true;
       }
-      
+
+      // where.role = 'patient';
       const users = await User.findAll({
         where,
         include: [
@@ -42,6 +43,7 @@ module.exports = {
       res.status(500).json({ message: "Failed to fetch users", error });
     }
   },
+
 
 // exports.getUsersByFilter = async (req, res) => {
 //   try {

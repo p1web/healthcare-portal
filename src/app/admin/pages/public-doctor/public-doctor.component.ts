@@ -5,18 +5,16 @@ import { AdminService } from '../../../services/admin.service';
 import { User } from '../../../models/user.model';
 
 @Component({
-  selector: 'app-users',
-  standalone: true,
+  selector: 'app-public-doctor',
   imports: [ CommonModule ],
-  templateUrl: './users.component.html',
-  styleUrl: './users.component.css'
+  templateUrl: './public-doctor.component.html',
+  styleUrl: './public-doctor.component.css'
 })
-
-export class UsersComponent implements OnInit{
-
-  userList: User[] = [];
+export class PublicDoctorComponent {
+  doctorList: any[] = [];
   statusFilter: string | null = null;
   pageTitle: string | null = null;
+  selectedDoctor: any = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -26,11 +24,8 @@ export class UsersComponent implements OnInit{
 
 
   ngOnInit(): void {
-    this.route.queryParams.subscribe(params => {
-    this.statusFilter = params['status'] || null;
-    this.pageTitle = this.statusFilter;
-    this.loadUsers(params);
-  });
+  
+    this.loadDoctorslist();
   }
 
   getRoleClass(role: 'patient' | 'doctor' | 'hospital' | 'admin'): string {
@@ -53,11 +48,12 @@ export class UsersComponent implements OnInit{
   }
 
 
-  loadUsers(filters: any): void {
-    this.AdminService.getUsers(filters).subscribe({
+  loadDoctorslist(): void {
+    
+    this.AdminService.getPublicDoctorlist().subscribe({
       next: (response) => {
-        this.userList = response;
-        // console.log('Users loaded:', this.userList);
+        this.doctorList = response;
+        // console.log('Users loaded:', this.doctorList);
       },
       error: (err) => {
         console.error('Failed to load users', err);
@@ -69,4 +65,7 @@ export class UsersComponent implements OnInit{
       return this.statusFilter === 'ALL';
   }
 
+  openDoctorModal(doctor: any): void {
+    this.selectedDoctor = doctor;
+  }
 }

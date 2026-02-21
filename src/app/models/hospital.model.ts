@@ -16,4 +16,6 @@ export interface Hospital {
   accreditations?: string[];
   operatingHours?: string;
   emergencyAvailable?: boolean;
+  ambulanceAvailable?: boolean;
+  
 }

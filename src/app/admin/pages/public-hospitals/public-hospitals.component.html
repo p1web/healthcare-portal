@@ -1,0 +1,232 @@
+<div class="pagetitle">
+    <!-- <h1>Hospitals</h1> -->
+    <nav>
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="admin/dashboard">Home</a></li>
+            <li class="breadcrumb-item active">All Hospitals</li>
+        </ol>
+    </nav>
+</div><!-- End Page Title -->
+
+<section class="section dashboard">
+    <div class="row">
+        <div class="col-12">
+            <div class="card recent-sales overflow-auto">
+
+                <div class="filter">
+                    <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                        <li class="dropdown-header text-start">
+                            <h6>Filter</h6>
+                        </li>
+
+                        <li><a class="dropdown-item" href="#">Today</a></li>
+                        <li><a class="dropdown-item" href="#">This Month</a></li>
+                        <li><a class="dropdown-item" href="#">This Year</a></li>
+                    </ul>
+                </div>
+
+                <div class="card-body">
+                    <h5 class="card-title">Hospital List</h5>
+
+                    <table class="table table-borderless datatable">
+                        <thead>
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">Hospital Name</th>
+                                <th scope="col">Email</th>
+                                <th scope="col">Phone</th>
+                                <th scope="col">Address</th>
+                                <th scope="col">Published</th>
+                                <th scope="col">Created At</th>
+                                <th scope="col">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let h of hospitalList; let i = index">
+                                <th scope="row">{{ i + 1 }}</th>
+                                <td>
+                                    <a class="btn-link">{{ h?.name }}</a>
+                                </td>
+                                <td>{{ h?.email }}</td>
+                                <td>{{ h?.phone }}</td>
+                                <td>{{ h?.address }}</td>
+                                <td>{{ h.is_published ? 'Yes' : 'No' }}</td>
+                                <td>{{ h?.createdAt | date:'dd MMM yyyy' }}</td>
+                                <td>
+
+                                    <button class="btn btn-sm btn-outline-primary" (click)="openHospitalModal(h)"
+                                        data-bs-toggle="modal" data-bs-target="#hospitalDetailsModal">
+                                        <i class="bi bi-eye"></i> View
+                                    </button>
+
+                                </td>
+                            </tr>
+                        </tbody>
+
+                    </table>
+
+
+                    <div class="modal fade" id="hospitalDetailsModal" tabindex="-1">
+                        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+                            <div class="modal-content">
+
+                                <!-- Header -->
+                                <div class="modal-header bg-light">
+                                    <h5 class="modal-title d-flex align-items-center gap-2">
+                                        <i class="bi bi-hospital text-primary fs-4"></i>
+                                        {{ selectedHospital?.name }}
+                                    </h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+
+                                <!-- Body -->
+                                <div class="modal-body" *ngIf="selectedHospital">
+
+                                    <!-- Overview Card -->
+                                    <div class="card mb-4">
+                                        <div class="card-header fw-bold">
+                                            <i class="bi bi-info-circle"></i> Overview
+                                        </div>
+                                        <div class="card-body row g-3">
+                                            <div class="col-md-6">
+                                                <h6>Email:</h6>
+                                                <p>{{ selectedHospital.email }}</p>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <h6>Phone:</h6>
+                                                <p>{{ selectedHospital.phone }}</p>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <h6>Address:</h6>
+                                                <p>{{ selectedHospital.address }}</p>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <h6>Established:</h6>
+                                                <p>{{ selectedHospital.established }}</p>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <h6>Registration:</h6>
+                                                <p>{{ selectedHospital.registration_number }}</p>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <h6>Hospital Type:</h6>
+                                                <p>{{ selectedHospital.hospital_type }}</p>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <h6>Beds:</h6>
+                                                <p>{{ selectedHospital.beds }}</p>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <h6>Rating:</h6>
+                                                <p>{{ selectedHospital.rating }} ⭐</p>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <h6>Discount:</h6>
+                                                <p>{{ selectedHospital.discount }}</p>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <h6>Operating Hours:</h6>
+                                                <p>{{ selectedHospital.operating_hours }}</p>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <h6>Emergency Available:</h6>
+                                                <p>{{ selectedHospital.emergency_available ? 'Yes' : 'No' }}</p>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <h6>Ambulance Available:</h6>
+                                                <p>{{ selectedHospital.ambulance_available ? 'Yes' : 'No' }}</p>
+                                            </div>
+                                            <div class="col-12">
+                                                <h6>Description:</h6>
+                                                <p>{{ selectedHospital.description }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Specialties Card -->
+                                    <div class="card mb-4">
+                                        <div class="card-header fw-bold">
+                                            <i class="bi bi-heart-pulse"></i> Specialties
+                                        </div>
+                                        <div class="card-body">
+                                            <ul class="list-group list-group-flush">
+                                                <li *ngFor="let specialty of selectedHospital.specialties"
+                                                    class="list-group-item d-flex justify-content-between align-items-center">
+                                                    <span>{{ specialty.name }} - {{ specialty.description }}</span>
+                                                    <span *ngIf="specialty.HospitalSpecialty.is_primary"
+                                                        class="badge bg-primary">Primary</span>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+
+                                    <!-- Facilities Card -->
+                                    <div class="card mb-4">
+                                        <div class="card-header fw-bold">
+                                            <i class="bi bi-building"></i> Facilities
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row">
+                                                <div *ngFor="let facility of selectedHospital.facilities"
+                                                    class="col-md-6 mb-2">
+                                                    <div class="border rounded p-2">
+                                                        <strong>{{ facility.name }}</strong>
+                                                        <p class="mb-0">{{ facility.description }}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Accreditations Card -->
+                                    <div class="card mb-4">
+                                        <div class="card-header fw-bold">
+                                            <i class="bi bi-award"></i> Accreditations
+                                        </div>
+                                        <div class="card-body">
+                                            <ul class="list-group list-group-flush">
+                                                <li *ngFor="let acc of selectedHospital.accreditations"
+                                                    class="list-group-item">
+                                                    <strong>{{ acc.full_name }}</strong> ({{ acc.name }}) <br>
+                                                    <small>{{ acc.description }}</small><br>
+                                                    <small>Certified: {{ acc.HospitalAccreditation.certified_date
+                                                        }}</small>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+
+                                    <!-- Images Card -->
+                                    <div class="card mb-4">
+                                        <div class="card-header fw-bold">
+                                            <i class="bi bi-images"></i> Gallery
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row g-3">
+                                                <div *ngFor="let img of selectedHospital.images" class="col-md-4 col-sm-6">
+                                                    <div class="border rounded shadow-sm overflow-hidden"> <img [src]="img.image_url"
+                                                            class="img-fluid gallery-thumb" alt="Hospital Image"> </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                                <!-- Footer -->
+                                <div class="modal-footer">
+                                    <button class="btn btn-secondary" data-bs-dismiss="modal">
+                                        Close
+                                    </button>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

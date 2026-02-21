@@ -94,6 +94,7 @@ export class DoctorsComponent implements OnInit{
 
   openCreateModal(doctor: any): void {
     this.selectedDoctor = doctor; 
+    console.log('Creating new doctor profile',this.selectedDoctor);
   }
 
   toggleDoctorVerification(doctor: any): void {

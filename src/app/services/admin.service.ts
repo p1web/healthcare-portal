@@ -20,6 +20,10 @@ export class AdminService {
     return this.http.get<User[]>(`${this.apiUrl}/doctors-profile`, { params: filters });
   }
 
+  getHospitalUserProfile(filters: any = {}): Observable<User[]> {
+    return this.http.get<User[]>(`${this.apiUrl}/hospital-user-profile`, { params: filters });
+  }
+
   getPublicDoctorlist(): Observable<User[]> {
     return this.http.get<User[]>(`${this.apiUrl}/public-doctors`);
   }
@@ -29,7 +33,7 @@ export class AdminService {
   }
 
   getHospitals(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/hospitals`);
+    return this.http.get<any[]>(`${this.apiUrl}/public-hospitals`);
   }
 
 }

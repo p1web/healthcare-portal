@@ -5,7 +5,8 @@ import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { UsersComponent } from './pages/users/users.component';
 import { DoctorsComponent } from './pages/doctors/doctors.component';
 import { PublicDoctorComponent } from './pages/public-doctor/public-doctor.component';
-
+import { PublicHospitalsComponent } from './pages/public-hospitals/public-hospitals.component';
+import { HospitalsComponent } from './pages/hospitals/hospitals.component';
 
 const routes: Routes = [
   {
@@ -16,7 +17,9 @@ const routes: Routes = [
       { path: 'dashboard', component: DashboardComponent },
       { path: 'users', component: UsersComponent },
       { path: 'doctors-profile', component: DoctorsComponent },
+      { path: 'hospital-user-profile', component: HospitalsComponent },
       { path: 'public-doctors', component: PublicDoctorComponent },
+      { path: 'public-hospitals', component: PublicHospitalsComponent },
     ]
   }
 ];

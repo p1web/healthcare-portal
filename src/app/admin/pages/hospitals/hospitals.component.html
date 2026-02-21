@@ -1,0 +1,115 @@
+<div class="pagetitle">
+    <!-- <h1>{{pageTitle}} Hospitals User Profile</h1> -->
+    <nav>
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="admin/dashboard">Home</a></li>
+            <li class="breadcrumb-item">Hospital Management</li>
+            <li class="breadcrumb-item active">Hospitals User Profile</li>
+        </ol>
+    </nav>
+</div><!-- End Page Title -->
+
+<section class="section dashboard">
+    <div class="row">
+        <div class="col-12">
+            <div class="card recent-sales overflow-auto">
+
+                <div class="filter">
+                    <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                        <li class="dropdown-header text-start">
+                            <h6>Filter</h6>
+                        </li>
+
+                        <li><a class="dropdown-item" href="#">Today</a></li>
+                        <li><a class="dropdown-item" href="#">This Month</a></li>
+                        <li><a class="dropdown-item" href="#">This Year</a></li>
+                    </ul>
+                </div>
+
+                <div class="card-body">
+                    <h5 class="card-title">{{pageTitle}} Hospitals User Profile</h5>
+
+                    <table class="table table-borderless datatable">
+                        <thead>
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">Name</th>
+                                <th scope="col">Email</th>
+                                <th scope="col">Phone</th>
+                                <th scope="col">Gender</th>
+                                <th scope="col" *ngIf="showStatusColumns()">Is Verified</th>
+                                <th scope="col">Created At</th>
+                                <th scope="col">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let u of hospitalsUserList; let i = index">
+                                <th scope="row">{{ i + 1 }}</th>
+                                <td>
+                                    <a class="btn-link text-primary" (click)="openHospitalUserModal(u)" data-bs-toggle="modal"
+                                        data-bs-target="#hospitalDetailsModal">{{ u.name }}</a>
+                                </td>
+                                <td>{{ u.email }}</td>
+                                <td>{{ u.phone }}</td>
+                                <td>{{ u.gender }}</td>
+                                <td *ngIf="showStatusColumns()">{{ u.isVerified ? 'Yes' : 'No' }}</td>
+                                <td>{{ u.createdAt | date:'dd MMM yyyy' }}</td>
+                                <td>
+                                
+                                    <button class="btn btn-sm btn-outline-primary" *ngIf="!u.hospitalProfile.isVerified"
+                                        (click)="toggleHospitalVerification(u)">Verify</button>                                                            
+                                </td>
+                            </tr>
+                        </tbody>
+
+                    </table>
+
+
+                    <div class="modal fade" id="hospitalDetailsModal" tabindex="-1">
+                        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+                            <div class="modal-content"> <!-- Modal Header -->
+                                <div class="modal-header">
+                                    <h5 class="modal-title"> Hospital User Profile </h5> <button type="button" class="btn-close"
+                                        data-bs-dismiss="modal"></button>
+                                </div>
+                                <!-- Modal Body -->
+                                <div class="modal-body" *ngIf="selectedHospitalUser">
+                                    <!-- Basic Info -->
+                                    <h6 class="mb-3 text-primary">Basic Information</h6>
+                                    <div class="row">
+                                        <div class="col-md-3 mb-3"><strong>Name:</strong> {{ selectedHospitalUser?.name }}</div>
+                                        <div class="col-md-3 mb-3"><strong>Email:</strong> {{ selectedHospitalUser?.email }}</div>
+                                        <div class="col-md-3 mb-3"><strong>Phone:</strong> {{ selectedHospitalUser?.phone }}</div>
+                                        <div class="col-md-3 mb-3"><strong>Gender:</strong> {{ selectedHospitalUser?.gender }}</div>
+                                    </div>
+                                     <hr> <!-- Contact Information -->
+                                    <h6 class="mb-3 text-primary">Contact Information</h6>
+                                    <div class="row">
+                                        <div class="col-md-3 mb-3"><strong>Address:</strong> {{ selectedHospitalUser?.address }}</div>
+                                        <div class="col-md-3 mb-3"><strong>City:</strong> {{ selectedHospitalUser?.city }}</div>
+                                        <div class="col-md-3 mb-3"><strong>State:</strong> {{ selectedHospitalUser?.state }}</div>
+                                        <div class="col-md-3 mb-3"><strong>Country:</strong> {{ selectedHospitalUser?.country }}</div>
+                                        <div class="col-md-3 mb-3"><strong>Pincode:</strong> {{ selectedHospitalUser?.pincode }}</div>
+                                    </div>
+
+                                    <hr> <!-- Profile Verification -->
+                                    <h6 class="mb-3 text-primary">Verification</h6>
+                                    <span class="badge bg-success" *ngIf="selectedHospitalUser.hospitalProfile?.isVerified"> Verified </span>
+                                    <span class="badge bg-warning" *ngIf="!selectedHospitalUser.hospitalProfile?.isVerified"> Pending </span>
+                                    
+                                </div>
+                                <!-- Modal Footer -->
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"> Close </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+</section>

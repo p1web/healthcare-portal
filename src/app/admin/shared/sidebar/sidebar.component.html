@@ -78,35 +78,36 @@
     <li class="nav-heading">Hospital Management</li>
 
     <li class="nav-item">
-      <a class="nav-link collapsed" href="#">
-        <i class="bi bi-hospital"></i>
-        <span>All Hospital Profiles</span>
-      </a>
-    </li>
-
-    <li class="nav-item">
-      <a class="nav-link collapsed" href="#">
+      <a class="nav-link collapsed" [routerLink]="['hospital-user-profile']" [queryParams]="{status:'All'}">
         <i class="bi bi-hourglass-split"></i>
-        <span>Pending Hospital Approvals</span>
+        <span>All Admin Profiles</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link collapsed" [routerLink]="['hospital-user-profile']" [queryParams]="{status:'VERIFIED'}">
+        <i class="bi bi-hospital"></i>
+        <span>Verified Admin Profiles</span>
       </a>
     </li>
 
+    <!-- 
+
     <li class="nav-item">
-      <a class="nav-link collapsed" href="#">
+      <a class="nav-link collapsed" [routerLink]="['hospital-user-profile']" [queryParams]="{status:'VERIFIED'}">
         <i class="bi bi-patch-check"></i>
-        <span>Verified Hospitals</span>
+        <span>Verified Admin Profiles</span>
       </a>
     </li>
 
     <li class="nav-item">
-      <a class="nav-link collapsed" href="#">
+      <a class="nav-link collapsed" [routerLink]="['hospital-user-profile']" [queryParams]="{status:'BLOCKED'}">
         <i class="bi bi-patch-minus"></i>
-        <span>Rejected / Inactive Hospitals</span>
+        <span>Rejected / Inactive Admin Profiles</span>
       </a>
-    </li>
+    </li> -->
 
     <li class="nav-item">
-      <a class="nav-link collapsed" href="#">
+      <a class="nav-link collapsed" [routerLink]="['public-hospitals']">
         <i class="bi bi-globe"></i>
         <span>Public Hospital Listings</span>
       </a>

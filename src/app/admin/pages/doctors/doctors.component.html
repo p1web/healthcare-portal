@@ -141,7 +141,7 @@
                                     
                                                 <div class="col-md-6">
                                                     <label class="form-label">Doctor Name</label>
-                                                    <input type="text" class="form-control" name="name" placeholder="Dr. Amit Patel">
+                                                    <input type="text" class="form-control" name="name" [value]="selectedDoctor?.user?.name || ''" placeholder="Dr. Amit Patel">
                                                 </div>
                                     
                                                 <div class="col-md-3">
@@ -170,17 +170,17 @@
                                     
                                                 <div class="col-md-4">
                                                     <label class="form-label">Qualification</label>
-                                                    <input type="text" class="form-control" name="qualification" placeholder="MBBS, MS (Orthopedics)">
+                                                    <input type="text" class="form-control" name="qualification" [value]="selectedDoctor?.user?.qualification || ''" placeholder="MBBS, MS (Orthopedics)">
                                                 </div>
                                     
                                                 <div class="col-md-4">
                                                     <label class="form-label">Years of Experience</label>
-                                                    <input type="number" class="form-control" name="experience" min="0">
+                                                    <input type="number" class="form-control" name="experience" [value]="selectedDoctor?.experience || 0" min="0">
                                                 </div>
                                     
                                                 <div class="col-md-4">
                                                     <label class="form-label">Registration Number</label>
-                                                    <input type="text" class="form-control" name="registrationNumber">
+                                                    <input type="text" class="form-control" [value]="selectedDoctor?.registration_number || ''" name="registrationNumber">
                                                 </div>
                                     
                                             </div>
@@ -193,20 +193,20 @@
                                     
                                                 <div class="col-md-4">
                                                     <label class="form-label">Email</label>
-                                                    <input type="email" class="form-control" name="email">
+                                                    <input type="email" class="form-control" name="email" [value]="selectedDoctor?.user?.email || ''">
                                                 </div>
                                     
                                                 <div class="col-md-4">
                                                     <label class="form-label">Phone</label>
-                                                    <input type="text" class="form-control" name="phone">
+                                                    <input type="text" class="form-control" name="phone" [value]="selectedDoctor?.user?.phone || ''">
                                                 </div>
                                     
                                                 <div class="col-md-4">
                                                     <label class="form-label">Gender</label>
                                                     <select class="form-select" name="gender">
                                                         <option value="">Select</option>
-                                                        <option value="male">Male</option>
-                                                        <option value="female">Female</option>
+                                                        <option value="male" [selected]="selectedDoctor?.user?.gender === 'male'">Male</option>
+                                                        <option value="female" [selected]="selectedDoctor?.user?.gender === 'female'">Female</option>
                                                     </select>
                                                 </div>
                                     
@@ -245,12 +245,12 @@
                                     
                                                 <div class="col-md-4">
                                                     <label class="form-label">Consultation Fee (₹)</label>
-                                                    <input type="number" class="form-control" name="fee">
+                                                    <input type="number" class="form-control" name="fee" [value]="selectedDoctor?.consultationFee|| 0">
                                                 </div>
                                     
                                                 <div class="col-md-4">
                                                     <label class="form-label">Consultation Duration (mins)</label>
-                                                    <input type="number" class="form-control" name="consultation_duration">
+                                                    <input type="number" class="form-control" name="consultation_duration" [value]="selectedDoctor?.consultationDuration || 0">
                                                 </div>
                                     
                                                 <div class="col-md-4">
@@ -263,22 +263,7 @@
                                     
                                             </div>
                                         </div>
-                                    
-                                        <!-- ================= Verification ================= -->
-                                        <div class="card mb-4">
-                                            <div class="card-header fw-bold">Verification</div>
-                                            <div class="card-body row g-3">
-                                    
-                                                <div class="col-md-6">
-                                                    <label class="form-label">Verification Documents</label>
-                                                    <input type="file" class="form-control" multiple>
-                                                    <small class="text-muted">Degree, Registration, Certificates</small>
-                                                </div>
-                                                                                    
-                                    
-                                            </div>
-                                        </div>
-                                    
+
                                         <!-- ================= Actions ================= -->
                                         <div class="text-end mb-5">
                                             <button type="submit" class="btn btn-primary px-4">Save Profile</button>

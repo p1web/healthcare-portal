@@ -14,6 +14,28 @@ module.exports = (sequelize, DataTypes) => {
       established: DataTypes.INTEGER,
       operating_hours: DataTypes.STRING,
       emergency_available: DataTypes.BOOLEAN,
+      ambulance_available: DataTypes.BOOLEAN,
+      registration_number: { 
+        type: DataTypes.STRING(50), 
+        allowNull: true, 
+        unique: true, 
+      }, 
+      hospital_type: { 
+        type: DataTypes.ENUM("private", "government", "charity", "clinic"), 
+        allowNull: true,  
+      }, 
+      is_published: { 
+        type: DataTypes.BOOLEAN, 
+        defaultValue: false 
+      },
+      verification_documents: {
+        type: DataTypes.JSON,
+        allowNull: true,
+        get() {
+          const rawValue = this.getDataValue("verification_documents");
+          return rawValue ? Array.isArray(rawValue) ? rawValue : JSON.parse(rawValue) : [];
+        },
+      },
     },
     {
       tableName: "hospitals",

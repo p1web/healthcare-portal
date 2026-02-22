@@ -211,7 +211,7 @@ module.exports = {
     }
   },
 
-  async getSpecializations(req, res) {
+  async getSpecializationList(req, res) {
     try {
       const specializations = await Specialization.findAll({
         attributes: ['id', 'name'],   // plural

@@ -28,12 +28,28 @@ export class AdminService {
     return this.http.get<User[]>(`${this.apiUrl}/public-doctors`);
   }
 
-  getSpecializations(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/specializations`);
+  getSpecializationList(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/specialization-list`);
   }
 
   getHospitals(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/public-hospitals`);
+  }
+
+  getSpecialities(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/specialities`);
+  }
+
+  getSpecializations(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/specializations`);
+  }
+
+  getHospitalSpecialtyMapping(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/hospital-specialty-mapping`);
+  }
+
+  getDoctorSpecializationMapping(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/doctor-specialization-mapping`);
   }
 
 }

@@ -102,7 +102,7 @@ export class DoctorsComponent implements OnInit{
   }
 
   loadSpecializations(): void {
-    this.AdminService.getSpecializations().subscribe({
+    this.AdminService.getSpecializationList().subscribe({
       next: (response) => {
         this.specializationList = response;
       },

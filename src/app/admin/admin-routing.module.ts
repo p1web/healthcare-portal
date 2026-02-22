@@ -7,6 +7,10 @@ import { DoctorsComponent } from './pages/doctors/doctors.component';
 import { PublicDoctorComponent } from './pages/public-doctor/public-doctor.component';
 import { PublicHospitalsComponent } from './pages/public-hospitals/public-hospitals.component';
 import { HospitalsComponent } from './pages/hospitals/hospitals.component';
+import { SpecialtiesComponent } from './pages/specialties/specialties.component';
+import { SpecializationsComponent } from './pages/specializations/specializations.component';
+import { DoctorSpecializationMappingComponent } from './pages/doctor-specialization-mapping/doctor-specialization-mapping.component';
+import { HospitalSpecialtyMappingComponent } from './pages/hospital-specialty-mapping/hospital-specialty-mapping.component';
 
 const routes: Routes = [
   {
@@ -20,6 +24,10 @@ const routes: Routes = [
       { path: 'hospital-user-profile', component: HospitalsComponent },
       { path: 'public-doctors', component: PublicDoctorComponent },
       { path: 'public-hospitals', component: PublicHospitalsComponent },
+      { path: 'specialties', component: SpecialtiesComponent },
+      { path: 'specializations', component: SpecializationsComponent },
+      { path: 'doctor-specialization-mapping', component: DoctorSpecializationMappingComponent },
+      { path: 'hospital-specialty-mapping', component: HospitalSpecialtyMappingComponent },
     ]
   }
 ];

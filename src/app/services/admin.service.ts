@@ -52,4 +52,27 @@ export class AdminService {
     return this.http.get<any[]>(`${this.apiUrl}/doctor-specialization-mapping`);
   }
 
+  addSpeciality(specialityData: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/add-speciality`, specialityData);
+  }
+
+  deleteSpeciality(specialityId: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/delete-speciality/${specialityId}`);
+  } 
+
+  updateSpeciality(specialityId: number, specialityData: any): Observable<any> {
+    return this.http.put(`${this.apiUrl}/update-speciality/${specialityId}`, specialityData);
+  }
+
+  addSpecialization(specializationData: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/add-specialization`, specializationData);
+  }
+
+  updateSpecialization(specializationId: number, specializationData: any): Observable<any> {
+    return this.http.put(`${this.apiUrl}/update-specialization/${specializationId}`, specializationData);
+  }
+
+  deleteSpecialization(specializationId: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/delete-specialization/${specializationId}`);
+  }
 }

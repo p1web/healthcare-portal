@@ -13,28 +13,15 @@
         <div class="col-12">
             <div class="card recent-sales overflow-auto">
 
-                <div class="filter">
-                    <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
-                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-                        <li class="dropdown-header text-start">
-                            <h6>Filter</h6>
-                        </li>
-
-                        <li><a class="dropdown-item" href="#">Today</a></li>
-                        <li><a class="dropdown-item" href="#">This Month</a></li>
-                        <li><a class="dropdown-item" href="#">This Year</a></li>
-                    </ul>
-                </div>
-
                 <div class="card-body">
                     <h5 class="card-title">Specializations</h5>
 
                     <table class="table table-borderless datatable">
                         <thead>
                             <tr>
-                                <th scope="col">#</th>                                
-                                <th scope="col">Hospital</th>      
-                                <th scope="col">Specialty</th>                          
+                                <th scope="col">#</th>
+                                <th scope="col">Hospital</th>
+                                <th scope="col">Specialty</th>
                                 <th scope="col">Created At</th>
                                 <th scope="col">Actions</th>
                             </tr>
@@ -42,26 +29,70 @@
                         <tbody>
                             <tr *ngFor="let s of infoList; let i = index">
                                 <th scope="row">{{ i + 1 }}</th>
-                                <td>
-                                    <a class="btn-link">{{ s?.Hospital.name }}</a>
-                                </td>
+                                <td><a class="btn-link">{{ s?.Hospital.name }}</a></td>
                                 <td>{{ s?.specialties }}</td>
-                                
-                                <td>{{ s.created_at | date: "medium" }}</td>
+                                <td>{{ s.created_at | date:'dd MMM yyyy' }}</td>
                                 <td>
-
-                                    <button class="btn btn-sm btn-outline-primary me-1">
+                                    <button class="btn btn-sm btn-outline-primary me-1"
+                                        (click)="openEditSpecialtyModal(s)" data-bs-toggle="modal"
+                                        data-bs-target="#editSpecialtyModal">
                                         <i class="bi bi-eye"></i> Edit
                                     </button>
-                                    <button class="btn btn-sm btn-outline-danger">
-                                        <i class="bi bi-trash"></i> Delete
-                                    </button>
-
                                 </td>
                             </tr>
                         </tbody>
 
                     </table>
+
+                    <div class="modal fade" id="editSpecialtyModal" tabindex="-1">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content"> <!-- Modal Header -->
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Update Specialty</h5> <button type="button"
+                                        class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <!-- Modal Body -->
+                                <div class="modal-body">
+                                    <form [formGroup]="editSpecialtyForm" (ngSubmit)="updateSpecialty()">
+                                        <div class="form-group mb-3">
+                                            <label class="form-label">Hospital Name</label>
+                                            <input type="text" class="form-control" formControlName="hospital_name"
+                                                placeholder="Hospital Name">
+                                            <div *ngIf="editSpecialtyForm.get('hospital_name')?.invalid && editSpecialtyForm.get('hospital_name')?.touched"
+                                                class="text-danger small">
+                                                Hospital Name is required
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group mb-3">
+                                            <label class="form-label">Specialities</label>
+                                            <select class="form-control" formControlName="specialties" multiple
+                                                id="specialtiesSelect">
+                                                <option *ngFor="let specialty of specialtiesList"
+                                                    [value]="specialty.id">
+                                                    {{ specialty.name }}
+                                                </option>
+                                            </select>
+                                            <div *ngIf="editSpecialtyForm.get('specialties')?.invalid && editSpecialtyForm.get('specialties')?.touched"
+                                                class="text-danger small">
+                                                Specialties is required
+                                            </div>
+                                        </div>
+
+
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary"
+                                                data-bs-dismiss="modal">Close</button>
+                                            <button type="submit" class="btn btn-primary">Save</button>
+                                        </div>
+                                    </form>
+
+                                </div>
+
+
+                            </div>
+                        </div>
+                    </div>
 
                 </div>
             </div>

@@ -14,6 +14,7 @@ module.exports = {
         where,
         attributes: [
           "hospital_id",
+          "created_at",
           [sequelize.fn("STRING_AGG", sequelize.col("Specialty.name"), ", "), "specialties"]
         ],
         include: [
@@ -26,7 +27,7 @@ module.exports = {
             attributes: [],
           },
         ],
-        group: ["Hospital.id", "HospitalSpecialty.hospital_id"],
+        group: ["Hospital.id", "HospitalSpecialty.hospital_id", "HospitalSpecialty.created_at"],
         order: [["hospital_id", "DESC"]],
       });
 
@@ -37,127 +38,68 @@ module.exports = {
     }
   },
 
-  async addHospitalSpeciality(req, res) {
-    const transaction = await sequelize.transaction();
-
+  async getHospitalWiseSpecialityList(req, res) {
     try {
-      const { hospital_id, specialty_id, is_primary } = req.body;
+      const hospitalId = req.params.hospitalId || req.query.hospitalId;
 
-      if (!hospital_id || !specialty_id) {
-        return res.status(400).json({
-          message: "Hospital ID and Specialty ID are required"
-        });
+      const where = {};
+      if (hospitalId) {
+        where.hospital_id = hospitalId;
       }
 
-      // Check if hospital exists
-      const hospital = await Hospital.findByPk(hospital_id);
-      if (!hospital) {
-        return res.status(404).json({ message: "Hospital not found" });
-      }
+      const hospitalSpecialties = await HospitalSpecialty.findAll({
+        where,
+        attributes: ["hospital_id"],
+        include: [
+          { model: Specialty, attributes: ["id", "name"] },
+        ]
+      })
 
-      // Check if specialty exists
-      const specialty = await Specialty.findByPk(specialty_id);
-      if (!specialty) {
-        return res.status(404).json({ message: "Specialty not found" });
-      }
-
-      // Prevent duplicate
-      const existing = await HospitalSpecialty.findOne({
-        where: { hospital_id, specialty_id }
-      });
-
-      if (existing) {
-        return res.status(400).json({
-          message: "Specialty already assigned to this hospital"
-        });
-      }
-
-      const hospitalSpecialty = await HospitalSpecialty.create(
-        {
-          hospital_id,
-          specialty_id,
-          is_primary: is_primary || false
-        },
-        { transaction }
-      );
-
-      await transaction.commit();
-
-      res.status(201).json({
-        message: "Specialty assigned to hospital successfully",
-        data: hospitalSpecialty
-      });
+      res.json(hospitalSpecialties);
 
     } catch (error) {
-      await transaction.rollback();
-      console.error("Error adding hospital specialty:", error);
-      res.status(500).json({
-        message: "Failed to assign specialty",
-        error: error.message
-      });
+      console.error("Error fetching hospital specialities:", error);
+      res.status(500).json({ error: "Failed to fetch hospital specialities" });
     }
   },
 
   async updateHospitalSpeciality(req, res) {
     try {
-      const { hospital_id, specialty_id } = req.params;
-      const { is_primary } = req.body;
+      const { hospital_id } = req.params;   // hospitalId from path
+      const { specialties } = req.body;   // array of specialty IDs
 
-      const hospitalSpecialty = await HospitalSpecialty.findOne({
-        where: { hospital_id, specialty_id }
-      });
-
-      if (!hospitalSpecialty) {
-        return res.status(404).json({
-          message: "Hospital specialty not found"
-        });
+      // return res.status(200).json({ message: "Received update request", hospital_id, specialties });  
+      if (!hospital_id || !Array.isArray(specialties)) {
+        return res.status(400).json({ error: "hospital_id and specialties are required" });
       }
 
-      hospitalSpecialty.is_primary = is_primary ?? hospitalSpecialty.is_primary;
+      // Step 1: Remove all existing specialties for this hospital
+      await HospitalSpecialty.destroy({ where: { hospital_id: hospital_id } });
 
-      await hospitalSpecialty.save();
+      // Step 2: Insert new mappings
+      const newMappings = specialties.map(id => ({
+        hospital_id: hospital_id,
+        specialty_id: id
+      }));
 
+      await HospitalSpecialty.bulkCreate(newMappings);
+
+      // Step 3: Fetch updated list with Specialty details
+      const updatedSpecialties = await HospitalSpecialty.findAll({
+        where: { hospital_id: hospital_id },
+        include: [{ model: Specialty, attributes: ["id", "name"] }]
+      });
+
+      // Step 4: Respond with updated list
       res.json({
-        message: "Hospital specialty updated successfully",
-        data: hospitalSpecialty
+        hospital_id,
+        specialties: updatedSpecialties.map(hs => hs.Specialty) // return clean list of specialties
       });
 
     } catch (error) {
-      console.error("Error updating hospital specialty:", error);
-      res.status(500).json({
-        message: "Failed to update hospital specialty",
-        error: error.message
-      });
+      console.error("Error updating hospital specialties:", error);
+      res.status(500).json({ error: "Failed to update hospital specialties" });
     }
   },
-
-  async deleteHospitalSpeciality(req, res) {
-    try {
-      const { id } = req.params;
-
-      const hospitalSpecialty = await HospitalSpecialty.findOne({
-        where: { id }
-      });
-
-      if (!hospitalSpecialty) {
-        return res.status(404).json({
-          message: "Hospital specialty not found"
-        });
-      }
-
-      await hospitalSpecialty.destroy();
-
-      res.json({
-        message: "Specialty removed from hospital successfully"
-      });
-
-    } catch (error) {
-      console.error("Error deleting hospital specialty:", error);
-      res.status(500).json({
-        message: "Failed to delete hospital specialty",
-        error: error.message
-      });
-    }
-  }
 
 };

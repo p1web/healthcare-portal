@@ -31,9 +31,9 @@ router.put("/update-specialization/:id", specializationController.updateSpeciali
 router.delete("/delete-specialization/:id", specializationController.deleteSpecialization);
 
 router.get("/hospital-specialty-mapping", hospitalSpecialityController.getHospitalSpeciality);
-router.post("/add-hospital-specialty", hospitalSpecialityController.addHospitalSpeciality);
-router.put("/update-hospital-specialty/:hospital_id/:specialty_id", hospitalSpecialityController.updateHospitalSpeciality);
-router.delete("/delete-hospital-specialty/:id", hospitalSpecialityController.deleteHospitalSpeciality);  
+router.get("/get-hospital-specialty-by-hospital/:hospitalId", hospitalSpecialityController.getHospitalWiseSpecialityList);
+router.put("/update-hospital-specialty/:hospital_id", hospitalSpecialityController.updateHospitalSpeciality);
+
 
 router.get("/doctor-specialization-mapping", doctorSpecializationController.getDoctorSpecialization);
 

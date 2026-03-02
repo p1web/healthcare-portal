@@ -1,12 +1,10 @@
 {
   "development": {
-    "username": "healthcare_user",
-    "password": "healthcare_pass",
+    "username": "postgres",
+    "password": "161990",
     "database": "healthcare_db",
-    "host": "postgres",
-    "port": 5432,
-    "dialect": "postgres",
-    "logging": false
+    "host": "127.0.0.1",
+    "dialect": "postgres"
   },
   "test": {
     "username": "postgres",
@@ -22,7 +20,10 @@
     "host": "127.0.0.1",
     "dialect": "postgres",
     "dialectOptions": {
-      "ssl": { "require": true, "rejectUnauthorized": false }
+      "ssl": {
+        "require": true,
+        "rejectUnauthorized": false
+      }
     }
   }
 }

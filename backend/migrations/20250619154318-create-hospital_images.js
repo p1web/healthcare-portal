@@ -11,10 +11,7 @@ module.exports = {
         onDelete: "CASCADE",
       },
       image_url: { type: Sequelize.TEXT, allowNull: false },
-      image_type: {
-        type: Sequelize.ENUM("main", "gallery", "facility", "exterior", "interior"),
-        defaultValue: "general"
-      },
+      image_type: { type: Sequelize.TEXT, allowNull: false },
       title: Sequelize.STRING,
       description: Sequelize.TEXT,
       display_order: { type: Sequelize.INTEGER, defaultValue: 0 },

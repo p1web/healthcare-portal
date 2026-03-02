@@ -75,4 +75,13 @@ export class AdminService {
   deleteSpecialization(specializationId: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/delete-specialization/${specializationId}`);
   }
+
+  getHospitalWiseSpecialityList(hospitalId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/get-hospital-specialty-by-hospital/${hospitalId}`);
+  }
+  
+  updateHospitalSpecialties(hospitalId: number, specialtyIds: number[]): Observable<any> {
+    return this.http.put(`${this.apiUrl}/update-hospital-specialty/${hospitalId}`, { specialties: specialtyIds });
+  }
+  
 }

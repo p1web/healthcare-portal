@@ -8,33 +8,26 @@
     </nav>
 </div><!-- End Page Title -->
 
-<section class="section dashboard">
+<section class="section">
     <div class="row">
         <div class="col-12">
-            <div class="card recent-sales overflow-auto">
-
-                <div class="filter">
-                    <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
-                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-                        <li class="dropdown-header text-start">
-                            <h6>Filter</h6>
-                        </li>
-
-                        <li><a class="dropdown-item" href="#">Today</a></li>
-                        <li><a class="dropdown-item" href="#">This Month</a></li>
-                        <li><a class="dropdown-item" href="#">This Year</a></li>
-                    </ul>
-                </div>
-
+            <div class="card">
                 <div class="card-body">
-                    <h5 class="card-title">Specialties</h5>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="card-title mb-0">Specialties</h5>
 
+                        <a href="javascript:void(0)" class="btn btn-primary" (click)="openAddSpecialtyModal()"
+                            data-bs-toggle="modal" data-bs-target="#createSpecialityModal">
+                            <i class="bi bi-plus me-1"></i>
+                            Add New Specialty
+                        </a>
+                    </div>
                     <table class="table table-borderless datatable">
                         <thead>
                             <tr>
                                 <th scope="col">#</th>
                                 <th scope="col">Specialty Name</th>
-                                <th scope="col">Description</th>                                
+                                <th scope="col">Description</th>
                                 <th scope="col">Created At</th>
                                 <th scope="col">Actions</th>
                             </tr>
@@ -49,10 +42,12 @@
                                 <td>{{ s?.created_at | date:'dd MMM yyyy' }}</td>
                                 <td>
 
-                                    <button class="btn btn-sm btn-outline-primary me-1">
+                                    <button class="btn btn-sm btn-outline-primary me-1"
+                                        (click)="openEditSpecialtyModal(s)" data-bs-toggle="modal"
+                                        data-bs-target="#editSpecialtyModal">
                                         <i class="bi bi-eye"></i> Edit
                                     </button>
-                                    <button class="btn btn-sm btn-outline-danger">
+                                    <button class="btn btn-sm btn-outline-danger" (click)="deleteSpecialty(s?.id)">
                                         <i class="bi bi-trash"></i> Delete
                                     </button>
 
@@ -61,6 +56,100 @@
                         </tbody>
 
                     </table>
+
+
+
+                    <div class="modal fade" id="createSpecialityModal" tabindex="-1">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content"> <!-- Modal Header -->
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Create New Specialty</h5> <button type="button"
+                                        class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <!-- Modal Body -->
+                                <div class="modal-body">
+                                    <form [formGroup]="specialtyForm" (ngSubmit)="saveSpecialty()">
+                                        <div class="form-group mb-3">
+                                            <label class="form-label">Specialty Name</label>
+                                            <input type="text" class="form-control" formControlName="specialty_name" placeholder="Specialty Name">
+                                            <!-- Inline validation -->
+                                            <div *ngIf="specialtyForm.get('specialty_name')?.invalid && specialtyForm.get('specialty_name')?.touched"
+                                                class="text-danger small">
+                                                Specialty Name is required
+                                            </div>
+                                        </div>
+                                    
+                                        <div class="form-group mb-3">
+                                            <label class="form-label">Specialty Icon</label>
+                                            <input type="text" class="form-control" formControlName="specialty_icon"
+                                                placeholder="Specialty Icon (e.g. bi bi-heart)">
+                                        </div>
+                                    
+                                        <div class="form-group mb-3">
+                                            <label class="form-label">Description</label>
+                                            <input type="text" class="form-control" formControlName="specialty_description" placeholder="Description">
+                                        </div>
+                                    
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                            <button type="submit" class="btn btn-primary" [disabled]="specialtyForm.invalid">Save</button>
+                                        </div>
+                                    </form>
+
+
+                                </div>
+
+
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="modal fade" id="editSpecialtyModal" tabindex="-1">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content"> <!-- Modal Header -->
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Update Specialty</h5> <button type="button"
+                                        class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <!-- Modal Body -->
+                                <div class="modal-body">
+                                    <form [formGroup]="editSpecialtyForm" (ngSubmit)="updateSpecialty()">
+                                        <div class="form-group mb-3">
+                                            <label class="form-label">Specialty Name</label>
+                                            <input type="text" class="form-control" formControlName="specialty_name" placeholder="Specialty Name" value="{{ editSpecialtyForm.get('specialty_name')?.value }}">
+                                             <div *ngIf="editSpecialtyForm.get('specialty_name')?.invalid && editSpecialtyForm.get('specialty_name')?.touched"
+                                                class="text-danger small">
+                                                Specialty Name is required
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group mb-3">
+                                            <label class="form-label">Specialty Icon</label>
+                                            <input type="text" class="form-control" formControlName="specialty_icon"
+                                                placeholder="Specialty Icon (e.g. bi bi-heart)" value="{{ editSpecialtyForm.get('specialty_icon')?.value }}">
+                                        </div>
+
+                                        <div class="form-group mb-3">
+                                            <label class="form-label">Description</label>
+                                            <input type="text" class="form-control" formControlName="specialty_description"
+                                                placeholder="Description" value="{{ editSpecialtyForm.get('specialty_description')?.value }}">
+                                        </div>
+
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary"
+                                                data-bs-dismiss="modal">Close</button>
+                                            <button type="submit" class="btn btn-primary">Save</button>
+                                        </div>
+                                    </form>
+
+                                </div>
+
+
+                            </div>
+                        </div>
+                    </div>
+
 
                 </div>
             </div>

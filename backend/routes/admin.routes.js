@@ -21,10 +21,22 @@ router.get("/public-hospitals", hospitalController.getPublicHospitals);
 
 // masters
 router.get("/specialities", specialityController.getSpecialities);
+router.post("/add-speciality", specialityController.addSpeciality);
+router.put("/update-speciality/:id", specialityController.updateSpeciality);
+router.delete("/delete-speciality/:id", specialityController.deleteSpeciality);
+
 router.get("/specializations", specializationController.getSpecializations);
+router.post("/add-specialization", specializationController.addSpecialization);
+router.put("/update-specialization/:id", specializationController.updateSpecialization);
+router.delete("/delete-specialization/:id", specializationController.deleteSpecialization);
 
 router.get("/hospital-specialty-mapping", hospitalSpecialityController.getHospitalSpeciality);
+router.post("/add-hospital-specialty", hospitalSpecialityController.addHospitalSpeciality);
+router.put("/update-hospital-specialty/:hospital_id/:specialty_id", hospitalSpecialityController.updateHospitalSpeciality);
+router.delete("/delete-hospital-specialty/:id", hospitalSpecialityController.deleteHospitalSpeciality);  
+
 router.get("/doctor-specialization-mapping", doctorSpecializationController.getDoctorSpecialization);
+
 
 // router.get("/filter", userController.getUsersByFilter);
 // router.get("/:id", userController.getUserDetails);

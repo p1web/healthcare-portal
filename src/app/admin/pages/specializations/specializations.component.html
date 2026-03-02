@@ -11,29 +11,23 @@
 <section class="section dashboard">
     <div class="row">
         <div class="col-12">
-            <div class="card recent-sales overflow-auto">
-
-                <div class="filter">
-                    <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
-                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-                        <li class="dropdown-header text-start">
-                            <h6>Filter</h6>
-                        </li>
-
-                        <li><a class="dropdown-item" href="#">Today</a></li>
-                        <li><a class="dropdown-item" href="#">This Month</a></li>
-                        <li><a class="dropdown-item" href="#">This Year</a></li>
-                    </ul>
-                </div>
-
+            <div class="card">
                 <div class="card-body">
-                    <h5 class="card-title">Specializations</h5>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="card-title mb-0">Specializations</h5>
+
+                        <a href="javascript:void(0)" class="btn btn-primary" (click)="openAddSpecialtizationModal()"
+                            data-bs-toggle="modal" data-bs-target="#createSpecializationModal">
+                            <i class="bi bi-plus me-1"></i>
+                            Add New Specialization
+                        </a>
+                    </div>
 
                     <table class="table table-borderless datatable">
                         <thead>
                             <tr>
                                 <th scope="col">#</th>
-                                <th scope="col">Specialty Name</th>
+                                <th scope="col">Specialization Name</th>
                                 <th scope="col">Description</th>                                
                                 <th scope="col">Created At</th>
                                 <th scope="col">Actions</th>
@@ -49,10 +43,10 @@
                                 <td>{{ s?.created_at | date:'dd MMM yyyy' }}</td>
                                 <td>
 
-                                    <button class="btn btn-sm btn-outline-primary me-1">
+                                    <button class="btn btn-sm btn-outline-primary me-1" data-bs-toggle="modal" data-bs-target="#editSpecializationModal" (click)="openEditSpecializationModal(s)"  >
                                         <i class="bi bi-eye"></i> Edit
                                     </button>
-                                    <button class="btn btn-sm btn-outline-danger">
+                                    <button class="btn btn-sm btn-outline-danger" (click)="deleteSpecialization(s.id)">
                                         <i class="bi bi-trash"></i> Delete
                                     </button>
 
@@ -61,6 +55,97 @@
                         </tbody>
 
                     </table>
+
+                    <div class="modal fade" id="createSpecializationModal" tabindex="-1">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content"> <!-- Modal Header -->
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Create New Specialization</h5> <button type="button"
+                                        class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <!-- Modal Body -->
+                                <div class="modal-body">
+                                    <form [formGroup]="specializationForm" (ngSubmit)="saveSpecialization()">
+                                        <div class="form-group mb-3">
+                                            <label class="form-label">Specialization Name</label>
+                                            <input type="text" class="form-control" formControlName="specialization_name" placeholder="Specialization Name">
+                                            <!-- Inline validation -->
+                                            <div *ngIf="specializationForm.get('specialization_name')?.invalid && specializationForm.get('specialization_name')?.touched"
+                                                class="text-danger small">
+                                                Specialization Name is required
+                                            </div>
+                                        </div>
+                                    
+                                        <div class="form-group mb-3">
+                                            <label class="form-label">Specialization Icon</label>
+                                            <input type="text" class="form-control" formControlName="specialization_icon"
+                                                placeholder="Specialization Icon (e.g. bi bi-heart)">
+                                        </div>
+                                    
+                                        <div class="form-group mb-3">
+                                            <label class="form-label">Description</label>
+                                            <input type="text" class="form-control" formControlName="specialization_description" placeholder="Description">
+                                        </div>
+                                    
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                            <button type="submit" class="btn btn-primary" [disabled]="specializationForm.invalid">Save</button>
+                                        </div>
+                                    </form>
+
+
+                                </div>
+
+
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="modal fade" id="editSpecializationModal" tabindex="-1">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content"> <!-- Modal Header -->
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Update Specialization</h5> <button type="button"
+                                        class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <!-- Modal Body -->
+                                <div class="modal-body">
+                                    <form [formGroup]="editSpecializationForm" (ngSubmit)="updateSpecialization()">
+                                        <div class="form-group mb-3">
+                                            <label class="form-label">Specialization Name</label>
+                                            <input type="text" class="form-control" formControlName="specialization_name" placeholder="Specialization Name" value="{{ editSpecializationForm.get('specialization_name')?.value }}">
+                                             <div *ngIf="editSpecializationForm.get('specialization_name')?.invalid && editSpecializationForm.get('specialization_name')?.touched"
+                                                class="text-danger small">
+                                                Specialization Name is required
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group mb-3">
+                                            <label class="form-label">Specialization Icon</label>
+                                            <input type="text" class="form-control" formControlName="specialization_icon"
+                                                placeholder="Specialization Icon (e.g. bi bi-heart)" value="{{ editSpecializationForm.get('specialization_icon')?.value }}">
+                                        </div>
+
+                                        <div class="form-group mb-3">
+                                            <label class="form-label">Description</label>
+                                            <input type="text" class="form-control" formControlName="specialization_description"
+                                                placeholder="Description" value="{{ editSpecializationForm.get('specialization_description')?.value }}">
+                                        </div>
+
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary"
+                                                data-bs-dismiss="modal">Close</button>
+                                            <button type="submit" class="btn btn-primary">Save</button>
+                                        </div>
+                                    </form>
+
+                                </div>
+
+
+                            </div>
+                        </div>
+                    </div>
 
                 </div>
             </div>

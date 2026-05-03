@@ -8,7 +8,7 @@ module.exports = {
       // Admin User
       {
         name: 'System Administrator',
-        email: 'admin@hospital.com',
+        email: 'systemadmin@gmail.com',
         phone: '9999999999',
         password: hashedPassword,
         role: 'admin',

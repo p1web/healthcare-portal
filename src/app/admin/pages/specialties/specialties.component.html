@@ -71,28 +71,32 @@
                                     <form [formGroup]="specialtyForm" (ngSubmit)="saveSpecialty()">
                                         <div class="form-group mb-3">
                                             <label class="form-label">Specialty Name</label>
-                                            <input type="text" class="form-control" formControlName="specialty_name" placeholder="Specialty Name">
+                                            <input type="text" class="form-control" formControlName="specialty_name"
+                                                placeholder="Specialty Name">
                                             <!-- Inline validation -->
                                             <div *ngIf="specialtyForm.get('specialty_name')?.invalid && specialtyForm.get('specialty_name')?.touched"
                                                 class="text-danger small">
                                                 Specialty Name is required
                                             </div>
                                         </div>
-                                    
+
                                         <div class="form-group mb-3">
                                             <label class="form-label">Specialty Icon</label>
                                             <input type="text" class="form-control" formControlName="specialty_icon"
                                                 placeholder="Specialty Icon (e.g. bi bi-heart)">
                                         </div>
-                                    
+
                                         <div class="form-group mb-3">
                                             <label class="form-label">Description</label>
-                                            <input type="text" class="form-control" formControlName="specialty_description" placeholder="Description">
+                                            <input type="text" class="form-control"
+                                                formControlName="specialty_description" placeholder="Description">
                                         </div>
-                                    
+
                                         <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                            <button type="submit" class="btn btn-primary" [disabled]="specialtyForm.invalid">Save</button>
+                                            <button type="button" class="btn btn-secondary"
+                                                data-bs-dismiss="modal">Close</button>
+                                            <button type="submit" class="btn btn-primary"
+                                                [disabled]="specialtyForm.invalid">Save</button>
                                         </div>
                                     </form>
 
@@ -117,8 +121,10 @@
                                     <form [formGroup]="editSpecialtyForm" (ngSubmit)="updateSpecialty()">
                                         <div class="form-group mb-3">
                                             <label class="form-label">Specialty Name</label>
-                                            <input type="text" class="form-control" formControlName="specialty_name" placeholder="Specialty Name" value="{{ editSpecialtyForm.get('specialty_name')?.value }}">
-                                             <div *ngIf="editSpecialtyForm.get('specialty_name')?.invalid && editSpecialtyForm.get('specialty_name')?.touched"
+                                            <input type="text" class="form-control" formControlName="specialty_name"
+                                                placeholder="Specialty Name"
+                                                value="{{ editSpecialtyForm.get('specialty_name')?.value }}">
+                                            <div *ngIf="editSpecialtyForm.get('specialty_name')?.invalid && editSpecialtyForm.get('specialty_name')?.touched"
                                                 class="text-danger small">
                                                 Specialty Name is required
                                             </div>
@@ -127,13 +133,15 @@
                                         <div class="form-group mb-3">
                                             <label class="form-label">Specialty Icon</label>
                                             <input type="text" class="form-control" formControlName="specialty_icon"
-                                                placeholder="Specialty Icon (e.g. bi bi-heart)" value="{{ editSpecialtyForm.get('specialty_icon')?.value }}">
+                                                placeholder="Specialty Icon (e.g. bi bi-heart)"
+                                                value="{{ editSpecialtyForm.get('specialty_icon')?.value }}">
                                         </div>
 
                                         <div class="form-group mb-3">
                                             <label class="form-label">Description</label>
-                                            <input type="text" class="form-control" formControlName="specialty_description"
-                                                placeholder="Description" value="{{ editSpecialtyForm.get('specialty_description')?.value }}">
+                                            <input type="text" class="form-control"
+                                                formControlName="specialty_description" placeholder="Description"
+                                                value="{{ editSpecialtyForm.get('specialty_description')?.value }}">
                                         </div>
 
                                         <div class="modal-footer">

@@ -28,7 +28,7 @@
                             <tr>
                                 <th scope="col">#</th>
                                 <th scope="col">Specialization Name</th>
-                                <th scope="col">Description</th>                                
+                                <th scope="col">Description</th>
                                 <th scope="col">Created At</th>
                                 <th scope="col">Actions</th>
                             </tr>
@@ -37,13 +37,16 @@
                             <tr *ngFor="let s of specializationList; let i = index">
                                 <th scope="row">{{ i + 1 }}</th>
                                 <td>
-                                    <a class="btn-link">{{ s?.name }}</a>
+                                    <span class="{{ s?.icon }} me-2 fs-4 align-middle text-primary"></span> <a
+                                        class="btn-link align-middle">{{ s?.name }}</a>
                                 </td>
                                 <td>{{ s?.description }}</td>
                                 <td>{{ s?.created_at | date:'dd MMM yyyy' }}</td>
                                 <td>
 
-                                    <button class="btn btn-sm btn-outline-primary me-1" data-bs-toggle="modal" data-bs-target="#editSpecializationModal" (click)="openEditSpecializationModal(s)"  >
+                                    <button class="btn btn-sm btn-outline-primary me-1" data-bs-toggle="modal"
+                                        data-bs-target="#editSpecializationModal"
+                                        (click)="openEditSpecializationModal(s)">
                                         <i class="bi bi-eye"></i> Edit
                                     </button>
                                     <button class="btn btn-sm btn-outline-danger" (click)="deleteSpecialization(s.id)">
@@ -68,28 +71,33 @@
                                     <form [formGroup]="specializationForm" (ngSubmit)="saveSpecialization()">
                                         <div class="form-group mb-3">
                                             <label class="form-label">Specialization Name</label>
-                                            <input type="text" class="form-control" formControlName="specialization_name" placeholder="Specialization Name">
+                                            <input type="text" class="form-control"
+                                                formControlName="specialization_name" placeholder="Specialization Name">
                                             <!-- Inline validation -->
                                             <div *ngIf="specializationForm.get('specialization_name')?.invalid && specializationForm.get('specialization_name')?.touched"
                                                 class="text-danger small">
                                                 Specialization Name is required
                                             </div>
                                         </div>
-                                    
+
                                         <div class="form-group mb-3">
                                             <label class="form-label">Specialization Icon</label>
-                                            <input type="text" class="form-control" formControlName="specialization_icon"
+                                            <input type="text" class="form-control"
+                                                formControlName="specialization_icon"
                                                 placeholder="Specialization Icon (e.g. bi bi-heart)">
                                         </div>
-                                    
+
                                         <div class="form-group mb-3">
                                             <label class="form-label">Description</label>
-                                            <input type="text" class="form-control" formControlName="specialization_description" placeholder="Description">
+                                            <input type="text" class="form-control"
+                                                formControlName="specialization_description" placeholder="Description">
                                         </div>
-                                    
+
                                         <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                            <button type="submit" class="btn btn-primary" [disabled]="specializationForm.invalid">Save</button>
+                                            <button type="button" class="btn btn-secondary"
+                                                data-bs-dismiss="modal">Close</button>
+                                            <button type="submit" class="btn btn-primary"
+                                                [disabled]="specializationForm.invalid">Save</button>
                                         </div>
                                     </form>
 
@@ -114,8 +122,10 @@
                                     <form [formGroup]="editSpecializationForm" (ngSubmit)="updateSpecialization()">
                                         <div class="form-group mb-3">
                                             <label class="form-label">Specialization Name</label>
-                                            <input type="text" class="form-control" formControlName="specialization_name" placeholder="Specialization Name" value="{{ editSpecializationForm.get('specialization_name')?.value }}">
-                                             <div *ngIf="editSpecializationForm.get('specialization_name')?.invalid && editSpecializationForm.get('specialization_name')?.touched"
+                                            <input type="text" class="form-control"
+                                                formControlName="specialization_name" placeholder="Specialization Name"
+                                                value="{{ editSpecializationForm.get('specialization_name')?.value }}">
+                                            <div *ngIf="editSpecializationForm.get('specialization_name')?.invalid && editSpecializationForm.get('specialization_name')?.touched"
                                                 class="text-danger small">
                                                 Specialization Name is required
                                             </div>
@@ -123,14 +133,18 @@
 
                                         <div class="form-group mb-3">
                                             <label class="form-label">Specialization Icon</label>
-                                            <input type="text" class="form-control" formControlName="specialization_icon"
-                                                placeholder="Specialization Icon (e.g. bi bi-heart)" value="{{ editSpecializationForm.get('specialization_icon')?.value }}">
+                                            <input type="text" class="form-control"
+                                                formControlName="specialization_icon"
+                                                placeholder="Specialization Icon (e.g. bi bi-heart)"
+                                                value="{{ editSpecializationForm.get('specialization_icon')?.value }}"
+                                                readonly="readonly">
                                         </div>
 
                                         <div class="form-group mb-3">
                                             <label class="form-label">Description</label>
-                                            <input type="text" class="form-control" formControlName="specialization_description"
-                                                placeholder="Description" value="{{ editSpecializationForm.get('specialization_description')?.value }}">
+                                            <input type="text" class="form-control"
+                                                formControlName="specialization_description" placeholder="Description"
+                                                value="{{ editSpecializationForm.get('specialization_description')?.value }}">
                                         </div>
 
                                         <div class="modal-footer">

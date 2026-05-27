@@ -5,6 +5,7 @@
 /* Import Bootstrap (already included in angular.json) */
 /* @import '~bootstrap/dist/css/bootstrap.min.css'; */
 /* @import '~bootstrap-icons/font/bootstrap-icons.css'; */
+@import 'select2/dist/css/select2.min.css';
 
 /* ===========================
    ROOT VARIABLES
@@ -138,6 +139,7 @@ body {
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -149,6 +151,7 @@ body {
     opacity: 0;
     transform: translateX(-20px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -156,10 +159,13 @@ body {
 }
 
 @keyframes pulse {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: scale(1);
     opacity: 1;
   }
+
   50% {
     transform: scale(1.05);
     opacity: 0.8;
@@ -167,8 +173,13 @@ body {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .fade-in {
@@ -503,15 +514,15 @@ body {
   .display-4 {
     font-size: 2rem;
   }
-  
+
   .display-5 {
     font-size: 1.75rem;
   }
-  
+
   .display-6 {
     font-size: 1.5rem;
   }
-  
+
   .lead {
     font-size: 1rem;
   }
@@ -542,17 +553,18 @@ body {
    =========================== */
 
 @media print {
+
   .navbar,
   .btn,
   footer,
   .no-print {
     display: none !important;
   }
-  
+
   body {
     background: white;
   }
-  
+
   .card {
     box-shadow: none !important;
     border: 1px solid #dee2e6 !important;
@@ -629,12 +641,10 @@ body {
    =========================== */
 
 .skeleton {
-  background: linear-gradient(
-    90deg,
-    #f0f0f0 25%,
-    #e0e0e0 50%,
-    #f0f0f0 75%
-  );
+  background: linear-gradient(90deg,
+      #f0f0f0 25%,
+      #e0e0e0 50%,
+      #f0f0f0 75%);
   background-size: 200% 100%;
   animation: loading 1.5s ease-in-out infinite;
 }
@@ -643,6 +653,7 @@ body {
   0% {
     background-position: 200% 0;
   }
+
   100% {
     background-position: -200% 0;
   }
@@ -761,5 +772,3 @@ body {
 .gap-5 {
   gap: 3rem !important;
 }
-
-

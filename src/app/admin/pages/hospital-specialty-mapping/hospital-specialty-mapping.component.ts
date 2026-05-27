@@ -5,6 +5,8 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 
 import { AdminService } from '../../../services/admin.service';
 
+declare var $: any;
+
 @Component({
   selector: 'app-hospital-specialty-mapping',
   standalone: true,
@@ -12,14 +14,14 @@ import { AdminService } from '../../../services/admin.service';
   templateUrl: './hospital-specialty-mapping.component.html',
   styleUrl: './hospital-specialty-mapping.component.css'
 })
-export class HospitalSpecialtyMappingComponent implements OnInit{
+export class HospitalSpecialtyMappingComponent implements OnInit {
   editSpecialtyForm!: FormGroup;
   specialtiesList: any[] = [];
   selectedSpecialty: any = null
   isSubmitting = false;
   infoList: any[] = [];
-  
-  constructor(private adminService: AdminService, private fb: FormBuilder) {}
+
+  constructor(private adminService: AdminService, private fb: FormBuilder) { }
 
   ngOnInit(): void {
     this.initForm();
@@ -47,35 +49,57 @@ export class HospitalSpecialtyMappingComponent implements OnInit{
       }
     });
   }
-  
+
   // Open Edit Modal
   openEditSpecialtyModal(selectedSpecialty: any): void {
     this.selectedSpecialty = selectedSpecialty;
-      // console.log('Selected Specialty for Edit:', selectedSpecialty);
-      this.adminService.getHospitalWiseSpecialityList(selectedSpecialty.Hospital.id).subscribe({
-        next: (data) => {
-          const specialtyIds = data.map((item: any) => item.Specialty.id);
-          this.editSpecialtyForm.patchValue({ 
-            hospital_id: selectedSpecialty.Hospital.id, 
-            hospital_name: selectedSpecialty.Hospital.name, 
-            specialties: specialtyIds // array of IDs for Select2 multi-select });  
-          });
-        },
-        error: (error) => {
-          console.error('Error fetching hospital-wise specialty list:', error);
-        }
-      });    
+    // console.log('Selected Specialty for Edit:', selectedSpecialty);
+    this.adminService.getHospitalWiseSpecialityList(selectedSpecialty.Hospital.id).subscribe({
+      next: (data) => {
+        const specialtyIds = data.map((item: any) => String(item.Specialty.id));
+        this.editSpecialtyForm.patchValue({
+          hospital_id: selectedSpecialty.Hospital.id,
+          hospital_name: selectedSpecialty.Hospital.name,
+          specialties: specialtyIds
+        });
+        // Force Select2 to update its UI with the new values
+        setTimeout(() => {
+          $('#specialtiesSelect').val(specialtyIds).trigger('change');
+        });
+      },
+      error: (error) => {
+        console.error('Error fetching hospital-wise specialty list:', error);
+      }
+    });
   }
 
   loadSpecialties(): void {
     this.adminService.getSpecialities().subscribe({
       next: (data) => {
-        this.specialtiesList = data;  
+        this.specialtiesList = data;
+        setTimeout(() => {
+          if (!$('#specialtiesSelect').hasClass('select2-hidden-accessible')) {
+            $('#specialtiesSelect').select2({
+              placeholder: "Select Specialties",
+              allowClear: true,
+              dropdownParent: $('#editSpecialtyModal'),
+              data: this.specialtiesList.map((s: any) => ({ id: String(s.id), text: s.name }))
+            }).on('change', (e: any) => {
+              const selectedValues = $(e.target).val();
+              this.editSpecialtyForm.patchValue({ specialties: selectedValues }, { emitEvent: false });
+            });
+
+            this.editSpecialtyForm.get('specialties')?.valueChanges.subscribe((val: any) => {
+              const strVal = val ? (Array.isArray(val) ? val.map(String) : [String(val)]) : [];
+              $('#specialtiesSelect').val(strVal).trigger('change');
+            });
+          }
+        }, 100);
       },
       error: (error) => {
         console.error('Error loading specialties:', error);
       }
-    }); 
+    });
   }
 
   updateSpecialty(): void {

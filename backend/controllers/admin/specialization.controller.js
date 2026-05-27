@@ -9,7 +9,7 @@ module.exports = {
         try {
             const specializations = await Specialization.findAll({
                 order: [["id", "DESC"]],
-                attributes: ['id', 'name', 'description', 'created_at']
+                attributes: ['id', 'name', 'icon', 'description', 'created_at']
             });
             res.json(specializations);
         } catch (error) {

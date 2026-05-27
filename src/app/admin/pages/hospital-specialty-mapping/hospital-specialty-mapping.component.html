@@ -67,11 +67,7 @@
                                         <div class="form-group mb-3">
                                             <label class="form-label">Specialities</label>
                                             <select class="form-control" formControlName="specialties" multiple
-                                                id="specialtiesSelect">
-                                                <option *ngFor="let specialty of specialtiesList"
-                                                    [value]="specialty.id">
-                                                    {{ specialty.name }}
-                                                </option>
+                                                id="specialtiesSelect" style="width: 100%;">
                                             </select>
                                             <div *ngIf="editSpecialtyForm.get('specialties')?.invalid && editSpecialtyForm.get('specialties')?.touched"
                                                 class="text-danger small">

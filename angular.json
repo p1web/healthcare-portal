@@ -32,11 +32,14 @@
               "node_modules/bootstrap/dist/css/bootstrap.min.css",
               "node_modules/bootstrap-icons/font/bootstrap-icons.css",
               "node_modules/@fortawesome/fontawesome-free/css/all.min.css",
+              "node_modules/select2/dist/css/select2.min.css",
               "src/styles.css",
               "src/admin.scss"
             ],
             "scripts": [
-              "node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"
+              "node_modules/jquery/dist/jquery.min.js",
+              "node_modules/bootstrap/dist/js/bootstrap.bundle.min.js",
+              "node_modules/select2/dist/js/select2.min.js"
             ]
           },
           "configurations": {
@@ -112,5 +115,8 @@
         }
       }
     }
+  },
+  "cli": {
+    "analytics": "43a20134-92c9-40b9-8be1-7c0bf0ee953c"
   }
 }

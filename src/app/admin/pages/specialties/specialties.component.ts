@@ -12,7 +12,7 @@ import { AdminService } from '../../../services/admin.service';
   styleUrl: './specialties.component.css'
 })
 
-export class SpecialtiesComponent implements OnInit{
+export class SpecialtiesComponent implements OnInit {
   specialtyForm!: FormGroup;
   editSpecialtyForm!: FormGroup;
 
@@ -25,7 +25,7 @@ export class SpecialtiesComponent implements OnInit{
     private route: ActivatedRoute,
     private router: Router,
     private AdminService: AdminService,
-  ) {}
+  ) { }
 
 
   isSubmitting = false;
@@ -37,13 +37,13 @@ export class SpecialtiesComponent implements OnInit{
 
   initForm(): void {
     this.specialtyForm = this.fb.group({
-      specialty_name: ['', Validators.required],      
+      specialty_name: ['', Validators.required],
       specialty_icon: [''],
       specialty_description: [''],
     });
 
     this.editSpecialtyForm = this.fb.group({
-      specialty_name: ['', Validators.required],      
+      specialty_name: ['', Validators.required],
       specialty_icon: [''],
       specialty_description: [''],
     });
@@ -52,6 +52,7 @@ export class SpecialtiesComponent implements OnInit{
   loadSpecialties(): void {
     this.AdminService.getSpecialities().subscribe({
       next: (data) => {
+        // console.log(data)
         this.specialtiesList = data;
       },
       error: (error) => {
@@ -78,8 +79,8 @@ export class SpecialtiesComponent implements OnInit{
 
   saveSpecialty(): void {
     if (this.specialtyForm.valid) {
-     const payload = this.specialtyForm.value;
-     this.isSubmitting = true;
+      const payload = this.specialtyForm.value;
+      this.isSubmitting = true;
       this.AdminService.addSpeciality(payload).subscribe({
         next: (res) => {
           this.afterSave('Specialty added successfully');
@@ -87,7 +88,7 @@ export class SpecialtiesComponent implements OnInit{
         error: (err) => this.handleError(err)
       });
     }
-   
+
 
   }
 
@@ -109,8 +110,8 @@ export class SpecialtiesComponent implements OnInit{
   }
 
   updateSpecialty(): void {
-    
-     if (this.editSpecialtyForm.valid && this.editingId !== null) {
+
+    if (this.editSpecialtyForm.valid && this.editingId !== null) {
       const payload = this.editSpecialtyForm.value;
       // UPDATE
       this.AdminService.updateSpeciality(this.editingId, payload).subscribe({
@@ -120,7 +121,7 @@ export class SpecialtiesComponent implements OnInit{
         error: (err) => this.handleError(err)
       });
 
-    } 
+    }
   }
 
   deleteSpecialty(specialtyId: number): void {

@@ -7,23 +7,23 @@ import { AdminService } from '../../../services/admin.service';
 @Component({
   selector: 'app-specializations',
   standalone: true,
-  imports: [ CommonModule, ReactiveFormsModule ],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './specializations.component.html',
   styleUrl: './specializations.component.css'
 })
-export class SpecializationsComponent implements OnInit{
+export class SpecializationsComponent implements OnInit {
   isSubmitting = false;
   editingId: number | null = null;
   specializationList: any[] = [];
   specializationForm!: FormGroup;
   editSpecializationForm!: FormGroup;
 
- constructor(
+  constructor(
     private fb: FormBuilder,
     private route: ActivatedRoute,
     private router: Router,
     private AdminService: AdminService,
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.initForm();
@@ -32,13 +32,13 @@ export class SpecializationsComponent implements OnInit{
 
   initForm(): void {
     this.specializationForm = this.fb.group({
-      specialization_name: ['', Validators.required],      
+      specialization_name: ['', Validators.required],
       specialization_icon: [''],
       specialization_description: [''],
     });
 
     this.editSpecializationForm = this.fb.group({
-      specialization_name: ['', Validators.required],      
+      specialization_name: ['', Validators.required],
       specialization_icon: [''],
       specialization_description: [''],
     });
@@ -73,8 +73,8 @@ export class SpecializationsComponent implements OnInit{
 
   saveSpecialization(): void {
     if (this.specializationForm.valid) {
-     const payload = this.specializationForm.value;
-     this.isSubmitting = true;
+      const payload = this.specializationForm.value;
+      this.isSubmitting = true;
       this.AdminService.addSpecialization(payload).subscribe({
         next: (res) => {
           this.afterSave('Specialization added successfully');
@@ -102,8 +102,8 @@ export class SpecializationsComponent implements OnInit{
   }
 
   updateSpecialization(): void {
-    
-     if (this.editSpecializationForm.valid && this.editingId !== null) {
+
+    if (this.editSpecializationForm.valid && this.editingId !== null) {
       const payload = this.editSpecializationForm.value;
       // UPDATE
       this.AdminService.updateSpecialization(this.editingId, payload).subscribe({
@@ -113,7 +113,7 @@ export class SpecializationsComponent implements OnInit{
         error: (err) => this.handleError(err)
       });
 
-    } 
+    }
   }
 
   deleteSpecialization(specializationId: number): void {

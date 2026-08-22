@@ -91,12 +91,6 @@ module.exports = {
       doctor_id: {
         type: Sequelize.INTEGER,
         allowNull: true,
-        references: {
-          model: 'doctors',
-          key: 'id'
-        },
-        onUpdate: 'CASCADE',
-        onDelete: 'SET NULL',
         comment: 'Link to doctors table for consultation details'
       },
       registration_number: {
@@ -113,7 +107,7 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: true,
         references: {
-          model: 'specialties',
+          model: 'specializations',
           key: 'id'
         },
         onUpdate: 'CASCADE',

@@ -677,8 +677,9 @@ body {
    =========================== */
 
 .hero-section {
-  background: var(--primary-gradient);
   position: relative;
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.82) 0%, rgba(30, 58, 138, 0.85) 100%),
+    url('https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=1920&q=80') center/cover no-repeat;
   overflow: hidden;
 }
 

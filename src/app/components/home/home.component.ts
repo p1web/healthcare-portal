@@ -32,22 +32,29 @@ export class HomeComponent implements OnInit {
     private doctorService: DoctorService,
     private specializationService: SpecializationService,
     private router: Router
-  ) {}
+  ) { }
 
   ngOnInit() {
     this.loadHospitals();
     this.loadDoctors();
     this.loadSpecializations();
   }
-  
+
   loadHospitals() {
     this.isLoadingHospitals = true;
-    this.hospitalService.getHospitals().subscribe(
-      res => {
-        this.isLoadingHospitals=false;
-        this.hospitals = res.data
+    this.hospitalService.getHospitals().subscribe({
+      next: (res: any) => {
+        this.isLoadingHospitals = false;
+        const all = res.data || [];
+        this.hospitals = all
+          .sort((a: Hospital, b: Hospital) => (b.rating || 0) - (a.rating || 0))
+          .slice(0, 3);
+      },
+      error: (err) => {
+        console.error('Failed to load hospitals', err);
+        this.isLoadingHospitals = false;
       }
-    );
+    });
   }
 
   loadDoctors() {
@@ -55,19 +62,23 @@ export class HomeComponent implements OnInit {
     this.doctorService.getDoctors().subscribe({
       next: (res: any) => {
         this.isLoadingDoctors = false;
-        this.doctors = res.data;
+        const all = res.data || [];
+        this.doctors = all
+          .sort((a: Doctor, b: Doctor) => (b.rating || 0) - (a.rating || 0))
+          .slice(0, 4);
       },
       error: (err) => {
         console.error('Failed to load doctors', err);
+        this.isLoadingDoctors = false;
       }
     });
   }
 
   loadSpecializations(): void {
-    this.isLoadingSpecialization=true;
+    this.isLoadingSpecialization = true;
     this.specializationService.getSpecializations().subscribe({
       next: (data) => {
-        this.isLoadingSpecialization=false;
+        this.isLoadingSpecialization = false;
         this.specializations = data;
       },
       error: (err) => {

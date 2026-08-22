@@ -5,7 +5,7 @@ module.exports = {
     // Get hospital IDs (assuming you have these hospitals in your database)
     // SURGERY30 - Valid at City General Hospital and MediCare Plus
     // CARDIO25 - Valid at City General Hospital only
-    
+
     await queryInterface.bulkInsert('coupon_hospitals', [
       // SURGERY30 (coupon_id: 2) - City General Hospital (hospital_id: 1)
       {
@@ -28,7 +28,7 @@ module.exports = {
         created_at: new Date(),
         updated_at: new Date()
       }
-    ], {});
+    ], { ignoreDuplicates: true });
   },
 
   async down(queryInterface, Sequelize) {

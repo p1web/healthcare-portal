@@ -1,7 +1,7 @@
 <div class="container-fluid px-0">
 
   <!-- Hero Section -->
-  <div class="hero-section bg-gradient text-white py-5">
+  <div class="hero-section text-white py-5">
     <div class="container py-5">
       <div class="row justify-content-center">
         <div class="col-lg-8 text-center">
@@ -9,7 +9,7 @@
           <p class="lead mb-4">Search doctors, hospitals and get exclusive discounts up to 30%</p>
 
           <!-- Search Bar -->
-          <div class="card shadow-lg border-0">
+          <div class="card hero-search-card shadow-lg border-0">
             <div class="card-body p-4">
               <form (ngSubmit)="onSearch()">
                 <div class="row g-3">
@@ -130,9 +130,17 @@
     </section>
 
     <!-- Featured Doctors -->
-
     <section class="mb-5">
-      <h2 class="fw-bold mb-4">Top Rated Doctors</h2>
+      <div class="d-flex justify-content-between align-items-end mb-4">
+        <div>
+          <h2 class="fw-bold mb-1">Top Rated Doctors</h2>
+          <p class="text-muted mb-0">Consult with our highest-rated medical specialists</p>
+        </div>
+        <a routerLink="/doctors" class="btn btn-outline-primary fw-semibold">
+          View All Doctors <i class="bi bi-arrow-right ms-1"></i>
+        </a>
+      </div>
+
       <div class="row g-4">
         <div *ngIf="isLoadingDoctors" class="d-flex justify-content-center py-5">
           <div class="spinner-border text-primary" role="status">
@@ -141,46 +149,48 @@
         </div>
         <ng-container *ngIf="!isLoadingDoctors">
           <div *ngFor="let doctor of doctors" class="col-md-6 col-lg-3">
-            <div class="card h-100 shadow-sm doctor-card border-0" role="button" (click)="viewDoctorDetail(doctor.id)">
-              <div class="card-header bg-light text-center py-4">
+            <div class="card h-100 shadow-sm doctor-card border-0 position-relative" role="button"
+              (click)="viewDoctorDetail(doctor.id)">
+
+              <!-- Rating Badge -->
+              <div class="position-absolute top-0 end-0 m-3 z-1">
+                <span class="badge bg-warning text-dark shadow-sm px-2 py-1">
+                  <i class="bi bi-star-fill me-1"></i>{{ doctor.rating }}
+                </span>
+              </div>
+
+              <div class="card-header bg-light text-center py-4 border-0">
                 <div
-                  class="doctor-avatar rounded-circle bg-gradient-purple text-white mx-auto mb-3 d-flex align-items-center justify-content-center">
+                  class="doctor-avatar rounded-circle bg-gradient-purple text-white mx-auto mb-3 d-flex align-items-center justify-content-center shadow-sm">
                   <span class="fs-3 fw-bold">{{ getDoctorInitial(doctor.name) }}</span>
                 </div>
-                <h5 class="fw-bold mb-1">{{ doctor.name }}</h5>
-                <p class="text-muted small mb-2">{{ doctor.specialization }}</p>
-                <div>
-                  <i class="bi bi-star-fill text-warning me-1"></i>
-                  <span class="fw-semibold">{{ doctor.rating }}</span>
-                </div>
+                <h5 class="fw-bold mb-1 text-truncate" [title]="doctor.name">{{ doctor.name }}</h5>
+                <span class="badge bg-primary bg-opacity-10 text-primary fw-normal">
+                  {{ doctor.specialization }}
+                </span>
               </div>
-              <div class="card-body">
-                <ul class="list-unstyled small mb-3">
-                  <li class="mb-2">
-                    <i class="bi bi-award text-primary me-2"></i>
-                    {{ doctor.experience }} experience
+              <div class="card-body d-flex flex-column justify-content-between">
+                <ul class="list-unstyled small mb-3 text-secondary">
+                  <li class="mb-2 d-flex align-items-center">
+                    <i class="bi bi-award-fill text-primary me-2"></i>
+                    <span>{{ doctor.experience }} Years Experience</span>
                   </li>
-                  <li class="mb-2">
-                    <i class="bi bi-hospital text-primary me-2"></i>
-                    {{ doctor.hospital }}
+                  <li class="mb-2 d-flex align-items-center text-truncate">
+                    <i class="bi bi-building-fill text-primary me-2"></i>
+                    <span class="text-truncate" [title]="doctor.hospital">{{ doctor.hospital }}</span>
                   </li>
-                  <li class="mb-2">
-                    <i class="bi bi-currency-rupee text-primary me-2"></i>
-                    Consultation: {{ doctor.fee }}
+                  <li class="mb-2 d-flex align-items-center">
+                    <i class="bi bi-currency-rupee text-success me-2 fw-bold"></i>
+                    <span class="fw-semibold text-dark">₹{{ doctor.fee }} Consultation</span>
                   </li>
                 </ul>
-                <button class="btn btn-primary w-100">
+                <button class="btn btn-primary w-100 fw-semibold">
                   <i class="bi bi-calendar-check me-2"></i>Book Appointment
                 </button>
               </div>
             </div>
           </div>
         </ng-container>
-        <div *ngIf="isLoadingDoctors" class="d-flex justify-content-center py-5">
-          <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Loading...</span>
-          </div>
-        </div>
       </div>
     </section>
 

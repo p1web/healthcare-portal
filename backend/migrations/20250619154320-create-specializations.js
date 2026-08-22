@@ -32,7 +32,6 @@ module.exports = {
       }
     });
 
-    // Optional: add index for name
     await queryInterface.addIndex('specializations', ['name']);
   },
 

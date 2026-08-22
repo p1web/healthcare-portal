@@ -5,7 +5,8 @@ module.exports = {
 
     await queryInterface.bulkInsert('doctors', [
       {
-        doctor_profile_id: 0,
+        id: 1,
+        doctor_profile_id: null,
         name: 'Dr. Rajesh Kumar',
         specialization_id: 1,
         hospital_id: 1,
@@ -24,7 +25,8 @@ module.exports = {
         updated_at: new Date()
       },
       {
-        doctor_profile_id: 0,
+        id: 2,
+        doctor_profile_id: null,
         name: 'Dr. Priya Sharma',
         specialization_id: 4,
         hospital_id: 2,
@@ -43,7 +45,8 @@ module.exports = {
         updated_at: new Date()
       },
       {
-        doctor_profile_id: 0,
+        id: 3,
+        doctor_profile_id: null,
         name: 'Dr. Amit Patel',
         specialization_id: 3,
         hospital_id: 2,
@@ -62,7 +65,8 @@ module.exports = {
         updated_at: new Date()
       },
       {
-        doctor_profile_id: 0,
+        id: 4,
+        doctor_profile_id: null,
         name: 'Dr. Sneha Desai',
         specialization_id: 6,
         hospital_id: 3,
@@ -81,7 +85,8 @@ module.exports = {
         updated_at: new Date()
       },
       {
-        doctor_profile_id: 0,
+        id: 5,
+        doctor_profile_id: null,
         name: 'Dr. Vikram Singh',
         specialization_id: 2,
         hospital_id: 5,
@@ -100,7 +105,8 @@ module.exports = {
         updated_at: new Date()
       },
       {
-        doctor_profile_id: 0,
+        id: 6,
+        doctor_profile_id: null,
         name: 'Dr. Kavita Menon',
         specialization_id: 12,
         hospital_id: 6,
@@ -119,7 +125,8 @@ module.exports = {
         updated_at: new Date()
       },
       {
-        doctor_profile_id: 0,
+        id: 7,
+        doctor_profile_id: null,
         name: 'Dr. Arjun Reddy',
         specialization_id: 8,
         hospital_id: 4,
@@ -138,7 +145,8 @@ module.exports = {
         updated_at: new Date()
       },
       {
-        doctor_profile_id: 0,
+        id: 8,
+        doctor_profile_id: null,
         name: 'Dr. Neha Gupta',
         specialization_id: 4,
         hospital_id: 6,
@@ -157,7 +165,9 @@ module.exports = {
         updated_at: new Date()
       },
       {
-        doctor_profile_id: 0,
+        id: 9,
+        doctor_profile_id: null,
+        name: 'Dr. Suresh Iyer',
         specialization_id: 7,
         hospital_id: 3,
         experience: 11,
@@ -173,7 +183,8 @@ module.exports = {
         updated_at: new Date()
       },
       {
-        doctor_profile_id: 0,
+        id: 10,
+        doctor_profile_id: null,
         name: 'Dr. Ananya Krishnan',
         specialization_id: 10,
         hospital_id: 5,
@@ -191,7 +202,7 @@ module.exports = {
         created_at: new Date(),
         updated_at: new Date()
       }
-    ]);
+    ], { ignoreDuplicates: true });
   },
 
   async down(queryInterface) {

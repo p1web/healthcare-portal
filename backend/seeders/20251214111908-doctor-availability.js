@@ -68,7 +68,7 @@ module.exports = {
       { doctor_id: 10, day_of_week: 3, start_time: '08:00', end_time: '17:00', created_at: new Date(), updated_at: new Date() },
       { doctor_id: 10, day_of_week: 4, start_time: '08:00', end_time: '17:00', created_at: new Date(), updated_at: new Date() },
       { doctor_id: 10, day_of_week: 5, start_time: '08:00', end_time: '17:00', created_at: new Date(), updated_at: new Date() }
-    ]);
+    ], { ignoreDuplicates: true });
   },
 
   async down(queryInterface) {

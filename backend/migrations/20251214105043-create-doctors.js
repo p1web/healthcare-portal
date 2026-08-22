@@ -12,14 +12,14 @@ module.exports = {
       },
       doctorProfileId: {
         type: Sequelize.INTEGER,
-        allowNull: false,
+        allowNull: true,
         field: 'doctor_profile_id',
         references: {
           model: 'doctor_profiles',
           key: 'id'
         },
         onUpdate: 'CASCADE',
-        onDelete: 'CASCADE'
+        onDelete: 'SET NULL'
       },
       name: {
         type: Sequelize.STRING(255),
@@ -127,6 +127,5 @@ module.exports = {
 
   async down(queryInterface, Sequelize) {
     await queryInterface.dropTable('doctors');
-
   }
 };

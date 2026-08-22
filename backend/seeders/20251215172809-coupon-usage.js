@@ -32,7 +32,7 @@ module.exports = {
       });
     }
 
-    await queryInterface.bulkInsert('coupon_usage', usageData, {});
+    await queryInterface.bulkInsert('coupon_usage', usageData, { ignoreDuplicates: true });
   },
 
   async down(queryInterface, Sequelize) {

@@ -1,5 +1,12 @@
 <div class="container my-5">
-  
+
+  <!-- Toast Notification -->
+  <div *ngIf="toastMessage" class="coupon-toast alert alert-{{ toastType }} shadow d-flex align-items-center">
+    <i class="bi me-2" [ngClass]="toastType === 'success' ? 'bi-check-circle' : 'bi-exclamation-circle'"></i>
+    {{ toastMessage }}
+    <button type="button" class="btn-close ms-auto" (click)="toastMessage = ''"></button>
+  </div>
+
   <!-- Page Header -->
   <div class="text-center mb-5">
     <h1 class="display-4 fw-bold mb-3">
@@ -24,12 +31,12 @@
               class="form-control border-start-0"
               placeholder="Search coupons by code, title or description..."
               [(ngModel)]="searchQuery"
-              (input)="searchCoupons()"
+              (input)="onSearchChange()"
             />
           </div>
 
           <!-- Filter Buttons -->
-          <div class="d-flex flex-wrap gap-2 justify-content-center">
+          <div class="d-flex flex-wrap gap-2 justify-content-center mb-3">
             <button
               class="btn btn-outline-secondary"
               [class.active]="selectedFilter === 'all'"
@@ -66,20 +73,53 @@
               <i class="bi bi-capsule me-1"></i>Pharmacy
             </button>
           </div>
+
+          <!-- Sort -->
+          <div class="d-flex align-items-center justify-content-center gap-2">
+            <label for="sortBy" class="small text-muted mb-0">Sort by:</label>
+            <select
+              id="sortBy"
+              class="form-select form-select-sm w-auto"
+              [(ngModel)]="sortBy"
+              (change)="onSortChange()"
+            >
+              <option value="expiry">Expiring Soonest</option>
+              <option value="discount">Highest Discount</option>
+              <option value="newest">Newest</option>
+            </select>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="text-muted mt-3">Loading coupons...</p>
+  </div>
+
+  <!-- Load Error -->
+  <div *ngIf="!isLoading && loadError" class="alert alert-danger text-center">
+    <i class="bi bi-exclamation-triangle me-2"></i>{{ loadError }}
+    <div class="mt-2">
+      <button class="btn btn-sm btn-outline-danger" (click)="loadCoupons()">
+        <i class="bi bi-arrow-clockwise me-1"></i>Retry
+      </button>
+    </div>
+  </div>
+
   <!-- Coupons Grid -->
-  <div class="row g-4">
+  <div *ngIf="!isLoading && !loadError" class="row g-4">
     <div *ngFor="let coupon of filteredCoupons" class="col-lg-6">
-      <div class="card coupon-card h-100 shadow-sm border-0">
+      <div class="card coupon-card h-100 shadow-sm border-0" [class.coupon-disabled]="!isUsable(coupon)">
         <div class="card-body p-4">
           <div class="row">
             <!-- Left Side - Discount Badge -->
             <div class="col-auto">
-              <div class="discount-badge bg-gradient-{{ getCategoryColor(coupon.applicableFor) }} text-white">
+              <div class="discount-badge text-white {{ colorClass(coupon.applicableFor, 'bg-gradient') }}">
                 <div class="discount-value">{{ coupon.discount }}</div>
                 <div class="discount-label">
                   <i [class]="getCategoryIcon(coupon.applicableFor)"></i>
@@ -91,8 +131,14 @@
             <div class="col">
               <div class="d-flex justify-content-between align-items-start mb-2">
                 <h5 class="fw-bold mb-0">{{ coupon.title }}</h5>
-                <span 
-                  *ngIf="isExpiringSoon(coupon)" 
+                <span *ngIf="isExpired(coupon)" class="badge bg-secondary">
+                  <i class="bi bi-x-circle me-1"></i>Expired
+                </span>
+                <span *ngIf="!isExpired(coupon) && isFullyUsed(coupon)" class="badge bg-dark">
+                  <i class="bi bi-slash-circle me-1"></i>Limit Reached
+                </span>
+                <span
+                  *ngIf="!isExpired(coupon) && !isFullyUsed(coupon) && isExpiringSoon(coupon)"
                   class="badge bg-warning text-dark"
                 >
                   <i class="bi bi-clock me-1"></i>Expiring Soon
@@ -106,12 +152,12 @@
                 <div class="d-flex align-items-center justify-content-between bg-light border border-dashed rounded p-3">
                   <div>
                     <small class="text-muted d-block mb-1">Coupon Code</small>
-                    <code class="fs-5 fw-bold text-{{ getCategoryColor(coupon.applicableFor) }}">
+                    <code class="fs-5 fw-bold {{ colorClass(coupon.applicableFor, 'text') }}">
                       {{ coupon.code }}
                     </code>
                   </div>
                   <button
-                    class="btn btn-sm btn-{{ getCategoryColor(coupon.applicableFor) }}"
+                    class="btn btn-sm {{ colorClass(coupon.applicableFor, 'btn') }}"
                     (click)="copyCouponCode(coupon.code)"
                   >
                     <i class="bi" [ngClass]="copiedCode === coupon.code ? 'bi-check-lg' : 'bi-clipboard'"></i>
@@ -136,7 +182,9 @@
                 </div>
                 <div class="col-6">
                   <i class="bi bi-hourglass-split text-warning me-1"></i>
-                  <span class="text-muted">{{ getDaysRemaining(coupon) }} days left</span>
+                  <span class="text-muted">
+                    {{ isExpired(coupon) ? 'Expired' : getDaysRemaining(coupon) + ' days left' }}
+                  </span>
                 </div>
               </div>
 
@@ -144,7 +192,7 @@
               <div *ngIf="coupon.usageLimit" class="mb-3">
                 <div class="progress" style="height: 6px;">
                   <div
-                    class="progress-bar bg-{{ getCategoryColor(coupon.applicableFor) }}"
+                    class="progress-bar {{ colorClass(coupon.applicableFor, 'bg') }}"
                     [style.width.%]="getUsagePercentage(coupon)"
                   ></div>
                 </div>
@@ -153,13 +201,18 @@
               <!-- Action Buttons -->
               <div class="d-flex gap-2">
                 <button
-                  class="btn btn-outline-{{ getCategoryColor(coupon.applicableFor) }} flex-grow-1"
+                  class="btn flex-grow-1 {{ colorClass(coupon.applicableFor, 'btn-outline') }}"
                   (click)="viewCouponDetails(coupon)"
                 >
                   <i class="bi bi-info-circle me-1"></i>View Details
                 </button>
-                <button class="btn btn-{{ getCategoryColor(coupon.applicableFor) }}">
-                  <i class="bi bi-cart-plus me-1"></i>Use Now
+                <button
+                  class="btn {{ colorClass(coupon.applicableFor, 'btn') }}"
+                  [disabled]="!isUsable(coupon)"
+                  (click)="useCoupon(coupon, $event)"
+                >
+                  <i class="bi bi-cart-plus me-1"></i>
+                  {{ isExpired(coupon) ? 'Expired' : (isFullyUsed(coupon) ? 'Limit Reached' : 'Use Now') }}
                 </button>
               </div>
             </div>
@@ -170,7 +223,7 @@
   </div>
 
   <!-- No Results Message -->
-  <div *ngIf="filteredCoupons.length === 0" class="text-center py-5">
+  <div *ngIf="!isLoading && !loadError && filteredCoupons.length === 0" class="text-center py-5">
     <i class="bi bi-inbox fs-1 text-muted"></i>
     <h3 class="mt-3 text-muted">No coupons found</h3>
     <p class="text-muted">Try adjusting your search or filter criteria</p>
@@ -224,12 +277,16 @@
   [class.show]="selectedCoupon !== null"
   [style.display]="selectedCoupon !== null ? 'block' : 'none'"
   tabindex="-1"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="couponModalTitle"
   *ngIf="selectedCoupon"
+  (click)="closeCouponDetails()"
 >
-  <div class="modal-dialog modal-dialog-centered modal-lg">
+  <div class="modal-dialog modal-dialog-centered modal-lg" (click)="$event.stopPropagation()">
     <div class="modal-content">
-      <div class="modal-header bg-{{ getCategoryColor(selectedCoupon.applicableFor) }} bg-gradient text-white">
-        <h5 class="modal-title fw-bold">
+      <div class="modal-header bg-gradient text-white {{ colorClass(selectedCoupon.applicableFor, 'bg') }}">
+        <h5 class="modal-title fw-bold" id="couponModalTitle">
           <i [class]="getCategoryIcon(selectedCoupon.applicableFor)" class="me-2"></i>
           {{ selectedCoupon.title }}
         </h5>
@@ -238,19 +295,21 @@
       <div class="modal-body p-4">
         <!-- Discount Badge -->
         <div class="text-center mb-4">
-          <div class="display-3 fw-bold text-{{ getCategoryColor(selectedCoupon.applicableFor) }}">
+          <div class="display-3 fw-bold {{ colorClass(selectedCoupon.applicableFor, 'text') }}">
             {{ selectedCoupon.discount }}
           </div>
           <p class="lead">{{ selectedCoupon.description }}</p>
+          <span *ngIf="isExpired(selectedCoupon)" class="badge bg-secondary">Expired</span>
+          <span *ngIf="!isExpired(selectedCoupon) && isFullyUsed(selectedCoupon)" class="badge bg-dark">Limit Reached</span>
         </div>
 
         <!-- Coupon Code -->
-        <div class="alert alert-{{ getCategoryColor(selectedCoupon.applicableFor) }} bg-opacity-10 border-0 text-center">
+        <div class="alert bg-opacity-10 border-0 text-center {{ colorClass(selectedCoupon.applicableFor, 'alert') }}">
           <p class="mb-2 fw-bold">Use Coupon Code:</p>
           <div class="d-flex align-items-center justify-content-center gap-3">
             <code class="fs-3 fw-bold">{{ selectedCoupon.code }}</code>
             <button
-              class="btn btn-{{ getCategoryColor(selectedCoupon.applicableFor) }} btn-sm"
+              class="btn btn-sm {{ colorClass(selectedCoupon.applicableFor, 'btn') }}"
               (click)="copyCouponCode(selectedCoupon.code)"
             >
               <i class="bi" [ngClass]="copiedCode === selectedCoupon.code ? 'bi-check-lg' : 'bi-clipboard'"></i>
@@ -300,7 +359,8 @@
                     <strong>Valid Until:</strong> {{ selectedCoupon.validUntil | date:'mediumDate' }}
                   </li>
                   <li class="mb-1">
-                    <strong>Days Remaining:</strong> {{ getDaysRemaining(selectedCoupon) }} days
+                    <strong>Days Remaining:</strong>
+                    {{ isExpired(selectedCoupon) ? 'Expired' : getDaysRemaining(selectedCoupon) + ' days' }}
                   </li>
                   <li *ngIf="selectedCoupon.usageLimit">
                     <strong>Usage:</strong> {{ selectedCoupon.usedCount }}/{{ selectedCoupon.usageLimit }}
@@ -340,8 +400,14 @@
         <button type="button" class="btn btn-secondary" (click)="closeCouponDetails()">
           Close
         </button>
-        <button type="button" class="btn btn-{{ getCategoryColor(selectedCoupon.applicableFor) }}">
-          <i class="bi bi-cart-plus me-2"></i>Use This Coupon
+        <button
+          type="button"
+          class="btn {{ colorClass(selectedCoupon.applicableFor, 'btn') }}"
+          [disabled]="!isUsable(selectedCoupon)"
+          (click)="useCoupon(selectedCoupon)"
+        >
+          <i class="bi bi-cart-plus me-2"></i>
+          {{ isExpired(selectedCoupon) ? 'Expired' : (isFullyUsed(selectedCoupon) ? 'Limit Reached' : 'Use This Coupon') }}
         </button>
       </div>
     </div>

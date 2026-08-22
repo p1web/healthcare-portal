@@ -33,7 +33,10 @@ export class DoctorsComponent implements OnInit {
   selectedExperience: string = 'all';
   selectedRating: number = 0;
   sortBy: string = 'rating';
-  viewMode: 'grid' | 'list' = 'grid';
+  viewMode: 'grid' | 'list' = 'list';
+
+  currentPage: number = 1;
+  pageSize: number = 9;
 
 
   constructor(
@@ -244,8 +247,30 @@ export class DoctorsComponent implements OnInit {
     }
 
     this.filteredDoctors = filtered;
+    this.currentPage = 1;
   }
-  
+
+  get totalPages(): number {
+    return Math.max(1, Math.ceil(this.filteredDoctors.length / this.pageSize));
+  }
+
+  get pagedDoctors(): Doctor[] {
+    const start = (this.currentPage - 1) * this.pageSize;
+    return this.filteredDoctors.slice(start, start + this.pageSize);
+  }
+
+  goToPage(page: number) {
+    if (page < 1 || page > this.totalPages) return;
+    this.currentPage = page;
+  }
+
+  get pageNumbers(): number[] {
+    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
+  }
+
+  get endIndex(): number {
+    return Math.min(this.currentPage * this.pageSize, this.filteredDoctors.length);
+  }
 
   toggleViewMode() {
     this.viewMode = this.viewMode === 'grid' ? 'list' : 'grid';
@@ -258,6 +283,7 @@ export class DoctorsComponent implements OnInit {
     this.selectedExperience = 'all';
     this.selectedRating = 0;
     this.sortBy = 'rating';
+    this.currentPage = 1;
     this.applyFiltersAndSort();
   }
 

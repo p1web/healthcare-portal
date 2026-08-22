@@ -9,6 +9,15 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'user_id',
         as: 'user'
       });
+      // History-tracked replacements for the legacy allergies/medical_conditions JSON columns
+      PatientProfile.hasMany(models.PatientAllergy, {
+        foreignKey: 'patientProfileId',
+        as: 'allergies'
+      });
+      PatientProfile.hasMany(models.PatientMedicalCondition, {
+        foreignKey: 'patientProfileId',
+        as: 'medicalConditions'
+      });
     }
   }
 
@@ -37,23 +46,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.DECIMAL(5, 2),
       allowNull: true
     },
-    allergies: {
-      type: DataTypes.JSON,
-      allowNull: true,
-      get() {
-        const rawValue = this.getDataValue('allergies');
-        return rawValue ? (Array.isArray(rawValue) ? rawValue : JSON.parse(rawValue)) : [];
-      }
-    },
-    medicalConditions: {
-      type: DataTypes.JSON,
-      allowNull: true,
-      field: 'medical_conditions',
-      get() {
-        const rawValue = this.getDataValue('medicalConditions');
-        return rawValue ? (Array.isArray(rawValue) ? rawValue : JSON.parse(rawValue)) : [];
-      }
-    },
+    // NOTE: legacy `allergies` / `medical_conditions` JSON columns are no longer
+    // mapped here. They have been superseded by the PatientAllergy and
+    // PatientMedicalCondition tables (see `allergies`/`medicalConditions` associations
+    // above), which track status (active/resolved) and dates over repeat visits.
     emergencyContactName: {
       type: DataTypes.STRING(255),
       allowNull: true,

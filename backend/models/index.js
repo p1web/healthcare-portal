@@ -23,6 +23,8 @@ const User = require("./user")(sequelize, DataTypes);
 const PatientProfile = require("./patient-profile")(sequelize, DataTypes);
 const DoctorProfile = require("./doctor-profile")(sequelize, DataTypes);
 const HospitalProfile = require("./hospital-profile")(sequelize, DataTypes);
+const PatientAllergy = require("./patient-allergy")(sequelize, DataTypes);
+const PatientMedicalCondition = require("./patient-medical-condition")(sequelize, DataTypes);
 
 
 // Run associations
@@ -47,9 +49,11 @@ Appointment.associate({ Doctor, User });
 User.associate({ PatientProfile, DoctorProfile, HospitalProfile });
 
 // Profile associations
-PatientProfile.associate({ User });
+PatientProfile.associate({ User, PatientAllergy, PatientMedicalCondition });
 DoctorProfile.associate({ User, Doctor, Specialization });
 HospitalProfile.associate({ User, Hospital });
+PatientAllergy.associate({ PatientProfile });
+PatientMedicalCondition.associate({ PatientProfile });
 
 
 module.exports = {
@@ -74,5 +78,7 @@ module.exports = {
   User,
   PatientProfile,
   DoctorProfile,
-  HospitalProfile
+  HospitalProfile,
+  PatientAllergy,
+  PatientMedicalCondition
 };

@@ -8,6 +8,23 @@
   box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.15) !important;
 }
 
+.coupon-card.coupon-disabled {
+  opacity: 0.6;
+  filter: grayscale(35%);
+}
+
+.coupon-card.coupon-disabled:hover {
+  transform: none;
+}
+
+.coupon-toast {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 1080;
+  max-width: 420px;
+}
+
 .discount-badge {
   width: 100px;
   height: 100px;
@@ -59,6 +76,11 @@
 
 .modal.show {
   background-color: rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+}
+
+.modal-dialog {
+  cursor: default;
 }
 
 .modal-backdrop.show {

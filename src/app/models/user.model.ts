@@ -1,3 +1,5 @@
+import { PatientAllergy, PatientMedicalCondition } from './patient-medical-record.model';
+
 export interface User {
   id: number;
   name: string;
@@ -24,8 +26,8 @@ export interface PatientProfile {
   bloodGroup?: string;
   height?: string;
   weight?: string;
-  allergies?: string[];
-  medicalConditions?: string[];
+  allergies?: PatientAllergy[];
+  medicalConditions?: PatientMedicalCondition[];
   emergencyContactName?: string;
   emergencyContactPhone?: string;
   emergencyContactRelation?: string;

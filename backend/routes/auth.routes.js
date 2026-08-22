@@ -10,7 +10,6 @@ router.post('/reset-password', controller.resetPassword);
 
 // Protected routes (require authentication)
 router.get('/me', authenticate, controller.getCurrentUser);
-router.put('/update-profile', authenticate, controller.updatePatientProfile);
 router.post('/change-password', authenticate, controller.changePassword);
 router.post('/logout', authenticate, controller.logout);
 

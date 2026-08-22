@@ -10,9 +10,13 @@ import { AuthGuard } from './guards/auth.guard';
 import { AdminGuard } from './guards/admin.guard';
 import { LayoutComponent  } from './components/user/layout/layout.component';
 import { ProfileComponent } from './components/user/profile/profile.component';
+import { PatientProfileComponent } from './components/user/patient-profile/patient-profile.component';
+import { DoctorProfileComponent } from './components/user/doctor-profile/doctor-profile.component';
+import { HospitalProfileComponent } from './components/user/hospital-profile/hospital-profile.component';
 import { ChangePasswordComponent } from './components/user/change-password/change-password.component';
 import { ResetPasswordComponent } from './components/user/reset-password/reset-password.component';
 import { PublicLayoutComponent } from './public-layout.component';
+import { RoleGuard } from './guards/role.guard';
 
 export const routes: Routes = [
   {
@@ -60,6 +64,9 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
     children: [
       { path: 'profile', component: ProfileComponent, data: { title: 'My Profile' } },
+      { path: 'profile/patient', component: PatientProfileComponent, canActivate: [RoleGuard], data: { title: 'My Profile', roles: ['patient'] } },
+      { path: 'profile/doctor', component: DoctorProfileComponent, canActivate: [RoleGuard], data: { title: 'My Profile', roles: ['doctor'] } },
+      { path: 'profile/hospital', component: HospitalProfileComponent, canActivate: [RoleGuard], data: { title: 'My Profile', roles: ['hospital'] } },
       { path: 'change-password', component: ChangePasswordComponent, data: { title: 'Change Password' } },
       { path: 'reset-password', component: ResetPasswordComponent, data: { title: 'Reset Password' } }
     ]

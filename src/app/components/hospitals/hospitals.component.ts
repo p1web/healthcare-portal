@@ -22,9 +22,12 @@ export class HospitalsComponent implements OnInit {
   selectedSpecialty: string = 'all';
   selectedRating: number = 0;
   sortBy: string = 'rating';
-  viewMode: 'grid' | 'list' = 'grid';
+  viewMode: 'grid' | 'list' = 'list';
   selectedHospital: Hospital | null = null;
   specialties: string[] = ['All Specialties'];
+
+  currentPage: number = 1;
+  pageSize: number = 9;
 
   constructor(
     private hospitalService: HospitalService,
@@ -134,6 +137,29 @@ export class HospitalsComponent implements OnInit {
     }
 
     this.filteredHospitals = filtered;
+    this.currentPage = 1;
+  }
+
+  get totalPages(): number {
+    return Math.max(1, Math.ceil(this.filteredHospitals.length / this.pageSize));
+  }
+
+  get pagedHospitals(): Hospital[] {
+    const start = (this.currentPage - 1) * this.pageSize;
+    return this.filteredHospitals.slice(start, start + this.pageSize);
+  }
+
+  get pageNumbers(): number[] {
+    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
+  }
+
+  get endIndex(): number {
+    return Math.min(this.currentPage * this.pageSize, this.filteredHospitals.length);
+  }
+
+  goToPage(page: number) {
+    if (page < 1 || page > this.totalPages) return;
+    this.currentPage = page;
   }
 
   toggleViewMode() {
@@ -153,6 +179,7 @@ export class HospitalsComponent implements OnInit {
     this.selectedSpecialty = 'all';
     this.selectedRating = 0;
     this.sortBy = 'rating';
+    this.currentPage = 1;
     this.applyFiltersAndSort();
   }
 

@@ -1,0 +1,369 @@
+<div class="profile-page">
+  <div class="profile-header">
+    <div class="profile-avatar">
+      <i class="bi bi-person-fill"></i>
+    </div>
+    <div>
+      <h4 class="mb-1">{{ profileForm.get('basic.name')?.value || 'My Profile' }}</h4>
+      <span class="role-badge">Patient Account</span>
+    </div>
+  </div>
+
+  <div *ngIf="success" class="alert alert-success alert-dismissible fade show">
+    <i class="bi bi-check-circle me-2"></i>{{ success }}
+    <button type="button" class="btn-close" (click)="success = ''"></button>
+  </div>
+
+  <div *ngIf="error" class="alert alert-danger alert-dismissible fade show">
+    <i class="bi bi-exclamation-circle me-2"></i>{{ error }}
+    <button type="button" class="btn-close" (click)="error = ''"></button>
+  </div>
+
+  <form [formGroup]="profileForm" (ngSubmit)="onSubmit()">
+
+    <!-- BASIC INFORMATION -->
+    <section class="profile-section" formGroupName="basic">
+      <h6 class="section-title"><i class="bi bi-person-lines-fill"></i> Basic Information</h6>
+
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Name <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" formControlName="name"
+            [class.is-invalid]="profileForm.get('basic.name')?.invalid && profileForm.get('basic.name')?.touched" />
+          <div class="invalid-feedback"
+            *ngIf="profileForm.get('basic.name')?.invalid && profileForm.get('basic.name')?.touched">
+            <span *ngIf="profileForm.get('basic.name')?.errors?.['required']">Name is required</span>
+            <span *ngIf="profileForm.get('basic.name')?.errors?.['minlength']">Name must be at least 3
+              characters</span>
+          </div>
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Email</label>
+          <input type="email" class="form-control" formControlName="email" readonly />
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Phone <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" formControlName="phone" placeholder="10 digit mobile number"
+            [class.is-invalid]="profileForm.get('basic.phone')?.invalid && profileForm.get('basic.phone')?.touched" />
+          <div class="invalid-feedback"
+            *ngIf="profileForm.get('basic.phone')?.invalid && profileForm.get('basic.phone')?.touched">
+            <span *ngIf="profileForm.get('basic.phone')?.errors?.['required']">Phone is required</span>
+            <span *ngIf="profileForm.get('basic.phone')?.errors?.['pattern']">Please enter a valid 10 digit phone
+              number</span>
+          </div>
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Role</label>
+          <input type="text" class="form-control" formControlName="role" readonly />
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Date of Birth <span class="text-danger">*</span></label>
+          <input type="date" class="form-control" formControlName="dateOfBirth"
+            [class.is-invalid]="profileForm.get('basic.dateOfBirth')?.invalid && profileForm.get('basic.dateOfBirth')?.touched" />
+          <div class="invalid-feedback"
+            *ngIf="profileForm.get('basic.dateOfBirth')?.invalid && profileForm.get('basic.dateOfBirth')?.touched">
+            Date of birth is required
+          </div>
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Gender <span class="text-danger">*</span></label>
+          <select class="form-control" formControlName="gender"
+            [class.is-invalid]="profileForm.get('basic.gender')?.invalid && profileForm.get('basic.gender')?.touched">
+            <option value="">Select Gender</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+            <option value="transgender">Transgender</option>
+          </select>
+          <div class="invalid-feedback"
+            *ngIf="profileForm.get('basic.gender')?.invalid && profileForm.get('basic.gender')?.touched">
+            Gender is required
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Address <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" formControlName="address"
+            [class.is-invalid]="profileForm.get('basic.address')?.invalid && profileForm.get('basic.address')?.touched" />
+          <div class="invalid-feedback"
+            *ngIf="profileForm.get('basic.address')?.invalid && profileForm.get('basic.address')?.touched">
+            Address is required
+          </div>
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label class="form-label">City <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" formControlName="city"
+            [class.is-invalid]="profileForm.get('basic.city')?.invalid && profileForm.get('basic.city')?.touched" />
+          <div class="invalid-feedback"
+            *ngIf="profileForm.get('basic.city')?.invalid && profileForm.get('basic.city')?.touched">
+            City is required
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label class="form-label">State <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" formControlName="state"
+            [class.is-invalid]="profileForm.get('basic.state')?.invalid && profileForm.get('basic.state')?.touched" />
+          <div class="invalid-feedback"
+            *ngIf="profileForm.get('basic.state')?.invalid && profileForm.get('basic.state')?.touched">
+            State is required
+          </div>
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Pincode <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" formControlName="pincode" placeholder="6 digit pincode"
+            [class.is-invalid]="profileForm.get('basic.pincode')?.invalid && profileForm.get('basic.pincode')?.touched" />
+          <div class="invalid-feedback"
+            *ngIf="profileForm.get('basic.pincode')?.invalid && profileForm.get('basic.pincode')?.touched">
+            <span *ngIf="profileForm.get('basic.pincode')?.errors?.['required']">Pincode is required</span>
+            <span *ngIf="profileForm.get('basic.pincode')?.errors?.['pattern']">Please enter a valid 6 digit
+              pincode</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MEDICAL INFORMATION -->
+    <section class="profile-section" formGroupName="patient">
+      <h6 class="section-title"><i class="bi bi-heart-pulse"></i> Medical Information</h6>
+
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label class="form-label" for="bloodGroup">Blood Group <span class="text-danger">*</span></label>
+          <select class="form-control" id="bloodGroup" formControlName="bloodGroup"
+            [class.is-invalid]="profileForm.get('patient.bloodGroup')?.invalid && profileForm.get('patient.bloodGroup')?.touched">
+            <option value="">Select Blood Group</option>
+            <option *ngFor="let bg of bloodGroups" [value]="bg">
+              {{ bg }}
+            </option>
+          </select>
+          <div class="invalid-feedback"
+            *ngIf="profileForm.get('patient.bloodGroup')?.invalid && profileForm.get('patient.bloodGroup')?.touched">
+            Blood group is required
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Height (cm) <span class="text-danger">*</span></label>
+          <input type="number" class="form-control" formControlName="height" placeholder="Enter height in cm"
+            [class.is-invalid]="profileForm.get('patient.height')?.invalid && profileForm.get('patient.height')?.touched" />
+          <div class="invalid-feedback"
+            *ngIf="profileForm.get('patient.height')?.invalid && profileForm.get('patient.height')?.touched">
+            <span *ngIf="profileForm.get('patient.height')?.errors?.['required']">Height is required</span>
+            <span
+              *ngIf="profileForm.get('patient.height')?.errors?.['min'] || profileForm.get('patient.height')?.errors?.['max']">
+              Height must be between 50 and 300 cm
+            </span>
+          </div>
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Weight (kg) <span class="text-danger">*</span></label>
+          <input type="number" class="form-control" formControlName="weight" placeholder="Enter weight in kg"
+            [class.is-invalid]="profileForm.get('patient.weight')?.invalid && profileForm.get('patient.weight')?.touched" />
+          <div class="invalid-feedback"
+            *ngIf="profileForm.get('patient.weight')?.invalid && profileForm.get('patient.weight')?.touched">
+            <span *ngIf="profileForm.get('patient.weight')?.errors?.['required']">Weight is required</span>
+            <span
+              *ngIf="profileForm.get('patient.weight')?.errors?.['min'] || profileForm.get('patient.weight')?.errors?.['max']">
+              Weight must be between 20 and 500 kg
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="bmi-card" *ngIf="bmi !== null">
+        <i class="bi bi-graph-up"></i>
+        <span><strong>BMI:</strong> {{ bmi }}</span>
+        <span class="badge" [class.bg-success]="bmiCategory === 'Normal'"
+          [class.bg-warning]="bmiCategory === 'Overweight' || bmiCategory === 'Underweight'"
+          [class.bg-danger]="bmiCategory === 'Obese'">
+          {{ bmiCategory }}
+        </span>
+      </div>
+
+      <div class="subsection">
+        <label class="form-label d-flex justify-content-between align-items-center">
+          <span><i class="bi bi-exclamation-triangle me-1"></i> Allergies</span>
+          <span class="badge bg-secondary">{{ allergies.length }}</span>
+        </label>
+
+        <div *ngIf="medicalRecordError" class="alert alert-danger py-2 mb-2">
+          {{ medicalRecordError }}
+        </div>
+
+        <ul class="list-group mb-2" *ngIf="allergies.length">
+          <li class="list-group-item d-flex justify-content-between align-items-start"
+            *ngFor="let allergy of allergies">
+            <div>
+              <span [class.text-decoration-line-through]="allergy.status === 'resolved'">{{ allergy.name }}</span>
+              <span class="badge ms-2" [class.bg-success]="allergy.status === 'active'"
+                [class.bg-secondary]="allergy.status === 'resolved'">
+                {{ allergy.status === 'active' ? 'Active' : 'Resolved' }}
+              </span>
+              <span class="badge bg-warning text-dark ms-1" *ngIf="allergy.severity">{{ allergy.severity }}</span>
+              <div class="text-muted small" *ngIf="allergy.reaction">Reaction: {{ allergy.reaction }}</div>
+            </div>
+            <div class="text-nowrap">
+              <button type="button" class="btn btn-sm btn-outline-secondary me-1"
+                (click)="toggleAllergyStatus(allergy)">
+                {{ allergy.status === 'active' ? 'Mark Resolved' : 'Reactivate' }}
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-danger" (click)="deleteAllergy(allergy)">
+                Remove
+              </button>
+            </div>
+          </li>
+        </ul>
+        <p class="text-muted small" *ngIf="!allergies.length">No allergies recorded yet.</p>
+
+        <div class="row g-2 align-items-end inline-add-form">
+          <div class="col-md-4">
+            <label class="form-label small">Name</label>
+            <input type="text" class="form-control form-control-sm" [(ngModel)]="newAllergy.name"
+              [ngModelOptions]="{standalone: true}" placeholder="e.g., Penicillin" />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label small">Severity</label>
+            <select class="form-control form-control-sm" [(ngModel)]="newAllergy.severity"
+              [ngModelOptions]="{standalone: true}">
+              <option value="">Select</option>
+              <option *ngFor="let s of allergySeverities" [value]="s">{{ s }}</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label small">Reaction</label>
+            <input type="text" class="form-control form-control-sm" [(ngModel)]="newAllergy.reaction"
+              [ngModelOptions]="{standalone: true}" placeholder="e.g., Rash" />
+          </div>
+          <div class="col-md-2">
+            <button type="button" class="btn btn-sm btn-primary w-100" (click)="addAllergy()">
+              <i class="bi bi-plus-lg"></i> Add
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <label class="form-label d-flex justify-content-between align-items-center">
+          <span><i class="bi bi-clipboard2-pulse me-1"></i> Medical Conditions</span>
+          <span class="badge bg-secondary">{{ medicalConditions.length }}</span>
+        </label>
+
+        <ul class="list-group mb-2" *ngIf="medicalConditions.length">
+          <li class="list-group-item d-flex justify-content-between align-items-start"
+            *ngFor="let condition of medicalConditions">
+            <div>
+              <span [class.text-decoration-line-through]="condition.status === 'resolved'">{{ condition.name }}</span>
+              <span class="badge ms-2" [class.bg-success]="condition.status === 'active'"
+                [class.bg-secondary]="condition.status === 'resolved'">
+                {{ condition.status === 'active' ? 'Active' : 'Resolved' }}
+              </span>
+            </div>
+            <div class="text-nowrap">
+              <button type="button" class="btn btn-sm btn-outline-secondary me-1"
+                (click)="toggleConditionStatus(condition)">
+                {{ condition.status === 'active' ? 'Mark Resolved' : 'Reactivate' }}
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-danger" (click)="deleteMedicalCondition(condition)">
+                Remove
+              </button>
+            </div>
+          </li>
+        </ul>
+        <p class="text-muted small" *ngIf="!medicalConditions.length">No medical conditions recorded yet.</p>
+
+        <div class="row g-2 align-items-end inline-add-form">
+          <div class="col-md-5">
+            <label class="form-label small">Name</label>
+            <input type="text" class="form-control form-control-sm" [(ngModel)]="newCondition.name"
+              [ngModelOptions]="{standalone: true}" placeholder="e.g., Diabetes" />
+          </div>
+          <div class="col-md-5">
+            <label class="form-label small">Notes</label>
+            <input type="text" class="form-control form-control-sm" [(ngModel)]="newCondition.notes"
+              [ngModelOptions]="{standalone: true}" placeholder="Optional notes" />
+          </div>
+          <div class="col-md-2">
+            <button type="button" class="btn btn-sm btn-primary w-100" (click)="addMedicalCondition()">
+              <i class="bi bi-plus-lg"></i> Add
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- EMERGENCY CONTACT -->
+    <section class="profile-section" formGroupName="patient">
+      <h6 class="section-title"><i class="bi bi-telephone-fill"></i> Emergency Contact</h6>
+
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Name <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" formControlName="emergencyContactName"
+            placeholder="Emergency contact name"
+            [class.is-invalid]="profileForm.get('patient.emergencyContactName')?.invalid && profileForm.get('patient.emergencyContactName')?.touched" />
+          <div class="invalid-feedback"
+            *ngIf="profileForm.get('patient.emergencyContactName')?.invalid && profileForm.get('patient.emergencyContactName')?.touched">
+            Emergency contact name is required
+          </div>
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Phone <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" formControlName="emergencyContactPhone"
+            placeholder="10 digit mobile number"
+            [class.is-invalid]="profileForm.get('patient.emergencyContactPhone')?.invalid && profileForm.get('patient.emergencyContactPhone')?.touched" />
+          <div class="invalid-feedback"
+            *ngIf="profileForm.get('patient.emergencyContactPhone')?.invalid && profileForm.get('patient.emergencyContactPhone')?.touched">
+            <span *ngIf="profileForm.get('patient.emergencyContactPhone')?.errors?.['required']">Emergency contact
+              phone is required</span>
+            <span *ngIf="profileForm.get('patient.emergencyContactPhone')?.errors?.['pattern']">Please enter a valid
+              10 digit phone number</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Relation <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" formControlName="emergencyContactRelation"
+            placeholder="e.g., Spouse, Parent, Sibling"
+            [class.is-invalid]="profileForm.get('patient.emergencyContactRelation')?.invalid && profileForm.get('patient.emergencyContactRelation')?.touched" />
+          <div class="invalid-feedback"
+            *ngIf="profileForm.get('patient.emergencyContactRelation')?.invalid && profileForm.get('patient.emergencyContactRelation')?.touched">
+            Emergency contact relation is required
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary px-4" [disabled]="isSubmitting">
+        <span *ngIf="!isSubmitting">
+          <i class="bi bi-check-circle me-1"></i> Save Profile
+        </span>
+        <span *ngIf="isSubmitting">
+          <span class="spinner-border spinner-border-sm me-2"></span>
+          Saving...
+        </span>
+      </button>
+    </div>
+  </form>
+</div>

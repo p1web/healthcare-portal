@@ -30,6 +30,10 @@ const appointmentRoutes = require('./routes/appointment.routes');
 const couponRoutes = require('./routes/coupon.routes');
 const specializationRoutes = require('./routes/specialization.routes');
 const adminRoutes = require('./routes/admin.routes');
+const patientMedicalRecordRoutes = require('./routes/patientMedicalRecord.routes');
+const patientProfileRoutes = require('./routes/patientProfile.routes');
+const doctorProfileRoutes = require('./routes/doctorProfile.routes');
+const hospitalProfileRoutes = require('./routes/hospitalProfile.routes');
 
 // Use routes
 app.use('/api/auth', authRoutes);
@@ -40,6 +44,10 @@ app.use('/api/appointments', appointmentRoutes);
 app.use('/api/coupons', couponRoutes);
 app.use('/api/specializations', specializationRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/patient', patientMedicalRecordRoutes);
+app.use('/api/patient', patientProfileRoutes);
+app.use('/api/doctor', doctorProfileRoutes);
+app.use('/api/hospital', hospitalProfileRoutes);
 
 // add user routes
 

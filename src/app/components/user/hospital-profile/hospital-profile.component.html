@@ -1,0 +1,210 @@
+<div class="profile-page">
+  <div class="profile-header">
+    <div class="profile-avatar">
+      <i class="bi bi-hospital-fill"></i>
+    </div>
+    <div>
+      <h4 class="mb-1">{{ profileForm.get('basic.name')?.value || 'My Profile' }}</h4>
+      <span class="role-badge">Hospital Account</span>
+    </div>
+  </div>
+
+  <div *ngIf="success" class="alert alert-success alert-dismissible fade show">
+    <i class="bi bi-check-circle me-2"></i>{{ success }}
+    <button type="button" class="btn-close" (click)="success = ''"></button>
+  </div>
+
+  <div *ngIf="error" class="alert alert-danger alert-dismissible fade show">
+    <i class="bi bi-exclamation-circle me-2"></i>{{ error }}
+    <button type="button" class="btn-close" (click)="error = ''"></button>
+  </div>
+
+  <form [formGroup]="profileForm" (ngSubmit)="onSubmit()">
+
+    <!-- BASIC INFORMATION -->
+    <section class="profile-section" formGroupName="basic">
+      <h6 class="section-title"><i class="bi bi-person-lines-fill"></i> Basic Information</h6>
+
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Name <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" formControlName="name"
+            [class.is-invalid]="profileForm.get('basic.name')?.invalid && profileForm.get('basic.name')?.touched" />
+          <div class="invalid-feedback"
+            *ngIf="profileForm.get('basic.name')?.invalid && profileForm.get('basic.name')?.touched">
+            <span *ngIf="profileForm.get('basic.name')?.errors?.['required']">Name is required</span>
+            <span *ngIf="profileForm.get('basic.name')?.errors?.['minlength']">Name must be at least 3
+              characters</span>
+          </div>
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Email</label>
+          <input type="email" class="form-control" formControlName="email" readonly />
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Phone <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" formControlName="phone" placeholder="10 digit mobile number"
+            [class.is-invalid]="profileForm.get('basic.phone')?.invalid && profileForm.get('basic.phone')?.touched" />
+          <div class="invalid-feedback"
+            *ngIf="profileForm.get('basic.phone')?.invalid && profileForm.get('basic.phone')?.touched">
+            <span *ngIf="profileForm.get('basic.phone')?.errors?.['required']">Phone is required</span>
+            <span *ngIf="profileForm.get('basic.phone')?.errors?.['pattern']">Please enter a valid 10 digit phone
+              number</span>
+          </div>
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Role</label>
+          <input type="text" class="form-control" formControlName="role" readonly />
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Date of Birth <span class="text-danger">*</span></label>
+          <input type="date" class="form-control" formControlName="dateOfBirth"
+            [class.is-invalid]="profileForm.get('basic.dateOfBirth')?.invalid && profileForm.get('basic.dateOfBirth')?.touched" />
+          <div class="invalid-feedback"
+            *ngIf="profileForm.get('basic.dateOfBirth')?.invalid && profileForm.get('basic.dateOfBirth')?.touched">
+            Date of birth is required
+          </div>
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Gender <span class="text-danger">*</span></label>
+          <select class="form-control" formControlName="gender"
+            [class.is-invalid]="profileForm.get('basic.gender')?.invalid && profileForm.get('basic.gender')?.touched">
+            <option value="">Select Gender</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+            <option value="transgender">Transgender</option>
+          </select>
+          <div class="invalid-feedback"
+            *ngIf="profileForm.get('basic.gender')?.invalid && profileForm.get('basic.gender')?.touched">
+            Gender is required
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Address <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" formControlName="address"
+            [class.is-invalid]="profileForm.get('basic.address')?.invalid && profileForm.get('basic.address')?.touched" />
+          <div class="invalid-feedback"
+            *ngIf="profileForm.get('basic.address')?.invalid && profileForm.get('basic.address')?.touched">
+            Address is required
+          </div>
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label class="form-label">City <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" formControlName="city"
+            [class.is-invalid]="profileForm.get('basic.city')?.invalid && profileForm.get('basic.city')?.touched" />
+          <div class="invalid-feedback"
+            *ngIf="profileForm.get('basic.city')?.invalid && profileForm.get('basic.city')?.touched">
+            City is required
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label class="form-label">State <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" formControlName="state"
+            [class.is-invalid]="profileForm.get('basic.state')?.invalid && profileForm.get('basic.state')?.touched" />
+          <div class="invalid-feedback"
+            *ngIf="profileForm.get('basic.state')?.invalid && profileForm.get('basic.state')?.touched">
+            State is required
+          </div>
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Pincode <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" formControlName="pincode" placeholder="6 digit pincode"
+            [class.is-invalid]="profileForm.get('basic.pincode')?.invalid && profileForm.get('basic.pincode')?.touched" />
+          <div class="invalid-feedback"
+            *ngIf="profileForm.get('basic.pincode')?.invalid && profileForm.get('basic.pincode')?.touched">
+            <span *ngIf="profileForm.get('basic.pincode')?.errors?.['required']">Pincode is required</span>
+            <span *ngIf="profileForm.get('basic.pincode')?.errors?.['pattern']">Please enter a valid 6 digit
+              pincode</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- HOSPITAL INFORMATION -->
+    <section class="profile-section" formGroupName="hospital">
+      <h6 class="section-title"><i class="bi bi-building"></i> Hospital Information</h6>
+
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Registration Number</label>
+          <input type="text" class="form-control" formControlName="registrationNumber">
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Established Year</label>
+          <input type="number" class="form-control" formControlName="establishedYear" min="1900">
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Total Beds</label>
+          <input type="number" class="form-control" formControlName="totalBeds" min="0">
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Hospital Type</label>
+          <select class="form-select" formControlName="hospitalType">
+            <option value="">Select Type</option>
+            <option value="private">Private</option>
+            <option value="government">Government</option>
+            <option value="charity">Charity</option>
+            <option value="clinic">Clinic</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Operating Hours</label>
+          <input type="text" class="form-control" placeholder="e.g. 24x7 / 9AM - 6PM" formControlName="operatingHours">
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Upload Verification Documents</label>
+          <input type="file" class="form-control" multiple (change)="onHospitalDocumentsSelected($event)">
+        </div>
+      </div>
+
+      <div class="subsection">
+        <div class="form-check">
+          <input type="checkbox" class="form-check-input" id="emergencyServices" formControlName="emergencyServices">
+          <label class="form-check-label" for="emergencyServices">Emergency Services Available</label>
+        </div>
+        <div class="form-check">
+          <input type="checkbox" class="form-check-input" id="ambulanceServices" formControlName="ambulanceServices">
+          <label class="form-check-label" for="ambulanceServices">Ambulance Services Available</label>
+        </div>
+      </div>
+    </section>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary px-4" [disabled]="isSubmitting">
+        <span *ngIf="!isSubmitting">
+          <i class="bi bi-check-circle me-1"></i> Save Profile
+        </span>
+        <span *ngIf="isSubmitting">
+          <span class="spinner-border spinner-border-sm me-2"></span>
+          Saving...
+        </span>
+      </button>
+    </div>
+  </form>
+</div>

@@ -38,6 +38,19 @@
   box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
 
+.account-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: var(--bs-primary);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
 @media (max-width: 991px) {
   .nav-item {
     padding: 0.5rem 0;

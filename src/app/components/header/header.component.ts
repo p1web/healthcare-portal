@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { filter } from 'rxjs/operators';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
@@ -12,10 +13,19 @@ import { AuthService } from '../../services/auth.service';
 })
 export class HeaderComponent {
 
+  currentUser$;
+
   constructor(
     private authService: AuthService,
     private router: Router
-  ) {}
+  ) {
+    this.currentUser$ = this.authService.currentUser$;
+
+    // Auto-close the mobile menu whenever the route changes
+    this.router.events
+      .pipe(filter(event => event instanceof NavigationEnd))
+      .subscribe(() => this.mobileMenuOpen = false);
+  }
 
   mobileMenuOpen = false;
 
@@ -23,8 +33,12 @@ export class HeaderComponent {
     this.mobileMenuOpen = !this.mobileMenuOpen;
   }
 
-  isLoggedIn(): boolean {
-    return !!localStorage.getItem('token');
+  closeMobileMenu() {
+    this.mobileMenuOpen = false;
+  }
+
+  getUserInitial(name?: string | null): string {
+    return name ? name.trim().charAt(0).toUpperCase() : '?';
   }
 
   goToProfile():void{

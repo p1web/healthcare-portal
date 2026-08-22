@@ -5,13 +5,17 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 @Component({
   standalone: true,
   selector: 'app-change-password',
-  imports: [ReactiveFormsModule],
-  templateUrl: './change-password.component.html'
+  imports: [CommonModule, ReactiveFormsModule],
+  templateUrl: './change-password.component.html',
+  styleUrl: './change-password.component.css'
 })
 
-export class ChangePasswordComponent implements OnInit{
+export class ChangePasswordComponent implements OnInit {
 
   changePasswordForm: FormGroup;
+  isSubmitting = false;
+  error = '';
+  success = '';
 
   constructor(private fb: FormBuilder) {
     this.changePasswordForm = this.fb.group({
@@ -26,16 +30,30 @@ export class ChangePasswordComponent implements OnInit{
   }
 
   onSubmit(): void {
-    if (this.changePasswordForm.invalid) return;
+    this.error = '';
+    this.success = '';
+
+    if (this.changePasswordForm.invalid) {
+      this.changePasswordForm.markAllAsTouched();
+      return;
+    }
 
     const { newPassword, confirmPassword } = this.changePasswordForm.value;
 
     if (newPassword !== confirmPassword) {
-      alert('Passwords do not match');
+      this.error = 'New password and confirm password do not match';
       return;
     }
 
+    this.isSubmitting = true;
+
     // Call API here
     console.log('Change password payload:', this.changePasswordForm.value);
+
+    setTimeout(() => {
+      this.isSubmitting = false;
+      this.success = 'Password updated successfully';
+      this.changePasswordForm.reset();
+    }, 600);
   }
 }

@@ -13,7 +13,7 @@ module.exports = {
         min_amount: 500,
         max_discount: 500,
         valid_from: new Date('2024-01-01'),
-        valid_until: new Date('2025-12-31'),
+        valid_until: new Date('2027-12-31'),
         usage_limit: 1000,
         used_count: 342,
         category_id: 1, // Consultation
@@ -37,7 +37,7 @@ module.exports = {
         min_amount: 10000,
         max_discount: 15000,
         valid_from: new Date('2024-01-01'),
-        valid_until: new Date('2025-06-30'),
+        valid_until: new Date('2027-06-30'),
         usage_limit: 500,
         used_count: 156,
         category_id: 2, // Surgery
@@ -61,7 +61,7 @@ module.exports = {
         min_amount: 300,
         max_discount: 1000,
         valid_from: new Date('2024-01-01'),
-        valid_until: new Date('2025-12-31'),
+        valid_until: new Date('2027-12-31'),
         usage_limit: 2000,
         used_count: 892,
         category_id: 3, // Diagnostic
@@ -85,7 +85,7 @@ module.exports = {
         min_amount: 2000,
         max_discount: null,
         valid_from: new Date('2024-01-01'),
-        valid_until: new Date('2025-12-31'),
+        valid_until: new Date('2027-12-31'),
         usage_limit: 1500,
         used_count: 623,
         category_id: 3, // Diagnostic
@@ -109,7 +109,7 @@ module.exports = {
         min_amount: 1000,
         max_discount: 2000,
         valid_from: new Date('2024-01-01'),
-        valid_until: new Date('2025-03-31'),
+        valid_until: new Date('2027-03-31'),
         usage_limit: 300,
         used_count: 87,
         category_id: 1, // Consultation
@@ -133,7 +133,7 @@ module.exports = {
         min_amount: 200,
         max_discount: 500,
         valid_from: new Date('2024-01-01'),
-        valid_until: new Date('2025-12-31'),
+        valid_until: new Date('2027-12-31'),
         usage_limit: 5000,
         used_count: 2341,
         category_id: 4, // Pharmacy
@@ -157,7 +157,7 @@ module.exports = {
         min_amount: 1000,
         max_discount: null,
         valid_from: new Date('2024-01-01'),
-        valid_until: new Date('2025-12-31'),
+        valid_until: new Date('2027-12-31'),
         usage_limit: 3000,
         used_count: 1245,
         category_id: 5, // Wellness
@@ -181,7 +181,7 @@ module.exports = {
         min_amount: 800,
         max_discount: 1500,
         valid_from: new Date('2024-01-01'),
-        valid_until: new Date('2025-12-31'),
+        valid_until: new Date('2027-12-31'),
         usage_limit: 800,
         used_count: 234,
         category_id: 1, // Consultation

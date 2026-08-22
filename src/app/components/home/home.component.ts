@@ -26,6 +26,7 @@ export class HomeComponent implements OnInit {
   isLoadingDoctors = false;
   isLoadingHospitals = false;
   isLoadingSpecialization = false;
+  specialtyColors = ['primary', 'success', 'warning', 'info', 'danger', 'secondary'];
 
   constructor(
     private hospitalService: HospitalService,
@@ -92,6 +93,21 @@ export class HomeComponent implements OnInit {
       this.searchQuery = '';
     } else {
       this.selectedSpecialization = '';
+    }
+  }
+
+  getSpecialtyColor(index: number): string {
+    return this.specialtyColors[index % this.specialtyColors.length];
+  }
+
+  getSearchPlaceholder(): string {
+    switch (this.searchType) {
+      case 'doctor':
+        return 'Search by doctor name...';
+      case 'hospital':
+        return 'Search by hospital name...';
+      default:
+        return 'Search doctors, hospitals or specializations...';
     }
   }
 

@@ -15,6 +15,8 @@ export interface User {
   country?: string;
   isActive?: boolean;
   isBlocked?: boolean;
+  isEmailVerified?: boolean;
+  isPhoneVerified?: boolean;
   createdAt?: string;
   updatedAt?: string;
   patientProfile?: PatientProfile | null;

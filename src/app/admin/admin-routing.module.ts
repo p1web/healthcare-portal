@@ -9,6 +9,7 @@ import { SpecialtiesComponent } from './pages/specialties/specialties.component'
 import { SpecializationsComponent } from './pages/specializations/specializations.component';
 import { DoctorSpecializationMappingComponent } from './pages/doctor-specialization-mapping/doctor-specialization-mapping.component';
 import { AppointmentsComponent } from './pages/appointments/appointments.component';
+import { ProfileComponent } from './pages/profile/profile.component';
 
 const routes: Routes = [
   {
@@ -17,6 +18,7 @@ const routes: Routes = [
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'dashboard', component: DashboardComponent },
+      { path: 'profile', component: ProfileComponent },
       { path: 'users', redirectTo: 'users/patients', pathMatch: 'full' },
       { path: 'users/patients', component: UsersComponent, data: { role: 'patient' } },
       { path: 'users/doctors', component: UsersComponent, data: { role: 'doctor' } },

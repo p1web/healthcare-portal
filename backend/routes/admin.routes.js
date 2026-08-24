@@ -7,6 +7,7 @@ const specialityController = require("../controllers/admin/speciality.controller
 const specializationController = require("../controllers/admin/specialization.controller");
 const doctorSpecializationController = require("../controllers/admin/doctorSpecialization.controller");
 const appointmentController = require("../controllers/appointment.controller");
+const profileController = require("../controllers/admin/profile.controller");
 const { authenticate, authorize } = require("../middleware/auth.middleware");
 
 router.use(authenticate, authorize("admin"));
@@ -14,6 +15,8 @@ router.use(authenticate, authorize("admin"));
 // Admin-only routes
 router.get("/users", userController.getAllUsers);
 router.patch("/users/:id/account-status", userController.updateAccountStatus);
+router.get("/profile", profileController.getProfile);
+router.put("/profile", profileController.updateProfile);
 router.get("/appointments", appointmentController.getAdminAppointments);
 
 router.get("/doctors-profile", doctorProfileController.getDoctorProfiles);

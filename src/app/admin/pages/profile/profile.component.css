@@ -1,0 +1,126 @@
+.profile-layout {
+  display: grid;
+  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+  gap: 1.25rem;
+}
+
+.profile-summary,
+.profile-form-panel,
+.state-panel {
+  border: 1px solid #dce4e8;
+  border-radius: 6px;
+  background: #fff;
+  box-shadow: 0 2px 12px rgba(31, 49, 58, 0.06);
+}
+
+.profile-summary {
+  align-self: start;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.profile-avatar {
+  display: grid;
+  place-items: center;
+  width: 76px;
+  height: 76px;
+  margin: 0 auto 1rem;
+  border-radius: 50%;
+  background: #176b5b;
+  color: #fff;
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.profile-summary h4 {
+  margin-bottom: 0.25rem;
+  font-weight: 700;
+}
+
+.profile-summary > p {
+  margin-bottom: 0.75rem;
+  color: #64748b;
+  overflow-wrap: anywhere;
+}
+
+.role-label {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  background: #e6f4f1;
+  color: #176b5b;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.profile-summary dl {
+  margin: 1.5rem 0 0;
+  border-top: 1px solid #e5ebee;
+  text-align: left;
+}
+
+.profile-summary dl > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid #edf1f3;
+}
+
+.profile-summary dt,
+.profile-summary dd {
+  margin: 0;
+  font-size: 0.82rem;
+}
+
+.profile-summary dt {
+  color: #64748b;
+  font-weight: 500;
+}
+
+.profile-summary dd {
+  text-align: right;
+  font-weight: 700;
+}
+
+.profile-form-panel {
+  padding: 1.5rem;
+}
+
+.panel-heading {
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e5ebee;
+}
+
+.panel-heading h5 {
+  margin: 0 0 0.25rem;
+  font-weight: 700;
+}
+
+.panel-heading p {
+  margin: 0;
+  color: #64748b;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e5ebee;
+}
+
+.state-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  min-height: 260px;
+}
+
+@media (max-width: 900px) {
+  .profile-layout {
+    grid-template-columns: 1fr;
+  }
+}

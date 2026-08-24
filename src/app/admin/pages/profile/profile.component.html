@@ -1,0 +1,113 @@
+<div class="pagetitle">
+  <h1>Admin Profile</h1>
+  <nav>
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a routerLink="/admin/dashboard">Home</a></li>
+      <li class="breadcrumb-item active">Profile</li>
+    </ol>
+  </nav>
+</div>
+
+<section class="section">
+  <div *ngIf="isLoading" class="state-panel">
+    <div class="spinner-border text-primary" role="status"></div>
+    <span>Loading profile...</span>
+  </div>
+
+  <div *ngIf="!isLoading && error && !profile" class="alert alert-danger d-flex justify-content-between align-items-center">
+    <span><i class="bi bi-exclamation-circle me-2"></i>{{ error }}</span>
+    <button type="button" class="btn btn-sm btn-outline-danger" (click)="loadProfile()">Retry</button>
+  </div>
+
+  <div *ngIf="!isLoading && profile" class="profile-layout">
+    <aside class="profile-summary">
+      <div class="profile-avatar">{{ initials }}</div>
+      <h4>{{ profile.name }}</h4>
+      <p>{{ profile.email }}</p>
+      <span class="role-label">Administrator</span>
+
+      <dl>
+        <div>
+          <dt>Account status</dt>
+          <dd [class.text-success]="profile.isActive && !profile.isBlocked">
+            {{ profile.isBlocked ? 'Blocked' : (profile.isActive ? 'Active' : 'Inactive') }}
+          </dd>
+        </div>
+        <div>
+          <dt>Email verification</dt>
+          <dd>{{ profile.isEmailVerified ? 'Verified' : 'Not verified' }}</dd>
+        </div>
+        <div>
+          <dt>Member since</dt>
+          <dd>{{ profile.createdAt | date:'dd MMM yyyy' }}</dd>
+        </div>
+      </dl>
+    </aside>
+
+    <div class="profile-form-panel">
+      <div class="panel-heading">
+        <div>
+          <h5>Personal Information</h5>
+          <p>Update your administrator contact details.</p>
+        </div>
+      </div>
+
+      <div *ngIf="success" class="alert alert-success alert-dismissible fade show">
+        <i class="bi bi-check-circle me-2"></i>{{ success }}
+        <button type="button" class="btn-close" (click)="success = ''"></button>
+      </div>
+      <div *ngIf="error" class="alert alert-danger alert-dismissible fade show">
+        <i class="bi bi-exclamation-circle me-2"></i>{{ error }}
+        <button type="button" class="btn-close" (click)="error = ''"></button>
+      </div>
+
+      <form [formGroup]="profileForm" (ngSubmit)="onSubmit()">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Full Name *</label>
+            <input type="text" class="form-control" formControlName="name" [class.is-invalid]="isInvalid('name')" />
+            <div class="invalid-feedback">Enter at least 2 characters.</div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Email Address</label>
+            <input type="email" class="form-control" formControlName="email" />
+            <div class="form-text">Email cannot be changed here.</div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Phone Number *</label>
+            <input type="tel" class="form-control" formControlName="phone" [class.is-invalid]="isInvalid('phone')" />
+            <div class="invalid-feedback">Enter a valid 10-digit phone number.</div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Country</label>
+            <input type="text" class="form-control" formControlName="country" />
+          </div>
+          <div class="col-12">
+            <label class="form-label">Address</label>
+            <input type="text" class="form-control" formControlName="address" />
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">City</label>
+            <input type="text" class="form-control" formControlName="city" />
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">State</label>
+            <input type="text" class="form-control" formControlName="state" />
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Pincode</label>
+            <input type="text" class="form-control" formControlName="pincode" [class.is-invalid]="isInvalid('pincode')" />
+            <div class="invalid-feedback">Enter a valid 6-digit pincode.</div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary" [disabled]="isSubmitting">
+            <span *ngIf="!isSubmitting"><i class="bi bi-check2 me-2"></i>Save Changes</span>
+            <span *ngIf="isSubmitting"><span class="spinner-border spinner-border-sm me-2"></span>Saving...</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>

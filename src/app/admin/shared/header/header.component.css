@@ -128,6 +128,18 @@
   max-height: 36px;
 }
 
+.header-nav .profile-initials {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #176b5b;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
 .header-nav .nav-profile span {
   font-size: 14px;
   font-weight: 600;

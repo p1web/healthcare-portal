@@ -21,6 +21,14 @@ export class AdminService {
     return this.http.patch(`${this.apiUrl}/users/${userId}/account-status`, { status });
   }
 
+  getProfile(): Observable<{ success: boolean; data: User }> {
+    return this.http.get<{ success: boolean; data: User }>(`${this.apiUrl}/profile`);
+  }
+
+  updateProfile(profile: Partial<User>): Observable<{ success: boolean; message: string; data: User }> {
+    return this.http.put<{ success: boolean; message: string; data: User }>(`${this.apiUrl}/profile`, profile);
+  }
+
   getAppointments(): Observable<{ success: boolean; data: AdminAppointment[] }> {
     return this.http.get<{ success: boolean; data: AdminAppointment[] }>(`${this.apiUrl}/appointments`);
   }

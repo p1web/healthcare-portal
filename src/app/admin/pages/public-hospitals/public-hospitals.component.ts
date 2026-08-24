@@ -2,11 +2,11 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AdminService } from '../../../services/admin.service';
-import { User } from '../../../models/user.model';
+import { HospitalProfileModalComponent } from '../../shared/hospital-profile-modal/hospital-profile-modal.component';
 
 @Component({
   selector: 'app-public-hospitals',
-  imports: [ CommonModule ],
+  imports: [CommonModule, HospitalProfileModalComponent],
   templateUrl: './public-hospitals.component.html',
   styleUrl: './public-hospitals.component.css'
 })

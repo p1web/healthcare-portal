@@ -13,13 +13,5 @@ module.exports = (sequelize, DataTypes) => {
     }
   );
 
-  Accreditation.associate = (models) => {
-    Accreditation.belongsToMany(models.Hospital, {
-      through: models.HospitalAccreditation,
-      foreignKey: "accreditation_id",
-      as: "hospitals",
-    });
-  };
-
   return Accreditation;
 };

@@ -5,7 +5,7 @@ const { Specialty } = require('../models'); // adjust path
 router.get('/', async (req, res) => {
   try {
     const specialties = await Specialty.findAll({
-      attributes: ['name'],
+      attributes: ['id', 'name'],
       order: [['name', 'ASC']]
     });
     res.json(specialties);

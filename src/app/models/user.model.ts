@@ -33,21 +33,72 @@ export interface PatientProfile {
   emergencyContactRelation?: string;
 }
 
+export interface VerificationDocument {
+  name: string;
+  url: string;
+  uploadedAt: string;
+}
+
+export interface DoctorAvailability {
+  id?: number;
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;
+  isAvailable: boolean;
+}
+
+export type ProfileReviewStatus = 'draft' | 'submitted' | 'under_review' | 'changes_requested' | 'approved' | 'rejected' | 'suspended';
+
+export interface ProfileReviewer {
+  id: number;
+  name: string;
+  email: string;
+}
+
 export interface DoctorProfile {
+  id?: number;
+  hospitalId?: number;
   registrationNumber?: string;
   qualification?: string;
   specializationId?: number;
   yearsOfExperience?: number;
   consultationFee?: number;
   isVerified?: boolean;
-  verificationDocuments?: string[];
+  verificationStatus?: ProfileReviewStatus;
+  verificationDocuments?: VerificationDocument[];
+  submittedAt?: string | null;
+  reviewedAt?: string | null;
+  reviewedByUserId?: number | null;
+  reviewedBy?: ProfileReviewer | null;
+  reviewNotes?: string | null;
+  rejectionReason?: string | null;
+  lastVerifiedAt?: string | null;
+  availability?: DoctorAvailability[];
+  availabilities?: Array<{
+    id?: number;
+    day_of_week: number;
+    start_time: string;
+    end_time: string;
+    is_available: boolean;
+  }>;
 }
 
 export interface HospitalProfile {
   id?: number;
   userId?: number;
   hospitalId?: number;
+  hospitalName?: string;
+  hospitalEmail?: string;
+  hospitalPhone?: string;
+  emergencyContactNumber?: string;
+  hospitalAddress?: string;
+  hospitalCity?: string;
+  hospitalState?: string;
+  hospitalPincode?: string;
+  website?: string;
   registrationNumber?: string;
+  bio?: string;
+  specialtyIds?: number[];
   establishedYear?: number;
   totalBeds?: number;
   hospitalType?: 'private' | 'government' | 'charity' | 'clinic';
@@ -55,7 +106,15 @@ export interface HospitalProfile {
   emergencyServices?: boolean;
   ambulanceServices?: boolean;
   isVerified?: boolean;
-  verificationDocuments?: string[];
+  verificationStatus?: ProfileReviewStatus;
+  verificationDocuments?: VerificationDocument[];
+  submittedAt?: string | null;
+  reviewedAt?: string | null;
+  reviewedByUserId?: number | null;
+  reviewedBy?: ProfileReviewer | null;
+  reviewNotes?: string | null;
+  rejectionReason?: string | null;
+  lastVerifiedAt?: string | null;
   createdAt?: string;
   updatedAt?: string;
 }

@@ -37,8 +37,9 @@
                                 <th scope="col">Name</th>
                                 <th scope="col">Email</th>
                                 <th scope="col">Phone</th>
-                                <th scope="col">Gender</th>
-                                <th scope="col" *ngIf="showStatusColumns()">Is Verified</th>
+                                <th scope="col">Specialization</th>
+                                <th scope="col">Hospital</th>
+                                <th scope="col">Review Status</th>
                                 <th scope="col">Created At</th>
                                 <th scope="col">Actions</th>
                             </tr>
@@ -47,24 +48,31 @@
                             <tr *ngFor="let doc of doctorList; let i = index">
                                 <th scope="row">{{ i + 1 }}</th>
                                 <td>
-                                    <a class="btn-link text-primary" (click)="openDoctorModal(doc)" data-bs-toggle="modal"
-                                        data-bs-target="#doctorDetailsModal">{{ doc.user.name }}</a>
+                                    <button type="button" class="btn btn-link p-0" (click)="openDoctorModal(doc)">{{ doc.user.name }}</button>
                                 </td>
                                 <td>{{ doc.user.email }}</td>
                                 <td>{{ doc.user.phone }}</td>
-                                <td>{{ doc.user.gender }}</td>
-                                <td *ngIf="showStatusColumns()">{{ doc.isVerified ? 'Yes' : 'No' }}</td>
+                                <td>{{ doc.specialization?.name || '—' }}</td>
+                                <td>{{ doc.hospital?.hospitalName || '—' }}</td>
+                                <td><span [class]="getReviewBadgeClass(doc)">{{ getReviewStatusLabel(doc) }}</span></td>
                                 <td>{{ doc.user.created_at | date:'dd MMM yyyy' }}</td>
                                 <td>
-                                
-                                    <button class="btn btn-sm btn-outline-primary" *ngIf="!doc.isVerified"
-                                        (click)="toggleDoctorVerification(doc)">Verify</button>
-                                
-                                    <button class="btn btn-sm btn-outline-primary" 
-                                    *ngIf="statusFilter=='VERIFIED' && doc.isVerified" (click)="openCreateModal(doc)" data-bs-toggle="modal"
-                                        data-bs-target="#createDoctorDetailsModal">
-                                    Create Public Profile</button>
-                                
+                                    <button *ngIf="publicListing" class="btn btn-sm btn-outline-primary"
+                                        (click)="openDoctorModal(doc)">
+                                        <i class="bi bi-eye"></i> View
+                                    </button>
+                                    <ng-container *ngIf="!publicListing && getReviewActions(doc).length; else noDoctorAction">
+                                        <select class="form-select form-select-sm mb-2" [ngModel]="reviewActions[doc.id]" (ngModelChange)="setReviewAction(doc.id, $event)">
+                                            <option value="">Select action</option>
+                                            <option *ngFor="let action of getReviewActions(doc)" [value]="action.value">{{ action.label }}</option>
+                                        </select>
+                                        <textarea *ngIf="reviewActions[doc.id] && reviewActions[doc.id] !== 'under_review'"
+                                            class="form-control form-control-sm mb-2" rows="2" placeholder="Comments required"
+                                            [ngModel]="reviewComments[doc.id]" (ngModelChange)="setReviewComments(doc.id, $event)"></textarea>
+                                        <button class="btn btn-sm btn-primary" [disabled]="!canApplyReview(doc)"
+                                            (click)="updateDoctorReview(doc)">Apply Action</button>
+                                    </ng-container>
+                                    <ng-template #noDoctorAction><span *ngIf="!publicListing" class="text-muted small">No review action available</span></ng-template>
                                 </td>
                             </tr>
                         </tbody>
@@ -72,56 +80,9 @@
                     </table>
 
 
-                    <div class="modal fade" id="doctorDetailsModal" tabindex="-1">
-                        <div class="modal-dialog modal-xl modal-dialog-scrollable">
-                            <div class="modal-content"> <!-- Modal Header -->
-                                <div class="modal-header">
-                                    <h5 class="modal-title"> Doctor Profile </h5> <button type="button" class="btn-close"
-                                        data-bs-dismiss="modal"></button>
-                                </div>
-                                <!-- Modal Body -->
-                                <div class="modal-body" *ngIf="selectedDoctor">
-                                    <!-- Basic Info -->
-                                    <h6 class="mb-3 text-primary">Basic Information</h6>
-                                    <div class="row">
-                                        <div class="col-md-3 mb-3"><strong>Name:</strong> {{ selectedDoctor.user?.name }}</div>
-                                        <div class="col-md-3 mb-3"><strong>Email:</strong> {{ selectedDoctor.user?.email }}</div>
-                                        <div class="col-md-3 mb-3"><strong>Phone:</strong> {{ selectedDoctor.user?.phone }}</div>
-                                        <div class="col-md-3 mb-3"><strong>Gender:</strong> {{ selectedDoctor.user?.gender }}</div>
-                                    </div>
-                                     <hr> <!-- Contact Information -->
-                                    <h6 class="mb-3 text-primary">Contact Information</h6>
-                                    <div class="row">
-                                        <div class="col-md-3 mb-3"><strong>Address:</strong> {{ selectedDoctor.user?.address }}</div>
-                                        <div class="col-md-3 mb-3"><strong>City:</strong> {{ selectedDoctor.user?.city }}</div>
-                                        <div class="col-md-3 mb-3"><strong>State:</strong> {{ selectedDoctor.user?.state }}</div>
-                                        <div class="col-md-3 mb-3"><strong>Country:</strong> {{ selectedDoctor.user?.country }}</div>
-                                        <div class="col-md-3 mb-3"><strong>Pincode:</strong> {{ selectedDoctor.user?.pincode }}</div>
-                                    </div>
-
-                                    <hr> <!-- Professional Info -->
-                                    <h6 class="mb-3 text-primary">Professional Details</h6>
-                                    <div class="row">
-                                        <div class="col-md-3 mb-3"> <strong>Qualification:</strong> {{ selectedDoctor.qualification }}
-                                        </div>
-                                        <div class="col-md-3 mb-3"> <strong>Experience:</strong> {{ selectedDoctor.yearsOfExperience }} years </div>
-                                        <div class="col-md-3 mb-3"> <strong>Consultation Fee:</strong> ₹{{ selectedDoctor.consultationFee }} </div>
-                                        <div class="col-md-3 mb-3"> <strong>Specialization:</strong> {{ selectedDoctor.specialization?.name }}</div>
-                                        <div class="col-md-3 mb-3"> <strong>Registration No.:</strong> {{ selectedDoctor.registrationNumber }}</div>
-                                    </div>
-                                    <hr> <!-- Profile Verification -->
-                                    <h6 class="mb-3 text-primary">Verification</h6>
-                                    <span class="badge bg-success" *ngIf="selectedDoctor?.isVerified"> Verified </span>
-                                    <span class="badge bg-warning" *ngIf="!selectedDoctor?.isVerified"> Pending </span>
-                                    
-                                </div>
-                                <!-- Modal Footer -->
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"> Close </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <app-admin-doctor-profile-modal *ngIf="selectedDoctor" [profile]="selectedDoctor"
+                        [manage]="!publicListing" (closed)="closeDoctorModal()" (changed)="refreshDoctorList()">
+                    </app-admin-doctor-profile-modal>
 
                     <div class="modal fade" id="createDoctorDetailsModal" tabindex="-1">
                         <div class="modal-dialog modal-xl modal-dialog-scrollable">

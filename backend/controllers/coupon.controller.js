@@ -1,4 +1,4 @@
-const { Coupon, CouponCategory, Hospital, CouponUsage } = require('../models');
+const { Coupon, CouponCategory, HospitalProfile: Hospital, CouponUsage } = require('../models');
 const { Op } = require('sequelize');
 
 // Format coupon for frontend
@@ -21,7 +21,7 @@ function formatCouponForFrontend(coupon) {
     usedCount: couponJSON.usedCount,
     applicableFor: couponJSON.category?.slug || '',
     categoryName: couponJSON.category?.name || '',
-    hospitals: couponJSON.hospitals ? couponJSON.hospitals.map(h => h.name) : [],
+    hospitals: couponJSON.hospitals ? couponJSON.hospitals.map(h => h.hospitalName || h.name) : [],
     isActive: couponJSON.isActive,
     terms: couponJSON.terms || []
   };
@@ -60,7 +60,7 @@ exports.getAll = async (req, res) => {
       {
         model: Hospital,
         as: 'hospitals',
-        attributes: ['id', 'name'],
+        attributes: ['id', 'hospitalName'],
         through: { attributes: [] }
       }
     ];
@@ -110,7 +110,7 @@ exports.getById = async (req, res) => {
         {
           model: Hospital,
           as: 'hospitals',
-          attributes: ['id', 'name', 'location'],
+          attributes: ['id', 'hospitalName', 'hospitalCity', 'hospitalState'],
           through: { attributes: [] }
         }
       ]
@@ -154,7 +154,7 @@ exports.getByCode = async (req, res) => {
         {
           model: Hospital,
           as: 'hospitals',
-          attributes: ['id', 'name'],
+          attributes: ['id', 'hospitalName'],
           through: { attributes: [] }
         }
       ]

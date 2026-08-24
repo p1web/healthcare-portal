@@ -11,6 +11,8 @@ import { AdminGuard } from './guards/admin.guard';
 import { LayoutComponent  } from './components/user/layout/layout.component';
 import { ProfileComponent } from './components/user/profile/profile.component';
 import { PatientProfileComponent } from './components/user/patient-profile/patient-profile.component';
+import { AppointmentHistoryComponent } from './components/user/appointment-history/appointment-history.component';
+import { DoctorAppointmentsComponent } from './components/user/doctor-appointments/doctor-appointments.component';
 import { DoctorProfileComponent } from './components/user/doctor-profile/doctor-profile.component';
 import { HospitalProfileComponent } from './components/user/hospital-profile/hospital-profile.component';
 import { ChangePasswordComponent } from './components/user/change-password/change-password.component';
@@ -65,6 +67,8 @@ export const routes: Routes = [
     children: [
       { path: 'profile', component: ProfileComponent, data: { title: 'My Profile' } },
       { path: 'profile/patient', component: PatientProfileComponent, canActivate: [RoleGuard], data: { title: 'My Profile', roles: ['patient'] } },
+      { path: 'appointments', component: AppointmentHistoryComponent, canActivate: [RoleGuard], data: { title: 'My Appointments', roles: ['patient'] } },
+      { path: 'doctor-appointments', component: DoctorAppointmentsComponent, canActivate: [RoleGuard], data: { title: 'Patient Bookings', roles: ['doctor'] } },
       { path: 'profile/doctor', component: DoctorProfileComponent, canActivate: [RoleGuard], data: { title: 'My Profile', roles: ['doctor'] } },
       { path: 'profile/hospital', component: HospitalProfileComponent, canActivate: [RoleGuard], data: { title: 'My Profile', roles: ['hospital'] } },
       { path: 'change-password', component: ChangePasswordComponent, data: { title: 'Change Password' } },
@@ -73,7 +77,7 @@ export const routes: Routes = [
   },
   {
     path: 'admin',
-    // canActivate: [AdminGuard],
+    canActivate: [AdminGuard],
     loadChildren: () => import('./admin/admin.module').then(m => m.AdminModule)
   },
   { path: '**', redirectTo: '' }

@@ -1,12 +1,46 @@
 const {
   DoctorProfile,
-  Doctor,
   User,
   Specialization,
-  Hospital,
+  HospitalProfile,
+  DoctorAvailability,
+  sequelize,
 } = require("../../models");
 
 const { Op } = require("sequelize");
+const {
+  PROFILE_REVIEW_STATUSES,
+  buildAdminReviewUpdate,
+  normalizeProfileReviewStatus
+} = require('../../utils/providerReview');
+
+function mapProfileStatusFilter(status) {
+  switch (String(status || 'ALL').toUpperCase()) {
+    case 'ACTIVE':
+    case 'VERIFIED':
+    case 'APPROVED':
+      return PROFILE_REVIEW_STATUSES.APPROVED;
+    case 'PENDING':
+      return {
+        [Op.in]: [
+          PROFILE_REVIEW_STATUSES.DRAFT,
+          PROFILE_REVIEW_STATUSES.SUBMITTED,
+          PROFILE_REVIEW_STATUSES.UNDER_REVIEW,
+          PROFILE_REVIEW_STATUSES.CHANGES_REQUESTED
+        ]
+      };
+    case 'REJECTED':
+      return PROFILE_REVIEW_STATUSES.REJECTED;
+    case 'UNDER_REVIEW':
+      return PROFILE_REVIEW_STATUSES.UNDER_REVIEW;
+    case 'CHANGES_REQUESTED':
+      return PROFILE_REVIEW_STATUSES.CHANGES_REQUESTED;
+    case 'SUSPENDED':
+      return PROFILE_REVIEW_STATUSES.SUSPENDED;
+    default:
+      return null;
+  }
+}
 
 module.exports = {
 
@@ -16,6 +50,7 @@ module.exports = {
   async getDoctorProfiles(req, res) {
     try {
       const { status = "ALL" } = req.query;
+      const publicListing = status === "ACTIVE";
 
       const userWhere = { role: "doctor" };
       const profileWhere = {};
@@ -25,7 +60,7 @@ module.exports = {
         case "ACTIVE":
           userWhere.is_active = true;
           userWhere.is_blocked = false;
-          profileWhere.is_verified = true;
+          profileWhere.verification_status = PROFILE_REVIEW_STATUSES.APPROVED;
           break;
 
         case "BLOCKED":
@@ -36,8 +71,18 @@ module.exports = {
           break;
 
         case "VERIFIED":
-          profileWhere.is_verified = true;
+        case "APPROVED":
+          profileWhere.verification_status = PROFILE_REVIEW_STATUSES.APPROVED;
           userWhere.is_blocked = false; // optional, keeps list clean
+          break;
+
+        case "PENDING":
+        case "UNDER_REVIEW":
+        case "CHANGES_REQUESTED":
+        case "REJECTED":
+        case "SUSPENDED":
+          profileWhere.verification_status = mapProfileStatusFilter(status);
+          userWhere.is_blocked = false;
           break;
 
         default:
@@ -60,16 +105,30 @@ module.exports = {
               "created_at", "updated_at"
             ]
           },
-          // {
-          //   model: Doctor,
-          //   as: "doctor",
-          //   include: [
-          //     {
-          //       model: Specialization,
-          //       as: "specialization"
-          //     }
-          //   ]
-          // }
+          {
+            model: User,
+            as: 'reviewedBy',
+            required: false,
+            attributes: ['id', 'name', 'email']
+          },
+          {
+            model: Specialization,
+            as: 'specialization',
+            required: publicListing,
+            attributes: ['id', 'name']
+          },
+          {
+            model: HospitalProfile,
+            as: 'hospital',
+            required: publicListing,
+            attributes: ['id', 'hospitalName', 'hospitalCity', 'hospitalState']
+          },
+          {
+            model: DoctorAvailability,
+            as: 'availabilities',
+            required: false,
+            attributes: ['id', 'day_of_week', 'start_time', 'end_time', 'is_available']
+          },
         ],
         order: [["created_at", "DESC"]],
         // logging: console.log
@@ -88,128 +147,52 @@ module.exports = {
 
 
   // ==================================
-  // Pending Doctor Approvals
+  // Verify / Unverify a Doctor Profile
   // ==================================
-  async getPendingDoctors(req, res) {
+  async verifyDoctorProfile(req, res) {
+    const t = await sequelize.transaction();
+
     try {
-      const doctors = await DoctorProfile.findAll({
-        where: {
-          verification_status: "PENDING"
-        },
-        include: [
-          { model: User, attributes: ["id", "name", "email"] },
-          { model: Doctor }
-        ]
+      const { id } = req.params;
+      const { status, reviewNotes, rejectionReason } = req.body;
+
+      const profile = await DoctorProfile.findByPk(id, {
+        include: [{ model: User, as: 'user' }],
+        transaction: t
       });
 
-      res.json(doctors);
+      if (!profile) {
+        await t.rollback();
+        return res.status(404).json({ message: "Doctor profile not found" });
+      }
+
+      const reviewUpdate = buildAdminReviewUpdate({
+        currentStatus: profile.verificationStatus,
+        status,
+        reviewerId: req.user.id,
+        reviewNotes,
+        rejectionReason
+      });
+
+      await profile.update(reviewUpdate, { transaction: t });
+
+      await t.commit();
+
+      const isPublic = normalizeProfileReviewStatus(status) === PROFILE_REVIEW_STATUSES.APPROVED
+        && profile.user.isActive && !profile.user.isBlocked;
+      res.json({
+        message: `Doctor profile moved to ${normalizeProfileReviewStatus(status).replace(/_/g, ' ')} successfully`,
+        data: profile,
+        publish: { published: isPublic, doctorId: profile.id }
+      });
     } catch (error) {
-      res.status(500).json({ message: "Failed to load pending doctors", error });
+      if (!t.finished) {
+        await t.rollback();
+      }
+      res.status(500).json({ message: "Failed to update review status", error: error.message });
     }
   },
 
-  // ============================
-  // Verified Doctors
-  // ============================
-  async getVerifiedDoctors(req, res) {
-    try {
-      const doctors = await DoctorProfile.findAll({
-        where: {
-          verification_status: "VERIFIED",
-          is_active: true,
-          is_blocked: false
-        },
-        include: [
-          { model: User, attributes: ["id", "name", "email"] },
-          { model: Doctor }
-        ]
-      });
-
-      res.json(doctors);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to load verified doctors", error });
-    }
-  },
-
-  // ==================================
-  // Rejected / Inactive Doctors
-  // ==================================
-  async getRejectedOrInactiveDoctors(req, res) {
-    try {
-      const doctors = await DoctorProfile.findAll({
-        where: {
-          [Op.or]: [
-            { verification_status: "REJECTED" },
-            { is_active: false },
-            { is_blocked: true }
-          ]
-        },
-        include: [
-          { model: User, attributes: ["id", "name", "email"] },
-          { model: Doctor }
-        ]
-      });
-
-      res.json(doctors);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to load inactive doctors", error });
-    }
-  },
-
-  // ==================================
-  // Public Doctor Listings
-  // ==================================
-  async getPublicDoctors(req, res) {
-    try {
-      const doctors = await Doctor.findAll({
-        // where: {
-        //   is_published: true
-        // },
-        include: [
-          {
-            model: DoctorProfile,
-            as: 'profile',
-            required: true, // INNER JOIN
-            where: {
-              is_verified: true
-            },
-            include: [
-              {
-                model: User,
-                as: 'user',
-                required: true,
-                where: {
-                  is_active: true,
-                  is_blocked: false
-                },
-                attributes: [
-                  'id',
-                  'name',
-                  'email',
-                  'phone',
-                  'gender'
-                ]
-              }
-            ]
-          },
-          {
-            model: Specialization,
-            as: 'specialization',
-            required: true
-          }
-        ],
-        order: [['created_at', 'DESC']]
-      });
-
-      res.json(doctors);
-    } catch (error) {
-      console.error('getPublicDoctors error:', error);
-      res.status(500).json({
-        message: 'Failed to load public doctors',
-        error: error.message
-      });
-    }
-  },
 
   async getSpecializationList(req, res) {
     try {
@@ -226,9 +209,10 @@ module.exports = {
 
   async getHospitals(req, res) {
     try {
-      const hospitals = await Hospital.findAll({
-        attributes: ['id', 'name', 'location'],   // plural
-        order: [['name', 'ASC']]
+      const hospitals = await HospitalProfile.findAll({
+        where: { verificationStatus: PROFILE_REVIEW_STATUSES.APPROVED },
+        attributes: ['id', ['hospital_name', 'name'], ['hospital_city', 'location']],
+        order: [['hospitalName', 'ASC']]
       });
 
       res.json(hospitals);

@@ -1,10 +1,10 @@
 <div class="pagetitle">
-    <h1>{{pageTitle}} Users</h1>
+    <h1>Users</h1>
     <nav>
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="admin/dashboard">Dashboard</a></li>
             <li class="breadcrumb-item">User Management</li>
-            <li class="breadcrumb-item active">All Users</li>
+            <li class="breadcrumb-item active">Users</li>
         </ol>
     </nav>
 </div><!-- End Page Title -->
@@ -12,60 +12,118 @@
 <section class="section dashboard">
     <div class="row">
         <div class="col-12">
-            <div class="card recent-sales overflow-auto">
-
-                <div class="filter">
-                    <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
-                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-                        <li class="dropdown-header text-start">
-                            <h6>Filter</h6>
-                        </li>
-
-                        <li><a class="dropdown-item" href="#">Today</a></li>
-                        <li><a class="dropdown-item" href="#">This Month</a></li>
-                        <li><a class="dropdown-item" href="#">This Year</a></li>
-                    </ul>
-                </div>
+            <div class="card users-card">
 
                 <div class="card-body">
-                    <h5 class="card-title">{{pageTitle}} Patient List</h5>
+                    <div class="users-heading">
+                        <div>
+                            <h5 class="card-title mb-1">{{ pageTitle }}</h5>
+                            <p class="text-muted mb-0">Review accounts and provider empanelment status.</p>
+                        </div>
+                        <span class="result-count">{{ filteredUsers.length }} of {{ userList.length }} users</span>
+                    </div>
 
-                    <table class="table table-borderless datatable">
-                        <thead>
-                            <tr>
-                                <th scope="col">#</th>
-                                <th scope="col">Name</th>
-                                <th scope="col">Email</th>
-                                <th scope="col">Gender</th>
-                                <th scope="col">Address</th>
-                                <th scope="col" *ngIf="showStatusColumns()">Is Active</th>
-                                <th scope="col" *ngIf="showStatusColumns()">Is Block</th>
-                                <th scope="col">Role</th>
-                                <th scope="col">Created At</th>
-                                <th scope="col">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr *ngFor="let user of userList; let i = index">
-                                <th scope="row">{{ i + 1 }}</th>
-                                <td>{{ user.name }}</td>
-                                <td>{{ user.email }}</td>
-                                <td>{{ user.gender }}</td>
-                                <td>{{ user.address }}</td>
-                                <td *ngIf="showStatusColumns()">{{ user.isActive ? 'Yes' : 'No' }}</td>
-                                <td *ngIf="showStatusColumns()">{{ user.isBlocked ? 'Yes' : 'No' }}</td>
-                                <td>
-                                    <span [ngClass]="getRoleClass(user.role)">
-                                        {{ user.role }}
-                                    </span>
-                                </td>
-                                
-                                <td>{{ user.createdAt | date:'dd MMM yyyy' }}</td>
-                                <td><button class="btn btn-sm btn-outline-primary">View</button></td>
-                            </tr>
-                        </tbody>
+                    <nav class="role-tabs" role="tablist" aria-label="Filter users by role">
+                        <a class="role-tab" role="tab" *ngFor="let option of roleOptions"
+                            [routerLink]="['/admin/users', option.path]"
+                            [queryParams]="statusFilter === 'ALL' ? null : { status: statusFilter }"
+                            [class.active]="roleFilter === option.value"
+                            [attr.aria-selected]="roleFilter === option.value">
+                            <i class="bi" [ngClass]="option.icon" aria-hidden="true"></i>
+                            <span>{{ option.label }}</span>
+                        </a>
+                    </nav>
 
-                    </table>
+                    <div class="filters-panel">
+                        <div class="search-field">
+                            <label class="form-label" for="userSearch">Search</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                <input id="userSearch" type="search" class="form-control" [(ngModel)]="searchTerm"
+                                    placeholder="Name, email, role, location or review status">
+                            </div>
+                        </div>
+
+                        <div class="filter-field">
+                            <label class="form-label">Status</label>
+                            <select class="form-select" [(ngModel)]="statusFilter" (ngModelChange)="setStatusFilter($event)">
+                                <option *ngFor="let option of statusOptions" [value]="option.value">{{ option.label }}</option>
+                            </select>
+                        </div>
+
+                    </div>
+
+                    <div class="alert alert-danger d-flex align-items-center justify-content-between" *ngIf="loadError">
+                        <span><i class="bi bi-exclamation-circle me-2"></i>{{ loadError }}</span>
+                        <button type="button" class="btn btn-sm btn-outline-danger" (click)="retryLoad()">Retry</button>
+                    </div>
+
+                    <div class="alert alert-success" *ngIf="accountStatusMessage">
+                        <i class="bi bi-check-circle me-2"></i>{{ accountStatusMessage }}
+                    </div>
+
+                    <div class="loading-state" *ngIf="isLoading">
+                        <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                        <span>Loading users...</span>
+                    </div>
+
+                    <div class="users-table-wrap" *ngIf="!isLoading && !loadError">
+                        <table class="table users-table align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th scope="col">User</th>
+                                    <th scope="col">Role</th>
+                                    <th scope="col">Contact / Location</th>
+                                    <th scope="col">Account</th>
+                                    <th scope="col">Review Status</th>
+                                    <th scope="col">Joined</th>
+                                    <th scope="col" class="actions-column">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let user of filteredUsers; trackBy: trackByUserId">
+                                    <td>
+                                        <div class="user-cell">
+                                            <div class="table-avatar">{{ getInitials(user.name) }}</div>
+                                            <div class="user-cell-text">
+                                                <strong>{{ user.name }}</strong>
+                                                <span>{{ user.email }}</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td><span [ngClass]="getRoleClass(user.role)">{{ user.role }}</span></td>
+                                    <td>
+                                        <div class="contact-cell">
+                                            <span>{{ user.phone || 'No phone' }}</span>
+                                            <small>{{ user.city || user.address || 'No location' }}</small>
+                                        </div>
+                                    </td>
+                                    <td><span [ngClass]="getAccountStatusClass(user)">{{ getAccountStatus(user) }}</span></td>
+                                    <td>
+                                        <span *ngIf="user.role === 'doctor' || user.role === 'hospital'; else notApplicable"
+                                            [ngClass]="getVerificationBadgeClass(user)" class="text-capitalize">
+                                            {{ getVerificationStatus(user) }}
+                                        </span>
+                                        <ng-template #notApplicable><span class="text-muted">Not applicable</span></ng-template>
+                                    </td>
+                                    <td class="text-nowrap">{{ user.createdAt | date:'dd MMM yyyy' }}</td>
+                                    <td class="actions-column">
+                                        <button type="button" class="btn btn-sm btn-outline-primary action-button"
+                                            (click)="openUserModal(user)">
+                                            <i class="bi bi-eye me-1"></i>View
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr *ngIf="!filteredUsers.length">
+                                    <td colspan="7" class="empty-state">
+                                        <i class="bi bi-people"></i>
+                                        <strong>No matching users</strong>
+                                        <span>Adjust the search or filters and try again.</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
 
                 </div>
 
@@ -73,3 +131,187 @@
         </div>
     </div>
 </section>
+
+<!-- User Details Modal -->
+<div class="modal user-detail-modal" id="userDetailsModal" tabindex="-1" role="dialog" aria-modal="true"
+    *ngIf="selectedUser?.role === 'patient' && selectedUser as user" (click)="closeUserModal()">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable" (click)="$event.stopPropagation()">
+        <div class="modal-content">
+
+            <div class="modal-header user-modal-header">
+                <div class="user-modal-identity">
+                    <div class="user-avatar">{{ getInitials(user.name) }}</div>
+                    <div>
+                        <h5 class="modal-title mb-1">{{ user.name }}</h5>
+                        <span class="badge role-badge text-capitalize" [ngClass]="getRoleClass(user.role)">{{ user.role }}</span>
+                        <span class="badge ms-1" [ngClass]="getVerificationBadgeClass(user)" *ngIf="user.role === 'doctor' || user.role === 'hospital'">
+                            {{ getVerificationStatus(user) }}
+                        </span>
+                        <span class="badge ms-1" [ngClass]="getAccountBadgeClass(user)">{{ getAccountStatus(user) }}</span>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" aria-label="Close" (click)="closeUserModal()"></button>
+            </div>
+
+            <div class="modal-body user-modal-body">
+
+                <div class="detail-card">
+                    <h6><i class="bi bi-person-badge"></i> Basic Information</h6>
+                    <div class="row">
+                        <div class="col-md-3 mb-3 detail-item">
+                            <label>Email</label>
+                            <div class="value">{{ user.email }}</div>
+                        </div>
+                        <div class="col-md-3 mb-3 detail-item">
+                            <label>Phone</label>
+                            <div class="value">{{ user.phone || '—' }}</div>
+                        </div>
+                        <div class="col-md-3 mb-3 detail-item">
+                            <label>Gender</label>
+                            <div class="value text-capitalize">{{ user.gender || '—' }}</div>
+                        </div>
+                        <div class="col-md-3 mb-3 detail-item">
+                            <label>Date of Birth</label>
+                            <div class="value">{{ (user.dateOfBirth | date:'dd MMM yyyy') || '—' }}</div>
+                        </div>
+                        <div class="col-md-3 mb-3 detail-item">
+                            <label>Created At</label>
+                            <div class="value">{{ user.createdAt | date:'dd MMM yyyy' }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail-card account-access-card">
+                    <h6><i class="bi bi-shield-lock"></i> Account Access</h6>
+                    <div class="account-access-control">
+                        <div>
+                            <label class="form-label" for="accountStatus">Account Status</label>
+                            <select id="accountStatus" class="form-select" [(ngModel)]="selectedAccountStatus">
+                                <option value="active">Active</option>
+                                <option value="blocked">Blocked</option>
+                            </select>
+                        </div>
+                        <button type="button" class="btn btn-primary"
+                            [disabled]="isUpdatingAccountStatus || selectedAccountStatus === getAccountStatusValue(user)"
+                            (click)="updateAccountStatus(user)">
+                            <span class="spinner-border spinner-border-sm me-1" *ngIf="isUpdatingAccountStatus"></span>
+                            Update Access
+                        </button>
+                    </div>
+                    <p class="account-access-note mb-0">
+                        Blocked accounts cannot sign in. Approved doctor or hospital listings are removed from public results until the account is active again.
+                    </p>
+                    <div class="alert alert-danger py-2 mt-3 mb-0" *ngIf="accountStatusError">{{ accountStatusError }}</div>
+                </div>
+
+                <div class="detail-card">
+                    <h6><i class="bi bi-geo-alt"></i> Contact Information</h6>
+                    <div class="row">
+                        <div class="col-md-3 mb-3 detail-item">
+                            <label>Address</label>
+                            <div class="value">{{ user.address || '—' }}</div>
+                        </div>
+                        <div class="col-md-3 mb-3 detail-item">
+                            <label>City</label>
+                            <div class="value">{{ user.city || '—' }}</div>
+                        </div>
+                        <div class="col-md-3 mb-3 detail-item">
+                            <label>State</label>
+                            <div class="value">{{ user.state || '—' }}</div>
+                        </div>
+                        <div class="col-md-3 mb-3 detail-item">
+                            <label>Country</label>
+                            <div class="value">{{ user.country || '—' }}</div>
+                        </div>
+                        <div class="col-md-3 mb-3 detail-item">
+                            <label>Pincode</label>
+                            <div class="value">{{ user.pincode || '—' }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Patient Profile -->
+                <ng-container *ngIf="user.role === 'patient'">
+                    <ng-container *ngIf="user.patientProfile as profile; else noPatientProfile">
+                        <div class="detail-card">
+                            <h6><i class="bi bi-heart-pulse"></i> Medical Details</h6>
+                            <div class="row">
+                                <div class="col-md-3 mb-3 detail-item">
+                                    <label>Blood Group</label>
+                                    <div class="value">{{ profile.bloodGroup || '—' }}</div>
+                                </div>
+                                <div class="col-md-3 mb-3 detail-item">
+                                    <label>Height</label>
+                                    <div class="value">{{ profile.height || '—' }}</div>
+                                </div>
+                                <div class="col-md-3 mb-3 detail-item">
+                                    <label>Weight</label>
+                                    <div class="value">{{ profile.weight || '—' }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="detail-card">
+                            <h6><i class="bi bi-telephone"></i> Emergency Contact</h6>
+                            <div class="row">
+                                <div class="col-md-3 mb-3 detail-item">
+                                    <label>Name</label>
+                                    <div class="value">{{ profile.emergencyContactName || '—' }}</div>
+                                </div>
+                                <div class="col-md-3 mb-3 detail-item">
+                                    <label>Relation</label>
+                                    <div class="value">{{ profile.emergencyContactRelation || '—' }}</div>
+                                </div>
+                                <div class="col-md-3 mb-3 detail-item">
+                                    <label>Phone</label>
+                                    <div class="value">{{ profile.emergencyContactPhone || '—' }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="detail-card">
+                            <h6><i class="bi bi-exclamation-triangle"></i> Allergies</h6>
+                            <ul class="list-group mb-2" *ngIf="profile.allergies?.length">
+                                <li class="list-group-item" *ngFor="let allergy of profile.allergies">
+                                    <strong>{{ allergy.name }}</strong>
+                                    <span class="badge bg-secondary ms-2 text-capitalize">{{ allergy.status }}</span>
+                                    <span class="badge bg-warning ms-1 text-capitalize" *ngIf="allergy.severity">{{ allergy.severity }}</span>
+                                    <div class="text-muted small" *ngIf="allergy.reaction">Reaction: {{ allergy.reaction }}</div>
+                                    <div class="text-muted small" *ngIf="allergy.notes">Notes: {{ allergy.notes }}</div>
+                                </li>
+                            </ul>
+                            <p class="text-muted mb-0" *ngIf="!profile.allergies?.length">No allergies recorded.</p>
+                        </div>
+
+                        <div class="detail-card">
+                            <h6><i class="bi bi-clipboard2-pulse"></i> Medical Conditions</h6>
+                            <ul class="list-group mb-2" *ngIf="profile.medicalConditions?.length">
+                                <li class="list-group-item" *ngFor="let condition of profile.medicalConditions">
+                                    <strong>{{ condition.name }}</strong>
+                                    <span class="badge bg-secondary ms-2 text-capitalize">{{ condition.status }}</span>
+                                    <div class="text-muted small" *ngIf="condition.notes">Notes: {{ condition.notes }}</div>
+                                </li>
+                            </ul>
+                            <p class="text-muted mb-0" *ngIf="!profile.medicalConditions?.length">No medical conditions recorded.</p>
+                        </div>
+                    </ng-container>
+                    <ng-template #noPatientProfile>
+                        <div class="detail-card text-center text-muted">No medical profile available.</div>
+                    </ng-template>
+                </ng-container>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" (click)="closeUserModal()">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<app-admin-doctor-profile-modal *ngIf="selectedUser?.role === 'doctor'" [user]="selectedUser" [manage]="true"
+    (closed)="closeUserModal()" (changed)="refreshSelectedDoctor()">
+</app-admin-doctor-profile-modal>
+
+<app-admin-hospital-profile-modal *ngIf="selectedUser?.role === 'hospital'" [user]="selectedUser" [manage]="true"
+    (closed)="closeUserModal()" (changed)="refreshSelectedHospital()">
+</app-admin-hospital-profile-modal>

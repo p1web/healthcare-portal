@@ -1,6 +1,7 @@
 // models/hospital-profile.js
 'use strict';
 const { Model } = require('sequelize');
+const { PROFILE_REVIEW_STATUSES, isApprovedStatus } = require('../utils/providerReview');
 
 module.exports = (sequelize, DataTypes) => {
   class HospitalProfile extends Model {
@@ -10,9 +11,21 @@ module.exports = (sequelize, DataTypes) => {
         as: 'user'
       });
 
-      HospitalProfile.belongsTo(models.Hospital, {
+      HospitalProfile.belongsTo(models.User, {
+        foreignKey: 'reviewed_by_user_id',
+        as: 'reviewedBy'
+      });
+
+      HospitalProfile.hasMany(models.DoctorProfile, {
         foreignKey: 'hospital_id',
-        as: 'hospital'
+        as: 'doctors'
+      });
+
+      HospitalProfile.belongsToMany(models.Coupon, {
+        through: 'coupon_hospitals',
+        foreignKey: 'hospital_id',
+        otherKey: 'coupon_id',
+        as: 'coupons'
       });
     }
   }
@@ -29,16 +42,68 @@ module.exports = (sequelize, DataTypes) => {
       unique: true,
       field: 'user_id'
     },
-    hospitalId: {
-      type: DataTypes.INTEGER,
+    hospitalName: {
+      type: DataTypes.STRING(255),
       allowNull: true,
-      field: 'hospital_id'
+      field: 'hospital_name'
+    },
+    hospitalEmail: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+      field: 'hospital_email'
+    },
+    hospitalPhone: {
+      type: DataTypes.STRING(20),
+      allowNull: true,
+      field: 'hospital_phone'
+    },
+    emergencyContactNumber: {
+      type: DataTypes.STRING(20),
+      allowNull: true,
+      field: 'emergency_contact_number'
+    },
+    hospitalAddress: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      field: 'hospital_address'
+    },
+    hospitalCity: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+      field: 'hospital_city'
+    },
+    hospitalState: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+      field: 'hospital_state'
+    },
+    hospitalPincode: {
+      type: DataTypes.STRING(10),
+      allowNull: true,
+      field: 'hospital_pincode'
+    },
+    website: {
+      type: DataTypes.STRING(500),
+      allowNull: true
     },
     registrationNumber: {
       type: DataTypes.STRING(50),
       allowNull: true,
       unique: true,
       field: 'registration_number'
+    },
+    bio: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      validate: {
+        len: [0, 2000]
+      }
+    },
+    specialtyIds: {
+      type: DataTypes.JSONB,
+      allowNull: false,
+      defaultValue: [],
+      field: 'specialty_ids'
     },
     establishedYear: {
       type: DataTypes.INTEGER,
@@ -70,10 +135,64 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: false,
       field: 'ambulance_services'
     },
+    rating: {
+      type: DataTypes.DECIMAL(2, 1),
+      allowNull: false,
+      defaultValue: 0
+    },
+    discount: {
+      type: DataTypes.STRING(20),
+      allowNull: true
+    },
+    verificationStatus: {
+      type: DataTypes.ENUM(
+        PROFILE_REVIEW_STATUSES.DRAFT,
+        PROFILE_REVIEW_STATUSES.SUBMITTED,
+        PROFILE_REVIEW_STATUSES.UNDER_REVIEW,
+        PROFILE_REVIEW_STATUSES.CHANGES_REQUESTED,
+        PROFILE_REVIEW_STATUSES.APPROVED,
+        PROFILE_REVIEW_STATUSES.REJECTED,
+        PROFILE_REVIEW_STATUSES.SUSPENDED
+      ),
+      allowNull: false,
+      defaultValue: PROFILE_REVIEW_STATUSES.DRAFT,
+      field: 'verification_status'
+    },
+    submittedAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      field: 'submitted_at'
+    },
+    reviewedAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      field: 'reviewed_at'
+    },
+    reviewedByUserId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      field: 'reviewed_by_user_id'
+    },
+    reviewNotes: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      field: 'review_notes'
+    },
+    rejectionReason: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      field: 'rejection_reason'
+    },
+    lastVerifiedAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      field: 'last_verified_at'
+    },
     isVerified: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false,
-      field: 'is_verified'
+      type: DataTypes.VIRTUAL,
+      get() {
+        return isApprovedStatus(this.getDataValue('verificationStatus'));
+      }
     },
     verificationDocuments: {
       type: DataTypes.JSON,

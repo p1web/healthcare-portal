@@ -18,4 +18,14 @@ export class DoctorProfileService {
   updateProfile(data: any): Observable<any> {
     return this.http.put(this.apiUrl, data);
   }
+
+  uploadDocuments(files: File[]): Observable<any> {
+    const formData = new FormData();
+    files.forEach(file => formData.append('documents', file));
+    return this.http.post(`${this.apiUrl}/documents`, formData);
+  }
+
+  submitForReview(): Observable<any> {
+    return this.http.post(`${this.apiUrl}/submit`, {});
+  }
 }

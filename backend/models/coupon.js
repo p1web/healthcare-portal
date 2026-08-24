@@ -11,7 +11,7 @@ module.exports = (sequelize, DataTypes) => {
       });
 
       // Many-to-Many with Hospital
-      Coupon.belongsToMany(models.Hospital, {
+      Coupon.belongsToMany(models.HospitalProfile, {
         through: 'coupon_hospitals',
         foreignKey: 'coupon_id',
         otherKey: 'hospital_id',

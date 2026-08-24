@@ -1,0 +1,116 @@
+<div class="modal shared-doctor-modal" tabindex="-1" role="dialog" aria-modal="true" (click)="close()">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable" (click)="$event.stopPropagation()">
+    <div class="modal-content" *ngIf="doctorUser && doctorProfile">
+      <div class="modal-header">
+        <div class="profile-heading">
+          <div class="profile-avatar">{{ initials }}</div>
+          <div>
+            <h5 class="modal-title">{{ doctorUser.name }}</h5>
+            <div class="profile-badges">
+              <span class="badge bg-primary">Doctor</span>
+              <span class="badge" [ngClass]="statusBadgeClass">{{ statusLabel }}</span>
+              <span class="badge" [ngClass]="isAccountActive ? 'bg-success' : 'bg-danger'">
+                {{ isAccountActive ? 'Active' : 'Blocked' }}
+              </span>
+            </div>
+          </div>
+        </div>
+        <button type="button" class="btn-close" aria-label="Close" (click)="close()"></button>
+      </div>
+
+      <div class="modal-body">
+        <section class="profile-section">
+          <h6><i class="bi bi-person-badge"></i> Basic Information</h6>
+          <div class="detail-grid">
+            <div><label>Email</label><span>{{ doctorUser.email || '—' }}</span></div>
+            <div><label>Phone</label><span>{{ doctorUser.phone || '—' }}</span></div>
+            <div><label>Gender</label><span class="text-capitalize">{{ doctorUser.gender || '—' }}</span></div>
+            <div><label>Joined</label><span>{{ (doctorUser.createdAt || doctorUser.created_at) | date:'dd MMM yyyy' }}</span></div>
+            <div class="wide"><label>Address</label><span>{{ doctorUser.address || '—' }}</span></div>
+            <div><label>Location</label><span>{{ doctorUser.city || '—' }}, {{ doctorUser.state || '—' }}</span></div>
+            <div><label>Pincode</label><span>{{ doctorUser.pincode || '—' }}</span></div>
+          </div>
+        </section>
+
+        <section class="profile-section">
+          <h6><i class="bi bi-briefcase"></i> Professional Details</h6>
+          <div class="detail-grid">
+            <div><label>Registration No.</label><span>{{ doctorProfile.registrationNumber || '—' }}</span></div>
+            <div><label>Qualification</label><span>{{ doctorProfile.qualification || '—' }}</span></div>
+            <div><label>Experience</label><span>{{ doctorProfile.yearsOfExperience ?? '—' }} years</span></div>
+            <div><label>Consultation Fee</label><span>₹{{ doctorProfile.consultationFee ?? '—' }}</span></div>
+            <div><label>Specialization</label><span>{{ doctorProfile.specialization?.name || '—' }}</span></div>
+            <div class="wide"><label>Hospital</label><span>{{ doctorProfile.hospital?.hospitalName || '—' }}</span></div>
+          </div>
+        </section>
+
+        <section class="profile-section">
+          <h6><i class="bi bi-calendar-week"></i> Weekly Availability</h6>
+          <div class="availability-list" *ngIf="availabilitySchedule.length; else noAvailability">
+            <span *ngFor="let slot of availabilitySchedule">{{ formatAvailabilitySlot(slot) }}</span>
+          </div>
+          <ng-template #noAvailability><p class="text-muted mb-0">No consultation hours configured.</p></ng-template>
+        </section>
+
+        <section class="profile-section">
+          <h6><i class="bi bi-patch-check"></i> Verification Timeline</h6>
+          <div class="review-timeline">
+            <div class="timeline-step" *ngFor="let step of timeline" [class.complete]="step.complete" [class.active]="step.active">
+              <span class="timeline-dot"><i class="bi bi-check-lg" *ngIf="step.complete"></i></span>
+              <div>
+                <div class="timeline-title">
+                  <strong>{{ step.label }}</strong>
+                  <span>{{ step.date ? (step.date | date:'dd MMM yyyy, hh:mm a') : 'Date not recorded' }}</span>
+                </div>
+                <p>{{ step.comment }}</p>
+                <small *ngIf="step.reviewer">Reviewed by {{ step.reviewer }}</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="documents" *ngIf="doctorProfile.verificationDocuments?.length; else noDocuments">
+            <a *ngFor="let document of doctorProfile.verificationDocuments" class="document-link"
+              [href]="documentUrl(document.url)" target="_blank" rel="noopener noreferrer">
+              <i class="bi bi-file-earmark-text"></i>{{ document.name }}
+            </a>
+          </div>
+          <ng-template #noDocuments><p class="text-muted mb-0">No documents uploaded yet.</p></ng-template>
+        </section>
+
+        <section class="profile-section management-section" *ngIf="manage">
+          <h6><i class="bi bi-shield-lock"></i> Administrative Actions</h6>
+          <div class="management-grid">
+            <div>
+              <label class="form-label" for="sharedDoctorAccountStatus">Account Access</label>
+              <div class="input-group">
+                <select id="sharedDoctorAccountStatus" class="form-select" [(ngModel)]="accountStatus">
+                  <option value="active">Active</option>
+                  <option value="blocked">Blocked</option>
+                </select>
+                <button class="btn btn-outline-primary" type="button" [disabled]="busy" (click)="updateAccountStatus()">Update</button>
+              </div>
+            </div>
+
+            <div *ngIf="reviewActions.length">
+              <label class="form-label" for="sharedDoctorReviewAction">Review Action</label>
+              <select id="sharedDoctorReviewAction" class="form-select" [(ngModel)]="reviewAction">
+                <option value="">Select action</option>
+                <option *ngFor="let action of reviewActions" [value]="action.value">{{ action.label }}</option>
+              </select>
+              <textarea *ngIf="reviewAction && reviewAction !== 'under_review'" class="form-control mt-2" rows="3"
+                [(ngModel)]="reviewComments" placeholder="Comments required"></textarea>
+              <button class="btn btn-primary mt-2" type="button" [disabled]="busy || !reviewAction" (click)="submitReview()">
+                <span class="spinner-border spinner-border-sm me-1" *ngIf="busy"></span>Apply Action
+              </button>
+            </div>
+          </div>
+          <div class="alert alert-danger mt-3 mb-0" *ngIf="errorMessage">{{ errorMessage }}</div>
+        </section>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="close()">Close</button>
+      </div>
+    </div>
+  </div>
+</div>

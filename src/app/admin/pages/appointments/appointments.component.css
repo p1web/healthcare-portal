@@ -1,0 +1,133 @@
+.appointments-card {
+  border: 0;
+  border-radius: 6px;
+  box-shadow: 0 2px 12px rgba(31, 49, 58, 0.08);
+}
+
+.appointments-header,
+.filter-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.appointments-header {
+  margin-bottom: 1.25rem;
+}
+
+.filter-bar {
+  padding: 1rem;
+  margin-bottom: 1.25rem;
+  border: 1px solid #dce4e8;
+  background: #f7f9fa;
+}
+
+.search-field {
+  position: relative;
+  flex: 1;
+}
+
+.search-field i {
+  position: absolute;
+  top: 50%;
+  left: 0.8rem;
+  color: #718096;
+  transform: translateY(-50%);
+}
+
+.search-field input {
+  padding-left: 2.35rem;
+}
+
+.status-filter {
+  width: 180px;
+}
+
+.appointments-table {
+  border: 1px solid #dce4e8;
+}
+
+.appointments-table th {
+  padding: 0.85rem;
+  background: #f4f7f8;
+  color: #52616b;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.appointments-table td {
+  padding: 0.9rem;
+}
+
+.appointments-table small {
+  display: block;
+  margin-top: 0.15rem;
+  color: #718096;
+}
+
+.reason-cell {
+  min-width: 170px;
+  max-width: 260px;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 0.3rem 0.55rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.status-pending {
+  background: #fff4d6;
+  color: #875f00;
+}
+
+.status-confirmed {
+  background: #dff5ef;
+  color: #166b57;
+}
+
+.status-cancelled {
+  background: #fde7e7;
+  color: #a52a2a;
+}
+
+.status-completed {
+  background: #e6effc;
+  color: #285a9f;
+}
+
+.state-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  min-height: 220px;
+  border: 1px solid #dce4e8;
+  background: #fff;
+}
+
+.empty-state {
+  flex-direction: column;
+  text-align: center;
+}
+
+.empty-state > i {
+  color: #6c8a94;
+  font-size: 2.5rem;
+}
+
+@media (max-width: 768px) {
+  .appointments-header,
+  .filter-bar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .status-filter {
+    width: 100%;
+  }
+}

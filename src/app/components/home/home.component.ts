@@ -5,7 +5,7 @@ import { Router, RouterLink } from '@angular/router';
 import { HospitalService } from '../../services/hospital.service';
 import { DoctorService } from '../../services/doctor.service';
 import { Hospital } from '../../models/hospital.model';
-import { Doctor } from '../../models/doctor.model';
+import { Doctor, DoctorAvailabilitySlot } from '../../models/doctor.model';
 import { SpecializationService, Specializations } from '../../services/specialization.service';
 
 @Component({
@@ -17,6 +17,7 @@ import { SpecializationService, Specializations } from '../../services/specializ
 })
 
 export class HomeComponent implements OnInit {
+  readonly shortDayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   searchQuery = '';
   searchType = '';
   hospitals: Hospital[] = [];
@@ -149,5 +150,16 @@ export class HomeComponent implements OnInit {
   getDoctorInitial(name: string): string {
     const parts = name.split(' ');
     return parts.length > 1 ? parts[1][0] : parts[0][0];
+  }
+
+  formatAvailabilitySlot(slot: DoctorAvailabilitySlot): string {
+    return `${this.shortDayNames[slot.dayOfWeek]} ${this.formatTime(slot.startTime)}-${this.formatTime(slot.endTime)}`;
+  }
+
+  private formatTime(time: string): string {
+    const [hourValue, minute] = time.split(':').map(Number);
+    const suffix = hourValue >= 12 ? 'PM' : 'AM';
+    const hour = hourValue % 12 || 12;
+    return `${hour}:${String(minute).padStart(2, '0')} ${suffix}`;
   }
 }

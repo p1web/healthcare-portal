@@ -9,6 +9,42 @@
     </div>
   </div>
 
+  <div class="profile-section review-overview">
+    <div class="review-summary">
+      <div>
+        <span class="me-2">Review status:</span>
+        <span [ngClass]="reviewBadgeClass">{{ reviewStatusLabel }}</span>
+      </div>
+      <button type="button" class="btn btn-outline-primary" *ngIf="canSubmitForReview"
+        [disabled]="isSubmittingReview" (click)="submitForReview()">
+        <span *ngIf="!isSubmittingReview"><i class="bi bi-send-check me-1"></i>{{ reviewStatus === 'changes_requested' ? 'Resubmit Profile' : 'Submit for Review' }}</span>
+        <span *ngIf="isSubmittingReview"><span class="spinner-border spinner-border-sm me-2"></span>Submitting...</span>
+      </button>
+    </div>
+
+    <div class="review-timeline" aria-label="Profile review timeline">
+      <div class="timeline-step" *ngFor="let step of timelineSteps" [class.complete]="step.complete"
+        [class.active]="step.active" [class.outcome]="step.outcome">
+        <span class="timeline-dot"><i class="bi" [ngClass]="step.complete ? 'bi-check-lg' : 'bi-circle'"></i></span>
+        <div class="timeline-content">
+          <div class="timeline-heading">
+            <strong>{{ step.label }}</strong>
+            <span class="timeline-date">{{ step.date ? (step.date | date:'dd MMM yyyy, hh:mm a') : 'Date not recorded' }}</span>
+          </div>
+          <p>{{ step.comment }}</p>
+          <span class="timeline-reviewer" *ngIf="step.reviewer">Reviewed by {{ step.reviewer }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="review-note" *ngIf="!isProfileEditable">
+      <i class="bi bi-lock me-1"></i>Profile and public listing details are locked after submission. Editing is available only if the profile is returned.
+    </div>
+    <div class="review-note returned" *ngIf="reviewStatus === 'changes_requested'">
+      <i class="bi bi-arrow-counterclockwise me-1"></i>Update the requested information, save, then resubmit your profile.
+    </div>
+  </div>
+
   <div *ngIf="success" class="alert alert-success alert-dismissible fade show">
     <i class="bi bi-check-circle me-2"></i>{{ success }}
     <button type="button" class="btn-close" (click)="success = ''"></button>
@@ -143,10 +179,22 @@
 
       <div class="row">
         <div class="col-md-6 mb-3">
+          <label class="form-label" for="hospitalId">Hospital <span class="text-danger">*</span></label>
+          <select class="form-control" id="hospitalId" formControlName="hospitalId">
+            <option value="">Select hospital</option>
+            <option *ngFor="let h of hospitals" [value]="h.id">
+              {{ h.name }}
+            </option>
+          </select>
+        </div>
+
+        <div class="col-md-6 mb-3">
           <label class="form-label">Registration Number <span class="text-danger">*</span></label>
           <input type="text" class="form-control" formControlName="registrationNumber" />
         </div>
+      </div>
 
+      <div class="row">
         <div class="col-md-6 mb-3">
           <label class="form-label">Qualification <span class="text-danger">*</span></label>
           <input type="text" class="form-control" formControlName="qualification" />
@@ -180,7 +228,19 @@
       <div class="subsection">
         <label class="form-label"><i class="bi bi-file-earmark-medical me-1"></i> Verification Documents
           <i class="text-muted">(Medical license, certificates, etc.)</i></label>
-        <input type="file" class="form-control" multiple accept=".pdf,.jpg,.jpeg,.png"
+
+        <ul class="list-group mb-2" *ngIf="uploadedDoctorDocuments.length">
+          <li class="list-group-item d-flex justify-content-between align-items-center"
+            *ngFor="let doc of uploadedDoctorDocuments">
+            {{ doc.name }}
+            <a class="btn btn-sm btn-outline-secondary" [href]="'http://localhost:3000' + doc.url" target="_blank">View</a>
+          </li>
+        </ul>
+        <p class="text-muted" *ngIf="!uploadedDoctorDocuments.length">
+          No documents uploaded yet.
+        </p>
+
+        <input type="file" class="form-control" multiple accept=".pdf,.jpg,.jpeg,.png" [disabled]="!isProfileEditable"
           (change)="onDoctorDocumentsSelected($event)" />
 
         <small class="text-muted d-block mt-1">
@@ -191,7 +251,7 @@
           <li class="list-group-item d-flex justify-content-between align-items-center"
             *ngFor="let doc of doctorDocuments; let i = index">
             {{ doc.name }}
-            <button type="button" class="btn btn-sm btn-outline-danger" (click)="removeDoctorDocument(i)">
+            <button type="button" class="btn btn-sm btn-outline-danger" [disabled]="!isProfileEditable" (click)="removeDoctorDocument(i)">
               Remove
             </button>
           </li>
@@ -199,8 +259,43 @@
       </div>
     </section>
 
+    <section class="profile-section availability-section" formArrayName="availability">
+      <div class="section-heading">
+        <h6 class="section-title mb-1"><i class="bi bi-calendar-week-fill"></i> Weekly Availability</h6>
+        <p class="text-muted mb-0">Set the regular consultation hours shown to patients.</p>
+      </div>
+
+      <div class="availability-list">
+        <div class="availability-row" *ngFor="let control of availabilityControls; let dayIndex = index"
+          [formGroupName]="dayIndex" [class.enabled]="control.get('isAvailable')?.value">
+          <div class="day-toggle">
+            <input class="form-check-input" type="checkbox" formControlName="isAvailable"
+              [id]="'availability-day-' + dayIndex">
+            <label class="form-check-label" [for]="'availability-day-' + dayIndex">{{ weekDays[dayIndex] }}</label>
+          </div>
+          <div class="time-range">
+            <div>
+              <label [for]="'start-time-' + dayIndex">From</label>
+              <input class="form-control" type="time" formControlName="startTime" [id]="'start-time-' + dayIndex"
+                [class.is-invalid]="control.get('isAvailable')?.value && control.get('startTime')?.value >= control.get('endTime')?.value">
+            </div>
+            <span>to</span>
+            <div>
+              <label [for]="'end-time-' + dayIndex">Until</label>
+              <input class="form-control" type="time" formControlName="endTime" [id]="'end-time-' + dayIndex"
+                [class.is-invalid]="control.get('isAvailable')?.value && control.get('startTime')?.value >= control.get('endTime')?.value">
+            </div>
+          </div>
+          <span class="availability-state">{{ control.get('isAvailable')?.value ? 'Available' : 'Unavailable' }}</span>
+        </div>
+      </div>
+      <div class="text-danger small mt-2" *ngIf="hasInvalidAvailability">
+        End time must be later than start time for every available day.
+      </div>
+    </section>
+
     <div class="form-actions">
-      <button type="submit" class="btn btn-primary px-4" [disabled]="isSubmitting">
+      <button type="submit" class="btn btn-primary px-4" [disabled]="isSubmitting || !isProfileEditable">
         <span *ngIf="!isSubmitting">
           <i class="bi bi-check-circle me-1"></i> Save Profile
         </span>

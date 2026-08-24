@@ -34,7 +34,8 @@
           <i class="bi bi-check-circle-fill fs-4 me-3"></i>
           <div>
             <h5 class="alert-heading mb-1">Appointment Booked Successfully!</h5>
-            <p class="mb-0 small">We'll contact you shortly to confirm your appointment.</p>
+            <p class="mb-1 small">We'll contact you shortly to confirm your appointment.</p>
+            <a routerLink="/appointments" class="alert-link small">View My Appointments</a>
           </div>
         </div>
         <button type="button" class="btn-close" (click)="bookingSuccess = false"></button>
@@ -69,6 +70,10 @@
                 <div>
                   <h6 class="fw-bold mb-1">Available Days</h6>
                   <p class="text-muted mb-0">{{ doctor.available }}</p>
+                  <div class="availability-schedule mt-2" *ngIf="doctor.availabilitySchedule.length; else noAvailability">
+                    <span *ngFor="let slot of doctor.availabilitySchedule">{{ formatAvailabilitySlot(slot) }}</span>
+                  </div>
+                  <ng-template #noAvailability><small class="text-danger">No consultation hours configured.</small></ng-template>
                 </div>
               </div>
 
@@ -121,49 +126,16 @@
           <i class="bi bi-calendar-check me-2"></i>Book Appointment
         </h3>
         
-        <form [formGroup]="appointmentForm" (ngSubmit)="onSubmit()">
+        <form *ngIf="isPatientLoggedIn; else loginRequired" [formGroup]="appointmentForm" (ngSubmit)="onSubmit()">
           <div class="row g-3">
-            
-            <div class="col-md-6">
-              <label class="form-label fw-semibold">Full Name *</label>
-              <input
-                type="text"
-                formControlName="patientName"
-                class="form-control form-control-lg"
-                [class.is-invalid]="isFieldInvalid('patientName')"
-                placeholder="Enter your full name"
-              />
-              <div class="invalid-feedback">
-                Name is required
-              </div>
-            </div>
-
-            <div class="col-md-6">
-              <label class="form-label fw-semibold">Email Address *</label>
-              <input
-                type="email"
-                formControlName="email"
-                class="form-control form-control-lg"
-                [class.is-invalid]="isFieldInvalid('email')"
-                placeholder="your.email@example.com"
-              />
-              <div class="invalid-feedback">
-                Valid email is required
-              </div>
-            </div>
-
-            <div class="col-md-6">
-              <label class="form-label fw-semibold">Phone Number *</label>
-              <input
-                type="tel"
-                formControlName="phone"
-                class="form-control form-control-lg"
-                [class.is-invalid]="isFieldInvalid('phone')"
-                placeholder="10-digit phone number"
-              />
-              <div class="invalid-feedback">
-                Valid 10-digit phone number is required
-              </div>
+            <div class="col-12">
+              <label class="form-label fw-semibold">Reason for Visit (Optional)</label>
+              <textarea
+                formControlName="reason"
+                class="form-control"
+                rows="3"
+                placeholder="Briefly describe your health concern..."
+              ></textarea>
             </div>
 
             <div class="col-md-6">
@@ -172,28 +144,40 @@
                 type="date"
                 formControlName="date"
                 [min]="getMinDate()"
+                (change)="validateSelectedDate()"
                 class="form-control form-control-lg"
-                [class.is-invalid]="isFieldInvalid('date')"
+                [class.is-invalid]="isFieldInvalid('date') || appointmentForm.get('date')?.hasError('unavailableDay')"
               />
               <div class="invalid-feedback">
-                Date is required
+                <span *ngIf="appointmentForm.get('date')?.hasError('required')">Date is required.</span>
+                <span *ngIf="appointmentForm.get('date')?.hasError('unavailableDay')">Doctor is not available on this day.</span>
               </div>
             </div>
 
-            <div class="col-12">
-              <label class="form-label fw-semibold">Reason for Visit (Optional)</label>
-              <textarea
-                formControlName="reason"
-                class="form-control"
-                rows="4"
-                placeholder="Briefly describe your health concern..."
-              ></textarea>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Preferred Time *</label>
+              <input
+                type="time"
+                formControlName="time"
+                [min]="selectedAvailability?.startTime"
+                [max]="selectedAvailability?.endTime"
+                (change)="validateSelectedTime()"
+                class="form-control form-control-lg"
+                [class.is-invalid]="isFieldInvalid('time') || appointmentForm.get('time')?.hasError('outsideAvailability')"
+              />
+              <div class="form-text" *ngIf="selectedAvailability as slot">
+                Available {{ formatAvailabilitySlot(slot) }}
+              </div>
+              <div class="invalid-feedback">
+                <span *ngIf="appointmentForm.get('time')?.hasError('required')">Time is required.</span>
+                <span *ngIf="appointmentForm.get('time')?.hasError('outsideAvailability')">Choose a time within the doctor's available hours.</span>
+              </div>
             </div>
 
             <div class="col-12">
               <button 
                 type="submit"
-                [disabled]="isSubmitting"
+                [disabled]="isSubmitting || !doctor.availabilitySchedule.length"
                 class="btn btn-primary btn-lg w-100 py-3"
               >
                 <span *ngIf="!isSubmitting">
@@ -207,6 +191,16 @@
             </div>
           </div>
         </form>
+
+        <ng-template #loginRequired>
+          <div class="alert alert-info d-flex align-items-center justify-content-between gap-3 mb-0">
+            <span *ngIf="!isLoggedIn">Please log in with your patient account to book an appointment.</span>
+            <span *ngIf="isLoggedIn">Only patient accounts can book appointments.</span>
+            <button *ngIf="!isLoggedIn" type="button" class="btn btn-primary flex-shrink-0" (click)="goToLogin()">
+              Log In
+            </button>
+          </div>
+        </ng-template>
       </div>
     </div>
   </div>

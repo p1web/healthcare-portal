@@ -14,6 +14,7 @@ export interface Doctor {
   rating: number;
   fee: string;
   available: string;
+  availabilitySchedule: DoctorAvailabilitySlot[];
 
   email?: string;
   phone?: string;
@@ -21,4 +22,12 @@ export interface Doctor {
   bio?: string;
   image?: string;
   consultationDuration?: number;
+}
+
+export interface DoctorAvailabilitySlot {
+  id?: number;
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;
+  isAvailable: boolean;
 }

@@ -4,7 +4,8 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { DoctorService } from '../../services/doctor.service';
 import { AppointmentService } from '../../services/appointment.service';
-import { Doctor } from '../../models/doctor.model';
+import { AuthService } from '../../services/auth.service';
+import { Doctor, DoctorAvailabilitySlot } from '../../models/doctor.model';
 
 @Component({
   selector: 'app-doctor-detail',
@@ -14,6 +15,7 @@ import { Doctor } from '../../models/doctor.model';
   styleUrls: ['./doctor-detail.component.css']
 })
 export class DoctorDetailComponent implements OnInit {
+  readonly dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   doctor: Doctor | undefined;
   appointmentForm: FormGroup;
   isSubmitting = false;
@@ -24,14 +26,13 @@ export class DoctorDetailComponent implements OnInit {
     private router: Router,
     private doctorService: DoctorService,
     private appointmentService: AppointmentService,
+    private authService: AuthService,
     private fb: FormBuilder
   ) {
     this.appointmentForm = this.fb.group({
-      patientName: ['', Validators.required],
-      email: ['', [Validators.required, Validators.email]],
-      phone: ['', [Validators.required, Validators.pattern(/^[0-9]{10}$/)]],
+      reason: [''],
       date: ['', Validators.required],
-      reason: ['']
+      time: ['', Validators.required]
     });
   }
 
@@ -46,6 +47,7 @@ export class DoctorDetailComponent implements OnInit {
     this.doctorService.getDoctorById(id).subscribe({
       next: (res: any) => {
         this.doctor = res.data;  // <- assign the actual doctor object
+        this.validateSelectedDate();
         // console.log('Loaded doctor:', this.doctor);
       },
       error: (err) => {
@@ -62,6 +64,13 @@ export class DoctorDetailComponent implements OnInit {
   }
 
   onSubmit() {
+    if (!this.isPatientLoggedIn) {
+      this.goToLogin();
+      return;
+    }
+
+    this.validateSelectedDate();
+    this.validateSelectedTime();
     if (this.appointmentForm.valid && this.doctor) {
       this.isSubmitting = true;
       
@@ -96,6 +105,65 @@ export class DoctorDetailComponent implements OnInit {
   getMinDate(): string {
     const today = new Date();
     return today.toISOString().split('T')[0];
+  }
+
+  validateSelectedDate(): void {
+    const dateControl = this.appointmentForm.get('date');
+    const dateValue = dateControl?.value;
+    if (!dateControl || !dateValue || !this.doctor) return;
+
+    const [year, month, day] = String(dateValue).split('-').map(Number);
+    const dayOfWeek = new Date(year, month - 1, day).getDay();
+    const isAvailable = this.doctor.availabilitySchedule.some(slot => slot.isAvailable && slot.dayOfWeek === dayOfWeek);
+    const errors = { ...(dateControl.errors || {}) };
+    delete errors['unavailableDay'];
+    if (!isAvailable) errors['unavailableDay'] = true;
+    dateControl.setErrors(Object.keys(errors).length ? errors : null);
+    this.validateSelectedTime();
+  }
+
+  validateSelectedTime(): void {
+    const timeControl = this.appointmentForm.get('time');
+    const timeValue = timeControl?.value;
+    const selectedSlot = this.selectedAvailability;
+    if (!timeControl) return;
+
+    const errors = { ...(timeControl.errors || {}) };
+    delete errors['outsideAvailability'];
+    if (timeValue && selectedSlot && (timeValue < selectedSlot.startTime || timeValue > selectedSlot.endTime)) {
+      errors['outsideAvailability'] = true;
+    }
+    timeControl.setErrors(Object.keys(errors).length ? errors : null);
+  }
+
+  get selectedAvailability(): DoctorAvailabilitySlot | undefined {
+    const dateValue = this.appointmentForm.get('date')?.value;
+    if (!dateValue || !this.doctor) return undefined;
+
+    const [year, month, day] = String(dateValue).split('-').map(Number);
+    const dayOfWeek = new Date(year, month - 1, day).getDay();
+    return this.doctor.availabilitySchedule.find(slot => slot.isAvailable && slot.dayOfWeek === dayOfWeek);
+  }
+
+  get isLoggedIn(): boolean {
+    return this.authService.isLoggedIn();
+  }
+
+  get isPatientLoggedIn(): boolean {
+    return this.isLoggedIn && this.authService.getUserRole() === 'patient';
+  }
+
+  goToLogin(): void {
+    this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } });
+  }
+
+  formatAvailabilitySlot(slot: DoctorAvailabilitySlot): string {
+    return `${this.dayNames[slot.dayOfWeek]} · ${this.formatTime(slot.startTime)}-${this.formatTime(slot.endTime)}`;
+  }
+
+  private formatTime(time: string): string {
+    const [hourValue, minute] = time.split(':').map(Number);
+    return `${hourValue % 12 || 12}:${String(minute).padStart(2, '0')} ${hourValue >= 12 ? 'PM' : 'AM'}`;
   }
 
   isFieldInvalid(fieldName: string): boolean {

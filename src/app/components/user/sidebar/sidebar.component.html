@@ -5,11 +5,28 @@
      [routerLinkActiveOptions]="{ exact: true }">
     <i class="bi bi-person-circle me-2"></i>My Profile
   </a>
+  <a *ngIf="isPatient"
+     class="list-group-item list-group-item-action"
+     routerLink="/appointments"
+     routerLinkActive="active">
+    <i class="bi bi-calendar2-check me-2"></i>My Appointments
+  </a>
+  <a *ngIf="isDoctor"
+     class="list-group-item list-group-item-action"
+     routerLink="/doctor-appointments"
+     routerLinkActive="active">
+    <i class="bi bi-calendar2-check me-2"></i>Patient Bookings
+  </a>
   <a class="list-group-item list-group-item-action"
      routerLink="/change-password"
      routerLinkActive="active">
     <i class="bi bi-key me-2"></i>Change Password
   </a>
+  <button type="button"
+     class="list-group-item list-group-item-action text-danger"
+     (click)="logout()">
+    <i class="bi bi-box-arrow-right me-2"></i>Logout
+  </button>
   <!-- <a class="list-group-item list-group-item-action"
      routerLink="/reset-password"
      routerLinkActive="active">

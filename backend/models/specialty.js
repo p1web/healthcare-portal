@@ -13,13 +13,5 @@ module.exports = (sequelize, DataTypes) => {
     }
   );
 
-  Specialty.associate = (models) => {
-    Specialty.belongsToMany(models.Hospital, {
-      through: models.HospitalSpecialty,
-      foreignKey: "specialty_id",
-      as: "hospitals",
-    });
-  };
-
   return Specialty;
 };

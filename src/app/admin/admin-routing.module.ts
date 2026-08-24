@@ -4,13 +4,11 @@ import { AdminLayoutComponent } from './layout/admin-layout/admin-layout.compone
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { UsersComponent } from './pages/users/users.component';
 import { DoctorsComponent } from './pages/doctors/doctors.component';
-import { PublicDoctorComponent } from './pages/public-doctor/public-doctor.component';
 import { PublicHospitalsComponent } from './pages/public-hospitals/public-hospitals.component';
-import { HospitalsComponent } from './pages/hospitals/hospitals.component';
 import { SpecialtiesComponent } from './pages/specialties/specialties.component';
 import { SpecializationsComponent } from './pages/specializations/specializations.component';
 import { DoctorSpecializationMappingComponent } from './pages/doctor-specialization-mapping/doctor-specialization-mapping.component';
-import { HospitalSpecialtyMappingComponent } from './pages/hospital-specialty-mapping/hospital-specialty-mapping.component';
+import { AppointmentsComponent } from './pages/appointments/appointments.component';
 
 const routes: Routes = [
   {
@@ -19,15 +17,16 @@ const routes: Routes = [
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'dashboard', component: DashboardComponent },
-      { path: 'users', component: UsersComponent },
-      { path: 'doctors-profile', component: DoctorsComponent },
-      { path: 'hospital-user-profile', component: HospitalsComponent },
-      { path: 'public-doctors', component: PublicDoctorComponent },
+      { path: 'users', redirectTo: 'users/patients', pathMatch: 'full' },
+      { path: 'users/patients', component: UsersComponent, data: { role: 'patient' } },
+      { path: 'users/doctors', component: UsersComponent, data: { role: 'doctor' } },
+      { path: 'users/hospitals', component: UsersComponent, data: { role: 'hospital' } },
+      { path: 'public-doctors', component: DoctorsComponent, data: { publicListing: true } },
       { path: 'public-hospitals', component: PublicHospitalsComponent },
+      { path: 'appointments', component: AppointmentsComponent },
       { path: 'specialties', component: SpecialtiesComponent },
       { path: 'specializations', component: SpecializationsComponent },
       { path: 'doctor-specialization-mapping', component: DoctorSpecializationMappingComponent },
-      { path: 'hospital-specialty-mapping', component: HospitalSpecialtyMappingComponent },
     ]
   }
 ];

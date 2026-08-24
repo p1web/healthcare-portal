@@ -1,12 +1,13 @@
 const express = require('express');
 const router = express.Router();
+const controller = require('../controllers/appointment.controller');
+const { authenticate, authorize } = require('../middleware/auth.middleware');
 
-router.get('/', (req, res) => {
-  res.json({ message: "Appointments list route working" });
-});
+router.use(authenticate);
 
-router.post('/', (req, res) => {
-  res.json({ message: "Create appointment route working" });
-});
+router.get('/', authorize('patient'), controller.getPatientAppointments);
+router.post('/', authorize('patient'), controller.createAppointment);
+router.get('/doctor', authorize('doctor'), controller.getDoctorAppointments);
+router.patch('/:id/approve', authorize('doctor'), controller.approveAppointment);
 
 module.exports = router;

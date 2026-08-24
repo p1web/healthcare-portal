@@ -367,9 +367,17 @@
                     <i class="bi bi-telephone-fill text-success me-2"></i>
                     {{ selectedHospital.phone }}
                   </div>
+                  <div *ngIf="selectedHospital.emergencyContactNumber">
+                    <i class="bi bi-hospital-fill text-danger me-2"></i>
+                    Emergency: {{ selectedHospital.emergencyContactNumber }}
+                  </div>
                   <div>
                     <i class="bi bi-envelope-fill text-info me-2"></i>
                     {{ selectedHospital.email }}
+                  </div>
+                  <div *ngIf="selectedHospital.website">
+                    <i class="bi bi-globe2 text-primary me-2"></i>
+                    <a [href]="selectedHospital.website" target="_blank" rel="noopener noreferrer">Visit website</a>
                   </div>
                   <div>
                     <i class="bi bi-clock-fill text-warning me-2"></i>

@@ -245,6 +245,22 @@
   transform: scale(1.1);
 }
 
+.availability-slots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.availability-slots span {
+  padding: 0.2rem 0.45rem;
+  border: 1px solid #b8d7d0;
+  border-radius: 4px;
+  background: #edf8f5;
+  color: #146c5a;
+  font-size: 0.7rem;
+  line-height: 1.25;
+}
+
 .card-header {
   border-bottom: none;
 }

@@ -5,7 +5,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { DoctorService } from '../../services/doctor.service';
 import { SpecializationService, Specializations } from '../../services/specialization.service';
 import { HospitalService } from '../../services/hospital.service';
-import { Doctor } from '../../models/doctor.model';
+import { Doctor, DoctorAvailabilitySlot } from '../../models/doctor.model';
 import { Hospital } from '../../models/hospital.model';
 
 
@@ -18,6 +18,7 @@ import { Hospital } from '../../models/hospital.model';
 })
 
 export class DoctorsComponent implements OnInit {
+  readonly shortDayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   doctors: Doctor[] = [];
   specializations: Specializations[] = [];
@@ -274,6 +275,17 @@ export class DoctorsComponent implements OnInit {
 
   toggleViewMode() {
     this.viewMode = this.viewMode === 'grid' ? 'list' : 'grid';
+  }
+
+  formatAvailabilitySlot(slot: DoctorAvailabilitySlot): string {
+    return `${this.shortDayNames[slot.dayOfWeek]} ${this.formatTime(slot.startTime)}-${this.formatTime(slot.endTime)}`;
+  }
+
+  private formatTime(time: string): string {
+    const [hourValue, minute] = time.split(':').map(Number);
+    const suffix = hourValue >= 12 ? 'PM' : 'AM';
+    const hour = hourValue % 12 || 12;
+    return `${hour}:${String(minute).padStart(2, '0')} ${suffix}`;
   }
 
   resetFilters() {

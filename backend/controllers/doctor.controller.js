@@ -1,5 +1,5 @@
-const { Doctor, Specialization, Hospital, DoctorAvailability } = require('../models');
-const { Op } = require('sequelize');
+const { DoctorProfile, User, Specialization, HospitalProfile, DoctorAvailability } = require('../models');
+const { PROFILE_REVIEW_STATUSES } = require('../utils/providerReview');
 
 // Helper function to format availability days
 function formatAvailabilityDays(availabilities) {
@@ -35,57 +35,68 @@ function formatAvailabilityDays(availabilities) {
   return grouped.join(', ');
 }
 
+function formatAvailabilitySchedule(availabilities) {
+  return (availabilities || [])
+    .filter(availability => availability.is_available)
+    .map(availability => ({
+      id: availability.id,
+      dayOfWeek: availability.day_of_week,
+      startTime: String(availability.start_time).slice(0, 5),
+      endTime: String(availability.end_time).slice(0, 5),
+      isAvailable: availability.is_available
+    }))
+    .sort((left, right) => left.dayOfWeek - right.dayOfWeek);
+}
+
 // Format doctor data for Angular component
-function formatDoctorForFrontend(doctor) {
-  const doctorJSON = doctor.toJSON();
+function formatDoctorForFrontend(profile) {
+  const doctorJSON = profile.toJSON();
 
   return {
     id: doctorJSON.id,
-    name: doctorJSON.name,
+    name: doctorJSON.user.name,
 
-    specialization_id: doctorJSON.specialization_id,
-    hospital_id: doctorJSON.hospital_id,
+    specialization_id: doctorJSON.specializationId,
+    hospital_id: doctorJSON.hospitalId,
   
     specialization: doctorJSON.specialization?.name || '',
-    hospital: doctorJSON.hospital?.name || '',
+    hospital: doctorJSON.hospital?.hospitalName || '',
 
-    experience: `${doctorJSON.experience} years`,
-    rating: parseFloat(doctorJSON.rating || 0),
-    fee: `${doctorJSON.fee}`,
+    experience: `${doctorJSON.yearsOfExperience || 0} years`,
+    rating: 0,
+    fee: `${doctorJSON.consultationFee || 0}`,
     available: formatAvailabilityDays(doctorJSON.availabilities || []),
-    email: doctorJSON.email,
-    phone: doctorJSON.phone,
+    availabilitySchedule: formatAvailabilitySchedule(doctorJSON.availabilities),
+    email: doctorJSON.user.email,
+    phone: doctorJSON.user.phone,
     qualification: doctorJSON.qualification || '',
-    bio: doctorJSON.bio || '',
-    image: doctorJSON.image || 'https://via.placeholder.com/300x300',
-    consultationDuration: doctorJSON.consultation_duration
+    bio: '',
+    image: doctorJSON.user.profileImage || 'https://via.placeholder.com/300x300',
+    consultationDuration: 30
   };
 }
+
+const publicDoctorIncludes = [
+  {
+    model: User,
+    as: 'user',
+    required: true,
+    where: { isActive: true, isBlocked: false },
+    attributes: ['id', 'name', 'email', 'phone', 'profileImage']
+  },
+  { model: Specialization, as: 'specialization', required: true },
+  { model: HospitalProfile, as: 'hospital', required: true },
+  { model: DoctorAvailability, as: 'availabilities', required: false }
+];
 
 // GET all doctors
 // The component will do client-side filtering, sorting in applyFiltersAndSort()
 exports.getAll = async (req, res) => {
   try {
-    // Fetch all doctors with associations
-    const doctors = await Doctor.findAll({
-      include: [
-        {
-          model: Specialization,
-          as: 'specialization',
-          attributes: ['id', 'name']
-        },
-        {
-          model: Hospital,
-          as: 'hospital',
-          attributes: ['id', 'name', 'location']
-        },
-        {
-          model: DoctorAvailability,
-          as: 'availabilities',
-          attributes: ['id', 'day_of_week', 'start_time', 'end_time', 'is_available']
-        }
-      ],
-      order: [['rating', 'DESC']]
+    const doctors = await DoctorProfile.findAll({
+      where: { verificationStatus: PROFILE_REVIEW_STATUSES.APPROVED },
+      include: publicDoctorIncludes,
+      order: [['lastVerifiedAt', 'DESC']]
     });
 
     // Format for frontend
@@ -112,31 +123,15 @@ exports.getById = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const doctor = await Doctor.findByPk(id, {
-      include: [
-        {
-          model: Specialization,
-          as: 'specialization',
-          attributes: ['id', 'name', 'description']
-        },
-        {
-          model: Hospital,
-          as: 'hospital',
-          attributes: ['id', 'name', 'location', 'address', 'phone', 'email']
-        },
-        {
-          model: DoctorAvailability,
-          as: 'availabilities',
-          attributes: ['id', 'day_of_week', 'start_time', 'end_time', 'is_available'],
-          order: [['day_of_week', 'ASC']]
-        }
-      ]
+    const doctor = await DoctorProfile.findOne({
+      where: { id, verificationStatus: PROFILE_REVIEW_STATUSES.APPROVED },
+      include: publicDoctorIncludes
     });
 
     if (!doctor) {
       return res.status(404).json({
         success: false,
-        message: 'Doctor not found'
+        message: 'Doctor not found or not publicly available'
       });
     }
 
@@ -145,13 +140,11 @@ exports.getById = async (req, res) => {
     
     // Add additional details for single doctor view
     const doctorJSON = doctor.toJSON();
-    formattedDoctor.hospitalLocation = doctorJSON.hospital?.location;
-    formattedDoctor.hospitalAddress = doctorJSON.hospital?.address;
-    formattedDoctor.hospitalPhone = doctorJSON.hospital?.phone;
-    formattedDoctor.hospitalEmail = doctorJSON.hospital?.email;
+    formattedDoctor.hospitalLocation = [doctorJSON.hospital?.hospitalCity, doctorJSON.hospital?.hospitalState].filter(Boolean).join(', ');
+    formattedDoctor.hospitalAddress = doctorJSON.hospital?.hospitalAddress;
+    formattedDoctor.hospitalPhone = doctorJSON.hospital?.hospitalPhone;
+    formattedDoctor.hospitalEmail = doctorJSON.hospital?.hospitalEmail;
     formattedDoctor.specializationDescription = doctorJSON.specialization?.description;
-    formattedDoctor.availabilitySchedule = doctorJSON.availabilities;
-
     res.status(200).json({
       success: true,
       data: formattedDoctor
@@ -162,232 +155,6 @@ exports.getById = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error fetching doctor',
-      error: error.message
-    });
-  }
-};
-
-// CREATE new doctor
-exports.create = async (req, res) => {
-  try {
-    const {
-      name,
-      specialization,
-      hospital,
-      experience,
-      rating,
-      fee,
-      email,
-      phone,
-      qualification,
-      bio,
-      image,
-      consultationDuration
-    } = req.body;
-
-    // Validate required fields
-    if (!name || !email || !phone || !specialization || !hospital) {
-      return res.status(400).json({
-        success: false,
-        message: 'Missing required fields: name, email, phone, specialization, hospital'
-      });
-    }
-
-    // Find specialization by name
-    const specializationRecord = await Specialization.findOne({
-      where: { name: { [Op.like]: `%${specialization}%` } }
-    });
-
-    if (!specializationRecord) {
-      return res.status(400).json({
-        success: false,
-        message: `Specialization '${specialization}' not found`
-      });
-    }
-
-    // Find hospital by name
-    const hospitalRecord = await Hospital.findOne({
-      where: { name: { [Op.like]: `%${hospital}%` } }
-    });
-
-    if (!hospitalRecord) {
-      return res.status(400).json({
-        success: false,
-        message: `Hospital '${hospital}' not found`
-      });
-    }
-
-    // Extract numeric values
-    const experienceYears = typeof experience === 'string' 
-      ? parseInt(experience.replace(/[^0-9]/g, '')) 
-      : experience;
-    
-    const feeAmount = typeof fee === 'string'
-      ? parseFloat(fee.replace(/[^0-9.]/g, ''))
-      : fee;
-
-    // Create doctor
-    const doctor = await Doctor.create({
-      name,
-      specialization_id: specializationRecord.id,
-      hospital_id: hospitalRecord.id,
-      experience: experienceYears,
-      rating: rating || 0,
-      fee: feeAmount,
-      email,
-      phone,
-      qualification: qualification || '',
-      bio: bio || '',
-      image: image || '',
-      consultation_duration: consultationDuration || 30
-    });
-
-    // Fetch with associations
-    const createdDoctor = await Doctor.findByPk(doctor.id, {
-      include: [
-        { model: Specialization, as: 'specialization' },
-        { model: Hospital, as: 'hospital' },
-        { model: DoctorAvailability, as: 'availabilities' }
-      ]
-    });
-
-    res.status(201).json({
-      success: true,
-      message: 'Doctor created successfully',
-      data: formatDoctorForFrontend(createdDoctor)
-    });
-
-  } catch (error) {
-    console.error('Error creating doctor:', error);
-    
-    if (error.name === 'SequelizeUniqueConstraintError') {
-      return res.status(400).json({
-        success: false,
-        message: 'Email already exists'
-      });
-    }
-
-    res.status(500).json({
-      success: false,
-      message: 'Error creating doctor',
-      error: error.message
-    });
-  }
-};
-
-// UPDATE doctor
-exports.update = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const updateData = req.body;
-
-    const doctor = await Doctor.findByPk(id);
-
-    if (!doctor) {
-      return res.status(404).json({
-        success: false,
-        message: 'Doctor not found'
-      });
-    }
-
-    const updates = {};
-
-    // Handle specialization update
-    if (updateData.specialization) {
-      const specializationRecord = await Specialization.findOne({
-        where: { name: { [Op.like]: `%${updateData.specialization}%` } }
-      });
-      if (specializationRecord) {
-        updates.specialization_id = specializationRecord.id;
-      }
-    }
-
-    // Handle hospital update
-    if (updateData.hospital) {
-      const hospitalRecord = await Hospital.findOne({
-        where: { name: { [Op.like]: `%${updateData.hospital}%` } }
-      });
-      if (hospitalRecord) {
-        updates.hospital_id = hospitalRecord.id;
-      }
-    }
-
-    // Extract numeric values
-    if (updateData.experience) {
-      updates.experience = typeof updateData.experience === 'string'
-        ? parseInt(updateData.experience.replace(/[^0-9]/g, ''))
-        : updateData.experience;
-    }
-
-    if (updateData.fee) {
-      updates.fee = typeof updateData.fee === 'string'
-        ? parseFloat(updateData.fee.replace(/[^0-9.]/g, ''))
-        : updateData.fee;
-    }
-
-    // Update other fields
-    if (updateData.name) updates.name = updateData.name;
-    if (updateData.rating !== undefined) updates.rating = updateData.rating;
-    if (updateData.email) updates.email = updateData.email;
-    if (updateData.phone) updates.phone = updateData.phone;
-    if (updateData.qualification !== undefined) updates.qualification = updateData.qualification;
-    if (updateData.bio !== undefined) updates.bio = updateData.bio;
-    if (updateData.image !== undefined) updates.image = updateData.image;
-    if (updateData.consultationDuration) updates.consultation_duration = updateData.consultationDuration;
-
-    await doctor.update(updates);
-
-    // Fetch updated doctor with associations
-    const updatedDoctor = await Doctor.findByPk(id, {
-      include: [
-        { model: Specialization, as: 'specialization' },
-        { model: Hospital, as: 'hospital' },
-        { model: DoctorAvailability, as: 'availabilities' }
-      ]
-    });
-
-    res.status(200).json({
-      success: true,
-      message: 'Doctor updated successfully',
-      data: formatDoctorForFrontend(updatedDoctor)
-    });
-
-  } catch (error) {
-    console.error('Error updating doctor:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error updating doctor',
-      error: error.message
-    });
-  }
-};
-
-// DELETE doctor
-exports.delete = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const doctor = await Doctor.findByPk(id);
-
-    if (!doctor) {
-      return res.status(404).json({
-        success: false,
-        message: 'Doctor not found'
-      });
-    }
-
-    await doctor.destroy();
-
-    res.status(200).json({
-      success: true,
-      message: 'Doctor deleted successfully'
-    });
-
-  } catch (error) {
-    console.error('Error deleting doctor:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error deleting doctor',
       error: error.message
     });
   }

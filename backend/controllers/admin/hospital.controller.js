@@ -1,14 +1,44 @@
 const {
   HospitalProfile,
   User,
-  Hospital,
-  Accreditation,
-  Facility,
-  Specialty,    
-  HospitalImage
+  sequelize,
 } = require("../../models");
 
 const { Op } = require("sequelize");
+const {
+  PROFILE_REVIEW_STATUSES,
+  buildAdminReviewUpdate,
+  normalizeProfileReviewStatus
+} = require('../../utils/providerReview');
+const { findPublicHospitalProfiles } = require('../../utils/publicHospital');
+
+function mapProfileStatusFilter(status) {
+  switch (String(status || 'ALL').toUpperCase()) {
+    case 'ACTIVE':
+    case 'VERIFIED':
+    case 'APPROVED':
+      return PROFILE_REVIEW_STATUSES.APPROVED;
+    case 'PENDING':
+      return {
+        [Op.in]: [
+          PROFILE_REVIEW_STATUSES.DRAFT,
+          PROFILE_REVIEW_STATUSES.SUBMITTED,
+          PROFILE_REVIEW_STATUSES.UNDER_REVIEW,
+          PROFILE_REVIEW_STATUSES.CHANGES_REQUESTED
+        ]
+      };
+    case 'REJECTED':
+      return PROFILE_REVIEW_STATUSES.REJECTED;
+    case 'UNDER_REVIEW':
+      return PROFILE_REVIEW_STATUSES.UNDER_REVIEW;
+    case 'CHANGES_REQUESTED':
+      return PROFILE_REVIEW_STATUSES.CHANGES_REQUESTED;
+    case 'SUSPENDED':
+      return PROFILE_REVIEW_STATUSES.SUSPENDED;
+    default:
+      return null;
+  }
+}
 
 module.exports = {
 
@@ -25,21 +55,31 @@ module.exports = {
       switch (status) {
 
         case "ACTIVE":
-          userWhere.is_active = true;
-          userWhere.is_blocked = false;
-          profileWhere.is_verified = true;
+          userWhere.isActive = true;
+          userWhere.isBlocked = false;
+          profileWhere.verificationStatus = PROFILE_REVIEW_STATUSES.APPROVED;
           break;
 
         case "BLOCKED":
           userWhere[Op.or] = [
-            { is_active: false },
-            { is_blocked: true }
+            { isActive: false },
+            { isBlocked: true }
           ];
           break;
 
         case "VERIFIED":
-          profileWhere.is_verified = true;
-          userWhere.is_blocked = false; // optional, keeps list clean
+        case "APPROVED":
+          profileWhere.verificationStatus = PROFILE_REVIEW_STATUSES.APPROVED;
+          userWhere.isBlocked = false; // optional, keeps list clean
+          break;
+
+        case "PENDING":
+        case "UNDER_REVIEW":
+        case "CHANGES_REQUESTED":
+        case "REJECTED":
+        case "SUSPENDED":
+          profileWhere.verificationStatus = mapProfileStatusFilter(status);
+          userWhere.isBlocked = false;
           break;
 
         default:
@@ -49,10 +89,16 @@ module.exports = {
 
       const users = await User.findAll({ 
             where: userWhere, 
-            include: [ { 
-                model: HospitalProfile, as: "hospitalProfile", 
-                where: profileWhere 
-            }] 
+          include: [ {
+            model: HospitalProfile, as: "hospitalProfile",
+            where: profileWhere,
+            include: [{
+              model: User,
+              as: 'reviewedBy',
+              required: false,
+              attributes: ['id', 'name', 'email']
+            }]
+          }]
         });
 
       res.json(users);
@@ -68,48 +114,96 @@ module.exports = {
 
 
   // ==================================
+  // Verify / Unverify a Hospital Profile
+  // ==================================
+  async verifyHospitalProfile(req, res) {
+    const t = await sequelize.transaction();
+
+    try {
+      const { id } = req.params;
+      const { status, reviewNotes, rejectionReason } = req.body;
+
+      const profile = await HospitalProfile.findByPk(id, {
+        include: [{ model: User, as: 'user' }],
+        transaction: t
+      });
+
+      if (!profile) {
+        await t.rollback();
+        return res.status(404).json({ message: "Hospital profile not found" });
+      }
+
+      const reviewUpdate = buildAdminReviewUpdate({
+        currentStatus: profile.verificationStatus,
+        status,
+        reviewerId: req.user.id,
+        reviewNotes,
+        rejectionReason
+      });
+
+      await profile.update(reviewUpdate, { transaction: t });
+
+      await t.commit();
+
+      const published = normalizeProfileReviewStatus(status) === PROFILE_REVIEW_STATUSES.APPROVED
+        && profile.user.isActive && !profile.user.isBlocked;
+
+      res.json({
+        message: `Hospital profile moved to ${normalizeProfileReviewStatus(status).replace(/_/g, ' ')} successfully`,
+        data: profile,
+        publish: { published, hospitalId: profile.id }
+      });
+    } catch (error) {
+      if (!t.finished) {
+        await t.rollback();
+      }
+      res.status(500).json({ message: "Failed to update review status", error: error.message });
+    }
+  },
+
+  // ==================================
   // Public Hospital Listings
   // ==================================
     async getPublicHospitals(req, res) {
         try {
-            const hospitals = await Hospital.findAll({
-                include: [
-                    {
-                        model: Accreditation,
-                        as: "accreditations",
-                        through: {
-                            attributes: [
-                                "certified_date",
-                                "expiry_date",
-                                "certificate_number"
-                            ]
-                        },
-                        required: false
-                    },
-                    {
-                        model: Specialty,
-                        as: "specialties",
-                        through: {
-                            attributes: ["is_primary"] // from hospital_specialties table
-                        },
-                        required: false
-                    },
-                    {
-                        model: Facility,
-                        as: "facilities",
-                        through: {
-                            attributes: [] // no extra fields in hospital_facilities
-                        },
-                        required: false
-                    },
-                    {
-                        model: HospitalImage,
-                        as: "images",
-                        required: false
-                    }
-                ],
-                order: [["id", "DESC"]]
-            });
+        const entries = await findPublicHospitalProfiles();
+        const hospitals = entries.map(({ profile, specialties }) => ({
+          id: profile.id,
+          name: profile.hospitalName,
+          email: profile.hospitalEmail,
+          phone: profile.hospitalPhone,
+          address: profile.hospitalAddress,
+          location: [profile.hospitalCity, profile.hospitalState].filter(Boolean).join(', '),
+          pincode: profile.hospitalPincode,
+          website: profile.website,
+          emergencyContactNumber: profile.emergencyContactNumber,
+          established: profile.establishedYear,
+          registration_number: profile.registrationNumber,
+          hospital_type: profile.hospitalType,
+          beds: profile.totalBeds,
+          rating: profile.rating,
+          discount: profile.discount,
+          operating_hours: profile.operatingHours,
+          emergency_available: profile.emergencyServices,
+          ambulance_available: profile.ambulanceServices,
+          description: profile.bio,
+          is_published: true,
+          verificationStatus: profile.verificationStatus,
+          submittedAt: profile.submittedAt,
+          reviewedAt: profile.reviewedAt,
+          reviewedBy: profile.reviewedBy,
+          reviewNotes: profile.reviewNotes,
+          rejectionReason: profile.rejectionReason,
+          verificationDocuments: profile.verificationDocuments,
+          createdAt: profile.createdAt,
+          specialties: specialties.map(specialty => ({
+            ...specialty,
+            HospitalSpecialty: { is_primary: false }
+          })),
+          facilities: [],
+          accreditations: [],
+          images: []
+        }));
 
             res.json(hospitals);
 

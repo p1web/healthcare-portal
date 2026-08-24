@@ -1,3 +1,19 @@
+.availability-slots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 0.75rem;
+}
+
+.availability-slots span {
+  background: #eef7f3;
+  border: 1px solid #b9ddcd;
+  border-radius: 4px;
+  color: #176b4d;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.3rem 0.45rem;
+}
 /* Doctor Cards */
 .doctor-card {
   transition: all 0.3s ease;

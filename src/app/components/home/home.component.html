@@ -275,6 +275,12 @@
                     <i class="bi bi-currency-rupee text-success me-2 fw-bold"></i>
                     <span class="fw-semibold text-dark">₹{{ doctor.fee }} Consultation</span>
                   </li>
+                  <li class="availability-slots" *ngIf="doctor.availabilitySchedule.length; else noDoctorAvailability">
+                    <span *ngFor="let slot of doctor.availabilitySchedule">{{ formatAvailabilitySlot(slot) }}</span>
+                  </li>
+                  <ng-template #noDoctorAvailability>
+                    <li class="text-muted"><i class="bi bi-calendar-x me-2"></i>Not Available</li>
+                  </ng-template>
                 </ul>
                 <button class="btn btn-primary w-100 fw-semibold">
                   <i class="bi bi-calendar-check me-2"></i>Book Appointment

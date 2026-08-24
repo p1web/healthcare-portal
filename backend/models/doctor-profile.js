@@ -1,6 +1,7 @@
 // models/doctor-profile.js
 'use strict';
 const { Model } = require('sequelize');
+const { PROFILE_REVIEW_STATUSES, isApprovedStatus } = require('../utils/providerReview');
 
 module.exports = (sequelize, DataTypes) => {
   class DoctorProfile extends Model {
@@ -10,14 +11,29 @@ module.exports = (sequelize, DataTypes) => {
         as: 'user'
       });
 
-      DoctorProfile.hasOne(models.Doctor, {
+      DoctorProfile.belongsTo(models.User, {
+        foreignKey: 'reviewed_by_user_id',
+        as: 'reviewedBy'
+      });
+
+      DoctorProfile.hasMany(models.DoctorAvailability, {
         foreignKey: 'doctor_profile_id',
-        as: 'doctor'
+        as: 'availabilities'
+      });
+
+      DoctorProfile.hasMany(models.Appointment, {
+        foreignKey: 'doctor_profile_id',
+        as: 'appointments'
       });
 
       DoctorProfile.belongsTo(models.Specialization, {
         foreignKey: 'specialization_id',
         as: 'specialization'
+      });
+
+      DoctorProfile.belongsTo(models.HospitalProfile, {
+        foreignKey: 'hospital_id',
+        as: 'hospital'
       });
     }
   }
@@ -49,6 +65,11 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true,
       field: 'specialization_id'
     },
+    hospitalId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      field: 'hospital_id'
+    },
     yearsOfExperience: {
       type: DataTypes.INTEGER,
       allowNull: true,
@@ -59,10 +80,55 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true,
       field: 'consultation_fee'
     },
+    verificationStatus: {
+      type: DataTypes.ENUM(
+        PROFILE_REVIEW_STATUSES.DRAFT,
+        PROFILE_REVIEW_STATUSES.SUBMITTED,
+        PROFILE_REVIEW_STATUSES.UNDER_REVIEW,
+        PROFILE_REVIEW_STATUSES.CHANGES_REQUESTED,
+        PROFILE_REVIEW_STATUSES.APPROVED,
+        PROFILE_REVIEW_STATUSES.REJECTED,
+        PROFILE_REVIEW_STATUSES.SUSPENDED
+      ),
+      allowNull: false,
+      defaultValue: PROFILE_REVIEW_STATUSES.DRAFT,
+      field: 'verification_status'
+    },
+    submittedAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      field: 'submitted_at'
+    },
+    reviewedAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      field: 'reviewed_at'
+    },
+    reviewedByUserId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      field: 'reviewed_by_user_id'
+    },
+    reviewNotes: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      field: 'review_notes'
+    },
+    rejectionReason: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      field: 'rejection_reason'
+    },
+    lastVerifiedAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      field: 'last_verified_at'
+    },
     isVerified: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false,
-      field: 'is_verified'
+      type: DataTypes.VIRTUAL,
+      get() {
+        return isApprovedStatus(this.getDataValue('verificationStatus'));
+      }
     },
     verificationDocuments: {
       type: DataTypes.JSON,

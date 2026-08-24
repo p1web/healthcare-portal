@@ -9,6 +9,42 @@
     </div>
   </div>
 
+  <div class="profile-section review-overview">
+    <div class="review-summary">
+      <div>
+        <span class="me-2">Review status:</span>
+        <span [ngClass]="reviewBadgeClass">{{ reviewStatusLabel }}</span>
+      </div>
+      <button type="button" class="btn btn-outline-primary" *ngIf="canSubmitForReview"
+        [disabled]="isSubmittingReview" (click)="submitForReview()">
+        <span *ngIf="!isSubmittingReview"><i class="bi bi-send-check me-1"></i>{{ reviewStatus === 'changes_requested' ? 'Resubmit Profile' : 'Submit for Review' }}</span>
+        <span *ngIf="isSubmittingReview"><span class="spinner-border spinner-border-sm me-2"></span>Submitting...</span>
+      </button>
+    </div>
+
+    <div class="review-timeline" aria-label="Profile review timeline">
+      <div class="timeline-step" *ngFor="let step of timelineSteps" [class.complete]="step.complete"
+        [class.active]="step.active" [class.outcome]="step.outcome">
+        <span class="timeline-dot"><i class="bi" [ngClass]="step.complete ? 'bi-check-lg' : 'bi-circle'"></i></span>
+        <div class="timeline-content">
+          <div class="timeline-heading">
+            <strong>{{ step.label }}</strong>
+            <span class="timeline-date">{{ step.date ? (step.date | date:'dd MMM yyyy, hh:mm a') : 'Date not recorded' }}</span>
+          </div>
+          <p>{{ step.comment }}</p>
+          <span class="timeline-reviewer" *ngIf="step.reviewer">Reviewed by {{ step.reviewer }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="review-note" *ngIf="!isProfileEditable">
+      <i class="bi bi-lock me-1"></i>Profile and public listing details are locked after submission. Editing is available only if the profile is returned.
+    </div>
+    <div class="review-note returned" *ngIf="reviewStatus === 'changes_requested'">
+      <i class="bi bi-arrow-counterclockwise me-1"></i>Update the requested information, save, then resubmit your profile.
+    </div>
+  </div>
+
   <div *ngIf="success" class="alert alert-success alert-dismissible fade show">
     <i class="bi bi-check-circle me-2"></i>{{ success }}
     <button type="button" class="btn-close" (click)="success = ''"></button>
@@ -21,9 +57,9 @@
 
   <form [formGroup]="profileForm" (ngSubmit)="onSubmit()">
 
-    <!-- BASIC INFORMATION -->
+    <!-- ACCOUNT HOLDER INFORMATION -->
     <section class="profile-section" formGroupName="basic">
-      <h6 class="section-title"><i class="bi bi-person-lines-fill"></i> Basic Information</h6>
+      <h6 class="section-title"><i class="bi bi-person-lines-fill"></i> Account Holder Information</h6>
 
       <div class="row">
         <div class="col-md-6 mb-3">
@@ -143,6 +179,75 @@
 
       <div class="row">
         <div class="col-md-6 mb-3">
+          <label class="form-label">Hospital Name <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" formControlName="hospitalName"
+            [class.is-invalid]="profileForm.get('hospital.hospitalName')?.invalid && profileForm.get('hospital.hospitalName')?.touched">
+          <div class="invalid-feedback">Enter the hospital's registered or public name.</div>
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Hospital Email <span class="text-danger">*</span></label>
+          <input type="email" class="form-control" formControlName="hospitalEmail"
+            [class.is-invalid]="profileForm.get('hospital.hospitalEmail')?.invalid && profileForm.get('hospital.hospitalEmail')?.touched">
+          <div class="invalid-feedback">Enter a valid hospital email address.</div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Hospital Contact Number <span class="text-danger">*</span></label>
+          <input type="tel" class="form-control" formControlName="hospitalPhone" placeholder="10 to 15 digits"
+            [class.is-invalid]="profileForm.get('hospital.hospitalPhone')?.invalid && profileForm.get('hospital.hospitalPhone')?.touched">
+          <div class="invalid-feedback">Enter a valid hospital contact number.</div>
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Emergency Contact Number <span class="text-danger">*</span></label>
+          <input type="tel" class="form-control" formControlName="emergencyContactNumber" placeholder="10 to 15 digits"
+            [class.is-invalid]="profileForm.get('hospital.emergencyContactNumber')?.invalid && profileForm.get('hospital.emergencyContactNumber')?.touched">
+          <div class="invalid-feedback">Enter a valid emergency contact number.</div>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Hospital Address <span class="text-danger">*</span></label>
+        <textarea class="form-control" formControlName="hospitalAddress" rows="2"
+          [class.is-invalid]="profileForm.get('hospital.hospitalAddress')?.invalid && profileForm.get('hospital.hospitalAddress')?.touched"></textarea>
+        <div class="invalid-feedback">Hospital address is required.</div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-4 mb-3">
+          <label class="form-label">City <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" formControlName="hospitalCity"
+            [class.is-invalid]="profileForm.get('hospital.hospitalCity')?.invalid && profileForm.get('hospital.hospitalCity')?.touched">
+          <div class="invalid-feedback">City is required.</div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+          <label class="form-label">State <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" formControlName="hospitalState"
+            [class.is-invalid]="profileForm.get('hospital.hospitalState')?.invalid && profileForm.get('hospital.hospitalState')?.touched">
+          <div class="invalid-feedback">State is required.</div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+          <label class="form-label">Pincode <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" formControlName="hospitalPincode" placeholder="6 digits"
+            [class.is-invalid]="profileForm.get('hospital.hospitalPincode')?.invalid && profileForm.get('hospital.hospitalPincode')?.touched">
+          <div class="invalid-feedback">Enter a valid 6 digit pincode.</div>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Website</label>
+        <input type="url" class="form-control" formControlName="website" placeholder="https://www.example.com"
+          [class.is-invalid]="profileForm.get('hospital.website')?.invalid && profileForm.get('hospital.website')?.touched">
+        <div class="invalid-feedback">Website must start with http:// or https://.</div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6 mb-3">
           <label class="form-label">Registration Number</label>
           <input type="text" class="form-control" formControlName="registrationNumber">
         </div>
@@ -176,10 +281,31 @@
           <label class="form-label">Operating Hours</label>
           <input type="text" class="form-control" placeholder="e.g. 24x7 / 9AM - 6PM" formControlName="operatingHours">
         </div>
+      </div>
 
-        <div class="col-md-6 mb-3">
-          <label class="form-label">Upload Verification Documents</label>
-          <input type="file" class="form-control" multiple (change)="onHospitalDocumentsSelected($event)">
+      <div class="mb-3">
+        <label class="form-label" for="hospitalBio">Hospital Bio</label>
+        <textarea class="form-control" id="hospitalBio" formControlName="bio" rows="5" maxlength="2000"
+          placeholder="Describe the hospital, clinical expertise, care approach, and notable services"></textarea>
+        <div class="d-flex justify-content-between mt-1">
+          <small class="text-muted">This description will appear on the public hospital profile after approval.</small>
+          <small class="text-muted">{{ profileForm.get('hospital.bio')?.value?.length || 0 }}/2000</small>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Specialties <span class="text-danger">*</span></label>
+        <div class="specialty-grid"
+          [class.is-invalid]="profileForm.get('hospital.specialtyIds')?.invalid && profileForm.get('hospital.specialtyIds')?.touched">
+          <label class="specialty-option" *ngFor="let specialty of specialties">
+            <input type="checkbox" class="form-check-input" [checked]="isSpecialtySelected(specialty.id)"
+              (change)="toggleSpecialty(specialty.id, $any($event.target).checked)">
+            <span>{{ specialty.name }}</span>
+          </label>
+        </div>
+        <div class="invalid-feedback d-block"
+          *ngIf="profileForm.get('hospital.specialtyIds')?.invalid && profileForm.get('hospital.specialtyIds')?.touched">
+          Select at least one specialty.
         </div>
       </div>
 
@@ -195,8 +321,47 @@
       </div>
     </section>
 
+    <!-- VERIFICATION DOCUMENTS -->
+    <section class="profile-section">
+      <h6 class="section-title"><i class="bi bi-file-earmark-medical"></i> Verification Documents</h6>
+
+      <div class="subsection">
+        <label class="form-label fw-semibold">Uploaded Documents</label>
+
+        <ul class="list-group mb-2" *ngIf="uploadedHospitalDocuments.length">
+          <li class="list-group-item d-flex justify-content-between align-items-center"
+            *ngFor="let doc of uploadedHospitalDocuments">
+            {{ doc.name }}
+            <a class="btn btn-sm btn-outline-secondary" [href]="'http://localhost:3000' + doc.url" target="_blank">View</a>
+          </li>
+        </ul>
+        <p class="text-muted mb-0" *ngIf="!uploadedHospitalDocuments.length">
+          No documents uploaded yet.
+        </p>
+      </div>
+
+      <div class="subsection">
+        <label class="form-label fw-semibold">Upload New Documents</label>
+        <input type="file" class="form-control" multiple accept=".pdf,.jpg,.jpeg,.png" [disabled]="!isProfileEditable" (change)="onHospitalDocumentsSelected($event)">
+
+        <small class="text-muted d-block mt-1">
+          Allowed formats: PDF, JPG, PNG
+        </small>
+
+        <ul class="list-group mt-2" *ngIf="hospitalDocuments.length">
+          <li class="list-group-item d-flex justify-content-between align-items-center"
+            *ngFor="let doc of hospitalDocuments; let i = index">
+            {{ doc.name }}
+            <button type="button" class="btn btn-sm btn-outline-danger" [disabled]="!isProfileEditable" (click)="removeHospitalDocument(i)">
+              Remove
+            </button>
+          </li>
+        </ul>
+      </div>
+    </section>
+
     <div class="form-actions">
-      <button type="submit" class="btn btn-primary px-4" [disabled]="isSubmitting">
+      <button type="submit" class="btn btn-primary px-4" [disabled]="isSubmitting || !isProfileEditable">
         <span *ngIf="!isSubmitting">
           <i class="bi bi-check-circle me-1"></i> Save Profile
         </span>

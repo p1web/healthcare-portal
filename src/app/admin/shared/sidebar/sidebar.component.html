@@ -5,7 +5,9 @@
 
     <!-- Dashboard -->
     <li class="nav-item">
-      <a class="nav-link collapsed" href="admin/dashboard" >
+      <a class="nav-link" routerLink="/admin/dashboard" routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }" #dashboardLink="routerLinkActive"
+        [class.collapsed]="!dashboardLink.isActive">
         <i class="bi bi-speedometer2"></i>
         <span>Dashboard</span>
       </a>
@@ -15,60 +17,20 @@
     <li class="nav-heading">User Management</li>
 
     <li class="nav-item">
-      <a class="nav-link collapsed" [routerLink]="['users']" [queryParams]="{status:'ALL'}">
+      <a class="nav-link" routerLink="/admin/users" routerLinkActive="active"
+        #usersLink="routerLinkActive" [class.collapsed]="!usersLink.isActive">
         <i class="bi bi-people"></i>
-        <span>All Users</span>
-      </a>
-    </li>
-
-    <li class="nav-item">
-      <a class="nav-link collapsed" [routerLink]="['users']" [queryParams]="{status:'ACTIVE'}">
-        <i class="bi bi-person-check"></i>
-        <span>Active Users</span>
-      </a>
-    </li>
-
-    <li class="nav-item">
-      <a class="nav-link collapsed" [routerLink]="['users']" [queryParams]="{status:'BLOCKED'}">
-        <i class="bi bi-person-x"></i>
-        <span>Blocked / Inactive Users</span>
+        <span>Users</span>
       </a>
     </li>
 
     <!-- Doctor Management -->
-    <li class="nav-heading">Doctors Management</li>
+    <li class="nav-heading">Doctor Management</li>
 
     <li class="nav-item">
-      <a class="nav-link collapsed" [routerLink]="['doctors-profile']" [queryParams]="{status:'ALL'}">
-        <i class="bi bi-file-medical"></i>
-        <span>Doctor Profile</span>
-      </a>
-    </li>
-
-    
-    <li class="nav-item">
-      <a class="nav-link collapsed" [routerLink]="['doctors-profile']" [queryParams]="{status:'VERIFIED'}">
-        <i class="bi bi-patch-check"></i>
-        <span>Verified Doctor</span>
-      </a>
-    </li>
-
-    <!-- <li class="nav-item">
-      <a class="nav-link collapsed" [routerLink]="['doctors-profile']" [queryParams]="{status:'ACTIVE'}">
-        <i class="bi bi-hourglass-split"></i>
-        <span>Active Doctor Profile</span>
-      </a>
-    </li>
-
-     <li class="nav-item">
-      <a class="nav-link collapsed" [routerLink]="['doctors-profile']" [queryParams]="{status:'BLOCKED'}">
-        <i class="bi bi-patch-minus"></i>
-        <span>Blocked / Inactive Doctors</span>
-      </a>
-    </li> -->
-
-    <li class="nav-item">
-      <a class="nav-link collapsed" [routerLink]="['public-doctors']">
+      <a class="nav-link" routerLink="/admin/public-doctors" routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }" #publicDoctorsLink="routerLinkActive"
+        [class.collapsed]="!publicDoctorsLink.isActive">
         <i class="bi bi-globe"></i>
         <span>Public Doctor Listings</span>
       </a>
@@ -78,36 +40,9 @@
     <li class="nav-heading">Hospital Management</li>
 
     <li class="nav-item">
-      <a class="nav-link collapsed" [routerLink]="['hospital-user-profile']" [queryParams]="{status:'All'}">
-        <i class="bi bi-hourglass-split"></i>
-        <span>All Admin Profiles</span>
-      </a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link collapsed" [routerLink]="['hospital-user-profile']" [queryParams]="{status:'VERIFIED'}">
-        <i class="bi bi-hospital"></i>
-        <span>Verified Admin Profiles</span>
-      </a>
-    </li>
-
-    <!-- 
-
-    <li class="nav-item">
-      <a class="nav-link collapsed" [routerLink]="['hospital-user-profile']" [queryParams]="{status:'VERIFIED'}">
-        <i class="bi bi-patch-check"></i>
-        <span>Verified Admin Profiles</span>
-      </a>
-    </li>
-
-    <li class="nav-item">
-      <a class="nav-link collapsed" [routerLink]="['hospital-user-profile']" [queryParams]="{status:'BLOCKED'}">
-        <i class="bi bi-patch-minus"></i>
-        <span>Rejected / Inactive Admin Profiles</span>
-      </a>
-    </li> -->
-
-    <li class="nav-item">
-      <a class="nav-link collapsed" [routerLink]="['public-hospitals']">
+      <a class="nav-link" routerLink="/admin/public-hospitals" routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }" #publicHospitalsLink="routerLinkActive"
+        [class.collapsed]="!publicHospitalsLink.isActive">
         <i class="bi bi-globe"></i>
         <span>Public Hospital Listings</span>
       </a>
@@ -117,16 +52,11 @@
     <li class="nav-heading">Appointments</li>
 
     <li class="nav-item">
-      <a class="nav-link collapsed" href="#">
+      <a class="nav-link" routerLink="/admin/appointments" routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }" #appointmentsLink="routerLinkActive"
+        [class.collapsed]="!appointmentsLink.isActive">
         <i class="bi bi-calendar-check"></i>
         <span>All Appointments</span>
-      </a>
-    </li>
-
-    <li class="nav-item">
-      <a class="nav-link collapsed" href="#">
-        <i class="bi bi-calendar-x"></i>
-        <span>Cancelled / No-Show Appointments</span>
       </a>
     </li>
 
@@ -141,14 +71,18 @@
     <li class="nav-heading">Masters</li>
 
     <li class="nav-item">
-      <a class="nav-link collapsed" [routerLink]="['specialties']">
+      <a class="nav-link" routerLink="/admin/specialties" routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }" #specialtiesLink="routerLinkActive"
+        [class.collapsed]="!specialtiesLink.isActive">
         <i class="bi bi-diagram-3"></i>
         <span>Specialties</span>
       </a>
     </li>
 
     <li class="nav-item">
-      <a class="nav-link collapsed" [routerLink]="['specializations']">
+      <a class="nav-link" routerLink="/admin/specializations" routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }" #specializationsLink="routerLinkActive"
+        [class.collapsed]="!specializationsLink.isActive">
         <i class="bi bi-diagram-2"></i>
         <span>Specializations</span>
       </a>
@@ -160,13 +94,6 @@
         <span>Doctor–Specialization Mapping</span>
       </a>
     </li> -->
-
-    <li class="nav-item">
-      <a class="nav-link collapsed" [routerLink]="['hospital-specialty-mapping']">
-        <i class="bi bi-link-45deg"></i>
-        <span>Hospital–Specialities Mapping</span>
-      </a>
-    </li>
 
     <!-- Blank -->
     <li class="nav-item">

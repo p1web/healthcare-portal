@@ -1,0 +1,69 @@
+<section class="bookings-page">
+  <header class="page-header">
+    <div>
+      <h4>Patient Bookings</h4>
+      <p>Review and approve appointments booked with you.</p>
+    </div>
+    <button type="button" class="btn btn-outline-primary" (click)="loadAppointments()" [disabled]="isLoading">
+      <i class="bi bi-arrow-clockwise me-2"></i>Refresh
+    </button>
+  </header>
+
+  <div *ngIf="success" class="alert alert-success alert-dismissible fade show">
+    <i class="bi bi-check-circle me-2"></i>{{ success }}
+    <button type="button" class="btn-close" (click)="success = ''"></button>
+  </div>
+
+  <div *ngIf="error" class="alert alert-danger alert-dismissible fade show">
+    <i class="bi bi-exclamation-circle me-2"></i>{{ error }}
+    <button type="button" class="btn-close" (click)="error = ''"></button>
+  </div>
+
+  <div *ngIf="isLoading" class="state-panel">
+    <div class="spinner-border text-primary" role="status"></div>
+    <span>Loading patient bookings...</span>
+  </div>
+
+  <div *ngIf="!isLoading && !error && !appointments.length" class="state-panel empty-state">
+    <i class="bi bi-calendar2-check"></i>
+    <h5>No patient bookings yet</h5>
+    <p>New appointment requests will appear here.</p>
+  </div>
+
+  <div *ngIf="!isLoading && appointments.length" class="table-responsive bookings-table">
+    <table class="table align-middle mb-0">
+      <thead>
+        <tr>
+          <th>Patient</th>
+          <th>Date & Time</th>
+          <th>Reason</th>
+          <th>Status</th>
+          <th class="text-end">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let appointment of appointments">
+          <td>
+            <strong>{{ appointment.patientName }}</strong>
+            <small><i class="bi bi-envelope me-1"></i>{{ appointment.patientEmail }}</small>
+            <small><i class="bi bi-telephone me-1"></i>{{ appointment.patientPhone }}</small>
+          </td>
+          <td>
+            <strong>{{ appointment.date | date:'dd MMM yyyy' }}</strong>
+            <small>{{ formatTime(appointment.time) }}</small>
+          </td>
+          <td class="reason-cell">{{ appointment.reason || 'Not specified' }}</td>
+          <td><span class="status-badge" [ngClass]="getStatusClass(appointment.status)">{{ appointment.status | titlecase }}</span></td>
+          <td class="text-end">
+            <button *ngIf="appointment.status === 'pending'" type="button" class="btn btn-sm btn-success"
+              (click)="approveAppointment(appointment)" [disabled]="approvingId === appointment.id">
+              <span *ngIf="approvingId !== appointment.id"><i class="bi bi-check-lg me-1"></i>Approve</span>
+              <span *ngIf="approvingId === appointment.id" class="spinner-border spinner-border-sm"></span>
+            </button>
+            <span *ngIf="appointment.status !== 'pending'" class="text-muted small">No action required</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>

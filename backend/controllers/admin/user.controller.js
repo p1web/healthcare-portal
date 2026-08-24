@@ -1,38 +1,59 @@
 const {
   User,
   PatientProfile,
+  PatientAllergy,
+  PatientMedicalCondition,
   DoctorProfile,
+  DoctorAvailability,
   HospitalProfile,
-  Doctor,
-  Hospital,
-  Specialization
+  Specialization,
+  sequelize
 } = require("../../models");
 
 const { Op, Sequelize } = require("sequelize");
 
-// GET all doctors
-// The component will do client-side filtering, sorting in applyFiltersAndSort()
 module.exports = {
   async getAllUsers(req, res) {
     
     try {
-      const { status } = req.query;
+      const { status, role } = req.query;
       const where = {};
 
       if (status === "ACTIVE") {
         where.isActive = true;
+        where.isBlocked = false;
       }
 
       if (status === "BLOCKED") {
-        where.isBlocked = true;
+        // Include any legacy non-active row in the Blocked result.
+        where[Op.or] = [{ isBlocked: true }, { isActive: false }];
       }
 
-      // where.role = 'patient';
+      if (role && role !== "ALL") {
+        where.role = role;
+      }
+
       const users = await User.findAll({
         where,
         include: [
-          { model: PatientProfile, as: "patientProfile" },
-          { model: DoctorProfile, as: "doctorProfile" },
+          {
+            model: PatientProfile,
+            as: "patientProfile",
+            include: [
+              { model: PatientAllergy, as: "allergies" },
+              { model: PatientMedicalCondition, as: "medicalConditions" }
+            ]
+          },
+          {
+            model: DoctorProfile,
+            as: "doctorProfile",
+            include: [
+              { model: Specialization, as: "specialization", attributes: ["id", "name"] },
+              { model: HospitalProfile, as: "hospital", attributes: ["id", "hospitalName", "hospitalCity", "hospitalState"] },
+              { model: User, as: "reviewedBy", attributes: ["id", "name", "email"] },
+              { model: DoctorAvailability, as: "availabilities" }
+            ]
+          },
           { model: HospitalProfile, as: "hospitalProfile" }
         ],
         order: [["created_at", "DESC"]]
@@ -41,6 +62,46 @@ module.exports = {
       res.json(users);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch users", error });
+    }
+  },
+
+  async updateAccountStatus(req, res) {
+    const transaction = await sequelize.transaction();
+
+    try {
+      const user = await User.findByPk(req.params.id, { transaction });
+      if (!user) {
+        await transaction.rollback();
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      if (!['patient', 'doctor', 'hospital'].includes(user.role)) {
+        await transaction.rollback();
+        return res.status(403).json({ message: 'Only patient, doctor, and hospital accounts can be managed here' });
+      }
+
+      const accountStatus = String(req.body.status || '').trim().toLowerCase();
+      const statusUpdates = {
+        active: { isActive: true, isBlocked: false },
+        blocked: { isActive: false, isBlocked: true }
+      };
+
+      if (!statusUpdates[accountStatus]) {
+        await transaction.rollback();
+        return res.status(400).json({ message: "Status must be 'active' or 'blocked'" });
+      }
+
+      await user.update(statusUpdates[accountStatus], { transaction });
+
+      await transaction.commit();
+      return res.json({
+        message: `${user.role} account ${accountStatus} successfully`,
+        data: { id: user.id, isActive: user.isActive, isBlocked: user.isBlocked }
+      });
+    } catch (error) {
+      if (!transaction.finished) await transaction.rollback();
+      console.error('Account status update failed:', error);
+      return res.status(500).json({ message: 'Failed to update account status' });
     }
   },
 
@@ -74,7 +135,6 @@ module.exports = {
 //         {
 //           model: DoctorProfile,
 //           include: [
-//             { model: Doctor },
 //             { model: Specialization }
 //           ]
 //         },

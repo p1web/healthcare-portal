@@ -4,11 +4,9 @@ const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class Specialization extends Model {
     static associate(models) {
-      // associations can be defined here
-      // Example: Specialization hasMany Doctors
-      Specialization.hasMany(models.Doctor, {
+      Specialization.hasMany(models.DoctorProfile, {
         foreignKey: 'specialization_id',
-        as: 'doctors'
+        as: 'doctorProfiles'
       });
     }
   }

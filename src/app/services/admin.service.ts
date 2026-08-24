@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { User } from '../models/user.model';
+import { AdminAppointment } from '../models/appointment.model';
 
 @Injectable({
   providedIn: 'root'
@@ -16,16 +17,24 @@ export class AdminService {
     return this.http.get<User[]>(`${this.apiUrl}/users`, { params: filters });
   }
 
+  updateUserAccountStatus(userId: number, status: 'active' | 'blocked'): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/users/${userId}/account-status`, { status });
+  }
+
+  getAppointments(): Observable<{ success: boolean; data: AdminAppointment[] }> {
+    return this.http.get<{ success: boolean; data: AdminAppointment[] }>(`${this.apiUrl}/appointments`);
+  }
+
   getDoctorProfile(filters: any = {}): Observable<User[]> {
     return this.http.get<User[]>(`${this.apiUrl}/doctors-profile`, { params: filters });
   }
 
-  getHospitalUserProfile(filters: any = {}): Observable<User[]> {
-    return this.http.get<User[]>(`${this.apiUrl}/hospital-user-profile`, { params: filters });
+  updateDoctorReview(doctorProfileId: number, review: { status: string; reviewNotes?: string; rejectionReason?: string }): Observable<any> {
+    return this.http.put(`${this.apiUrl}/doctors-profile/${doctorProfileId}/review`, review);
   }
 
-  getPublicDoctorlist(): Observable<User[]> {
-    return this.http.get<User[]>(`${this.apiUrl}/public-doctors`);
+  updateHospitalReview(hospitalProfileId: number, review: { status: string; reviewNotes?: string; rejectionReason?: string }): Observable<any> {
+    return this.http.put(`${this.apiUrl}/hospital-user-profile/${hospitalProfileId}/review`, review);
   }
 
   getSpecializationList(): Observable<any[]> {
@@ -42,10 +51,6 @@ export class AdminService {
 
   getSpecializations(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/specializations`);
-  }
-
-  getHospitalSpecialtyMapping(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/hospital-specialty-mapping`);
   }
 
   getDoctorSpecializationMapping(): Observable<any[]> {
@@ -76,12 +81,4 @@ export class AdminService {
     return this.http.delete(`${this.apiUrl}/delete-specialization/${specializationId}`);
   }
 
-  getHospitalWiseSpecialityList(hospitalId: number): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/get-hospital-specialty-by-hospital/${hospitalId}`);
-  }
-  
-  updateHospitalSpecialties(hospitalId: number, specialtyIds: number[]): Observable<any> {
-    return this.http.put(`${this.apiUrl}/update-hospital-specialty/${hospitalId}`, { specialties: specialtyIds });
-  }
-  
 }

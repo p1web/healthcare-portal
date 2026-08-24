@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { User, LoginResponse } from '../../models/user.model';
 
@@ -21,6 +21,7 @@ export class LoginComponent {
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
+    private route: ActivatedRoute,
     private router: Router
   ) {
     this.loginForm = this.fb.group({
@@ -49,8 +50,11 @@ export class LoginComponent {
               this.router.navigate(['/admin/dashboard']);
               return;
             }
-            // Redirect to home page after successful login
-            this.router.navigate(['/profile']);
+            const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+            const destination = returnUrl?.startsWith('/') && !returnUrl.startsWith('//')
+              ? returnUrl
+              : '/profile';
+            this.router.navigateByUrl(destination);
           } else {
             this.errorMessage = response.message || 'Login failed';
           }

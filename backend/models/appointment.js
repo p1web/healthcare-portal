@@ -4,9 +4,9 @@ const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class Appointment extends Model {
     static associate(models) {
-      Appointment.belongsTo(models.Doctor, {
-        foreignKey: 'doctor_id',
-        as: 'doctor'
+      Appointment.belongsTo(models.DoctorProfile, {
+        foreignKey: 'doctor_profile_id',
+        as: 'doctorProfile'
       });
       Appointment.belongsTo(models.User, {
         foreignKey: 'patient_id',
@@ -21,10 +21,10 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
       autoIncrement: true
     },
-    doctorId: {
+    doctorProfileId: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      field: 'doctor_id'
+      field: 'doctor_profile_id'
     },
     patientId: {
       type: DataTypes.INTEGER,

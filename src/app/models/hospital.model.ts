@@ -8,6 +8,8 @@ export interface Hospital {
   address?: string;
   phone?: string;
   email?: string;
+  emergencyContactNumber?: string;
+  website?: string;
   image?: string;
   description?: string;
   facilities?: string[];

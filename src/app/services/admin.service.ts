@@ -89,4 +89,61 @@ export class AdminService {
     return this.http.delete(`${this.apiUrl}/delete-specialization/${specializationId}`);
   }
 
+  // --- Coupon Categories ---
+  getCouponCategories(filters: any = {}): Observable<any> {
+    return this.http.get(`${this.apiUrl}/coupon-categories`, { params: filters });
+  }
+  getCouponCategoryById(id: number): Observable<any> {
+    return this.http.get(`${this.apiUrl}/coupon-categories/${id}`);
+  }
+
+  addCouponCategory(data: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/coupon-categories`, data);
+  }
+
+  updateCouponCategory(id: number, data: any): Observable<any> {
+    return this.http.put(`${this.apiUrl}/coupon-categories/${id}`, data);
+  }
+
+  deleteCouponCategory(id: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/coupon-categories/${id}`);
+  }
+
+  restoreCouponCategory(id: number): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/coupon-categories/${id}/restore`, {});
+  }
+
+  // --- Coupons ---
+  getCoupons(filters: any = {}): Observable<any> {
+    return this.http.get(`${this.apiUrl}/coupons`, { params: filters });
+  }
+
+  getCouponById(id: number): Observable<any> {
+    return this.http.get(`${this.apiUrl}/coupons/${id}`);
+  }
+
+  addCoupon(data: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/coupons`, data);
+  }
+
+  updateCoupon(id: number, data: any): Observable<any> {
+    return this.http.put(`${this.apiUrl}/coupons/${id}`, data);
+  }
+
+  deleteCoupon(id: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/coupons/${id}`);
+  }
+
+  restoreCoupon(id: number): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/coupons/${id}/restore`, {});
+  }
+
+  getCouponAnalytics(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/coupons-analytics`);
+  }
+
+  bulkGenerateCoupons(payload: { count: number; prefix: string; template: any }): Observable<any> {
+    return this.http.post(`${this.apiUrl}/coupons/bulk`, payload);
+  }
+
 }

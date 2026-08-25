@@ -1,47 +1,16 @@
 /*--------------------------------------------------------------
-# Dashboard
+# Admin Dashboard (healthcare)
 --------------------------------------------------------------*/
-/* Filter dropdown */
-.dashboard .filter {
-  position: absolute;
-  right: 0px;
-  top: 15px;
-}
 
-.dashboard .filter .icon {
-  color: #aab7cf;
-  padding-right: 20px;
-  padding-bottom: 5px;
-  transition: 0.3s;
-  font-size: 16px;
-}
-
-.dashboard .filter .icon:hover,
-.dashboard .filter .icon:focus {
-  color: #4154f1;
-}
-
-.dashboard .filter .dropdown-header {
-  padding: 8px 15px;
-}
-
-.dashboard .filter .dropdown-header h6 {
-  text-transform: uppercase;
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: 1px;
-  color: #aab7cf;
-  margin-bottom: 0;
-  padding: 0;
-}
-
-.dashboard .filter .dropdown-item {
-  padding: 8px 15px;
-}
-
-/* Info Cards */
+/* KPI cards */
 .dashboard .info-card {
   padding-bottom: 10px;
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+
+.dashboard .info-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(1, 41, 112, 0.08);
 }
 
 .dashboard .info-card h6 {
@@ -53,7 +22,7 @@
 }
 
 .dashboard .card-icon {
-  font-size: 32px;
+  font-size: 30px;
   line-height: 0;
   width: 64px;
   height: 64px;
@@ -61,25 +30,63 @@
   flex-grow: 0;
 }
 
-.dashboard .sales-card .card-icon {
-  color: #4154f1;
-  background: #f6f6fe;
+.dashboard .kpi-card a { text-decoration: none; }
+
+.dashboard .kpi-patients .card-icon    { color: #4154f1; background: #f0f2ff; }
+.dashboard .kpi-doctors .card-icon     { color: #2eca6a; background: #e0f8e9; }
+.dashboard .kpi-hospitals .card-icon   { color: #ff771d; background: #ffecdf; }
+.dashboard .kpi-appointments .card-icon{ color: #7b5cff; background: #efeaff; }
+
+/* Status bars */
+.dashboard .status-list .status-row + .status-row { margin-top: 14px; }
+.dashboard .status-list .progress { height: 10px; border-radius: 10px; background: #f1f3f9; }
+.dashboard .status-list .progress-bar { border-radius: 10px; }
+
+/* Recent Appointments table */
+.dashboard .recent-appointments { font-size: 14px; }
+.dashboard .recent-appointments .table thead { background: #f6f6fe; }
+.dashboard .recent-appointments .table thead th {
+  border: 0;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: .5px;
+  color: #6c7a96;
 }
 
-.dashboard .revenue-card .card-icon {
-  color: #2eca6a;
-  background: #e0f8e9;
+/* Top Doctors table */
+.dashboard .top-doctors { font-size: 14px; }
+.dashboard .top-doctors .table thead { background: #f6f6fe; }
+.dashboard .top-doctors .table thead th {
+  border: 0;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: .5px;
+  color: #6c7a96;
 }
+.dashboard .top-doctors .table tbody td { vertical-align: middle; }
 
-.dashboard .customers-card .card-icon {
-  color: #ff771d;
-  background: #ffecdf;
-}
-
-/* Activity */
-.dashboard .activity {
+/* Doctor / provider initials avatar */
+.dashboard .doctor-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
   font-size: 14px;
+  color: #fff;
+  flex-shrink: 0;
 }
+
+.dashboard .avatar-blue   { background: #4154f1; }
+.dashboard .avatar-green  { background: #2eca6a; }
+.dashboard .avatar-orange { background: #ff771d; }
+.dashboard .avatar-purple { background: #7b5cff; }
+.dashboard .avatar-teal   { background: #10b3c6; }
+
+/* Activity feed */
+.dashboard .activity { font-size: 14px; }
 
 .dashboard .activity .activity-item .activite-label {
   color: #888;
@@ -115,86 +122,26 @@
   padding-bottom: 20px;
 }
 
-.dashboard .activity .activity-item:first-child .activite-label::before {
-  top: 5px;
-}
+.dashboard .activity .activity-item:first-child .activite-label::before { top: 5px; }
+.dashboard .activity .activity-item:last-child .activity-content { padding-bottom: 0; }
 
-.dashboard .activity .activity-item:last-child .activity-content {
-  padding-bottom: 0;
+/* Pending reviews list */
+.dashboard .review-list .review-item {
+  padding: 10px 0;
+  border-top: 1px solid #eef0f6;
 }
+.dashboard .review-list .review-item:first-child { border-top: 0; }
 
-/* News & Updates */
-.dashboard .news .post-item+.post-item {
+/* Announcements */
+.dashboard .announcements .announcement-item + .announcement-item {
   margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #eef0f6;
 }
 
-.dashboard .news img {
-  width: 80px;
-  float: left;
-  border-radius: 5px;
-}
-
-.dashboard .news h4 {
+.dashboard .announcements h4 {
   font-size: 15px;
-  margin-left: 95px;
-  font-weight: bold;
-  margin-bottom: 5px;
-}
-
-.dashboard .news h4 a {
+  font-weight: 700;
   color: #012970;
-  transition: 0.3s;
-}
-
-.dashboard .news h4 a:hover {
-  color: #4154f1;
-}
-
-.dashboard .news p {
-  font-size: 14px;
-  color: #777777;
-  margin-left: 95px;
-}
-
-/* Recent Sales */
-.dashboard .recent-sales {
-  font-size: 14px;
-}
-
-.dashboard .recent-sales .table thead {
-  background: #f6f6fe;
-}
-
-.dashboard .recent-sales .table thead th {
-  border: 0;
-}
-
-.dashboard .recent-sales .dataTable-top {
-  padding: 0 0 10px 0;
-}
-
-.dashboard .recent-sales .dataTable-bottom {
-  padding: 10px 0 0 0;
-}
-
-/* Top Selling */
-.dashboard .top-selling {
-  font-size: 14px;
-}
-
-.dashboard .top-selling .table thead {
-  background: #f6f6fe;
-}
-
-.dashboard .top-selling .table thead th {
-  border: 0;
-}
-
-.dashboard .top-selling .table tbody td {
-  vertical-align: middle;
-}
-
-.dashboard .top-selling img {
-  border-radius: 5px;
-  max-width: 60px;
+  margin: 0;
 }

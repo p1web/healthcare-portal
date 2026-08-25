@@ -1,21 +1,106 @@
 /*--------------------------------------------------------------
-# Footer
+# Admin Footer
 --------------------------------------------------------------*/
-.footer {
-  padding: 20px 0;
+.footer.admin-footer {
+  padding: 16px 24px;
   font-size: 14px;
-  transition: all 0.3s;
-  border-top: 1px solid #cddfff;
+  background: #ffffff;
+  border-top: 1px solid #e3e8ee;
+  color: #52616b;
 }
 
-.footer .copyright {
-  text-align: center;
-  color: #012970;
+.footer.admin-footer .footer-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
-.footer .credits {
-  padding-top: 5px;
-  text-align: center;
-  font-size: 13px;
+.footer.admin-footer .footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.footer.admin-footer .footer-brand > i {
+  font-size: 1.6rem;
+  color: #4154f1;
+}
+
+.footer.admin-footer .brand-name {
+  font-weight: 700;
   color: #012970;
+  letter-spacing: 0.02em;
+}
+
+.footer.admin-footer .brand-tag {
+  display: inline-block;
+  margin-left: 0.35rem;
+  padding: 0.1rem 0.45rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #4154f1;
+  background: #eef0ff;
+  border-radius: 4px;
+  vertical-align: middle;
+}
+
+.footer.admin-footer .copyright {
+  color: #6c7a96;
+  font-size: 0.78rem;
+  margin-top: 0.15rem;
+}
+
+.footer.admin-footer .footer-links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+}
+
+.footer.admin-footer .footer-links a {
+  color: #52616b;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.18s ease;
+}
+
+.footer.admin-footer .footer-links a:hover {
+  color: #4154f1;
+}
+
+.footer.admin-footer .footer-meta {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 0.78rem;
+  color: #6c7a96;
+}
+
+.footer.admin-footer .meta-item {
+  display: inline-flex;
+  align-items: center;
+}
+
+@media (max-width: 768px) {
+  .footer.admin-footer .footer-inner {
+    justify-content: center;
+    text-align: center;
+  }
+
+  .footer.admin-footer .footer-brand {
+    justify-content: center;
+  }
+
+  .footer.admin-footer .footer-links,
+  .footer.admin-footer .footer-meta {
+    justify-content: center;
+  }
 }

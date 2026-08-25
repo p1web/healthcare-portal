@@ -81,7 +81,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr *ngFor="let user of filteredUsers; trackBy: trackByUserId">
+                                <tr *ngFor="let user of pagedUsers; trackBy: trackByUserId">
                                     <td>
                                         <div class="user-cell">
                                             <div class="table-avatar">{{ getInitials(user.name) }}</div>
@@ -124,6 +124,13 @@
                             </tbody>
                         </table>
                     </div>
+
+                    <app-pagination
+                        [totalItems]="filteredUsers.length"
+                        [(currentPage)]="currentPage"
+                        [(pageSize)]="pageSize"
+                        [pageSizeOptions]="pageSizeOptions">
+                    </app-pagination>
 
                 </div>
 

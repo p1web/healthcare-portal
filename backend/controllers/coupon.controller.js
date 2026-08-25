@@ -21,7 +21,10 @@ function formatCouponForFrontend(coupon) {
     usedCount: couponJSON.usedCount,
     applicableFor: couponJSON.category?.slug || '',
     categoryName: couponJSON.category?.name || '',
-    hospitals: couponJSON.hospitals ? couponJSON.hospitals.map(h => h.hospitalName || h.name) : [],
+    hospitals: couponJSON.hospitals
+      ? couponJSON.hospitals.map(h => ({ id: h.id, name: h.hospitalName || h.name }))
+      : [],
+    hospitalIds: couponJSON.hospitals ? couponJSON.hospitals.map(h => h.id) : [],
     isActive: couponJSON.isActive,
     terms: couponJSON.terms || []
   };

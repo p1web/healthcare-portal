@@ -1,0 +1,148 @@
+<div class="pagetitle">
+  <h1>Coupon Analytics</h1>
+  <nav>
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a routerLink="/admin/dashboard">Dashboard</a></li>
+      <li class="breadcrumb-item">Coupon Management</li>
+      <li class="breadcrumb-item active">Analytics</li>
+    </ol>
+  </nav>
+</div>
+
+<section class="section dashboard">
+  <div *ngIf="isLoading" class="text-center text-muted py-5">
+    <div class="spinner-border" role="status"></div>
+    <p class="mt-2 mb-0">Loading analytics...</p>
+  </div>
+
+  <ng-container *ngIf="!isLoading && data">
+    <!-- Summary cards -->
+    <div class="row g-3 mb-4">
+      <div class="col-md-6 col-lg-3">
+        <div class="stat-card">
+          <div class="stat-icon bg-primary-soft"><i class="bi bi-ticket-perforated"></i></div>
+          <div>
+            <div class="stat-label">Total Coupons</div>
+            <div class="stat-value">{{ data.totals.totalCoupons }}</div>
+            <div class="stat-hint">{{ data.totals.activeCoupons }} active</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3">
+        <div class="stat-card">
+          <div class="stat-icon bg-success-soft"><i class="bi bi-check-circle"></i></div>
+          <div>
+            <div class="stat-label">Total Redemptions</div>
+            <div class="stat-value">{{ data.totals.totalRedemptions }}</div>
+            <div class="stat-hint">Across all coupons</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3">
+        <div class="stat-card">
+          <div class="stat-icon bg-warning-soft"><i class="bi bi-currency-rupee"></i></div>
+          <div>
+            <div class="stat-label">Discount Given</div>
+            <div class="stat-value">₹{{ data.totals.totalDiscountGiven | number:'1.0-2' }}</div>
+            <div class="stat-hint">Revenue impact</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3">
+        <div class="stat-card">
+          <div class="stat-icon bg-danger-soft"><i class="bi bi-calendar-x"></i></div>
+          <div>
+            <div class="stat-label">Expired</div>
+            <div class="stat-value">{{ data.totals.expiredCoupons }}</div>
+            <div class="stat-hint">{{ data.totals.deletedCoupons }} deleted</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-3">
+      <!-- Top coupons -->
+      <div class="col-lg-7">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title mb-3">Top Coupons by Usage</h5>
+            <table class="table table-sm align-middle">
+              <thead>
+                <tr class="text-muted small">
+                  <th>Code</th>
+                  <th>Title</th>
+                  <th>Category</th>
+                  <th class="text-end">Usage</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let c of data.topCoupons">
+                  <td><code class="text-primary">{{ c.code }}</code></td>
+                  <td>{{ c.title }}</td>
+                  <td class="text-muted small">{{ c.category?.name || '—' }}</td>
+                  <td class="text-end">
+                    <strong>{{ c.usedCount }}</strong>
+                    <span class="text-muted small"> / {{ c.usageLimit || '∞' }}</span>
+                  </td>
+                </tr>
+                <tr *ngIf="!data.topCoupons.length">
+                  <td colspan="4" class="text-center text-muted py-3">No usage data yet</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Category breakdown -->
+      <div class="col-lg-5">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title mb-3">By Category</h5>
+            <div *ngFor="let row of data.categoryBreakdown" class="category-row">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <strong>{{ row.categoryName }}</strong>
+                  <div class="text-muted small">{{ row.couponCount }} coupons</div>
+                </div>
+                <div class="text-end">
+                  <strong>{{ row.totalUses }}</strong>
+                  <div class="text-muted small">uses</div>
+                </div>
+              </div>
+              <div class="progress">
+                <div class="progress-bar bg-primary" role="progressbar"
+                     [style.width.%]="row.totalUses ? (row.totalUses * 100 / (data.totals.totalRedemptions || 1)) : 0">
+                </div>
+              </div>
+            </div>
+            <div *ngIf="!data.categoryBreakdown.length" class="text-muted text-center py-3">
+              No categories found
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Expiring soon -->
+      <div class="col-12">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title mb-3">Expiring in the next 7 days</h5>
+            <div *ngIf="!data.expiringSoon.length" class="text-muted text-center py-3">
+              No coupons expiring soon
+            </div>
+            <div *ngIf="data.expiringSoon.length" class="expiring-list">
+              <div *ngFor="let c of data.expiringSoon" class="expiring-item">
+                <code class="text-primary">{{ c.code }}</code>
+                <span class="ms-2">{{ c.title }}</span>
+                <span class="text-danger ms-auto small">
+                  <i class="bi bi-clock me-1"></i>{{ c.validUntil | date:'dd MMM yyyy' }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+</section>

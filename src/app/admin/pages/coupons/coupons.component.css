@@ -1,0 +1,303 @@
+/* Coupons list — mirrors users list design */
+.coupons-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.coupons-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem 0;
+}
+
+.coupons-heading h5 {
+  color: #2c3237;
+}
+
+.result-count {
+  flex-shrink: 0;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #3445c5;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.filters-panel {
+  display: grid;
+  grid-template-columns: minmax(240px, 1.6fr) minmax(140px, 1fr) minmax(120px, 1fr) minmax(140px, 1fr) auto;
+  align-items: end;
+  gap: 1rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background: #f8f9fb;
+  border: 1px solid #e8eaf0;
+  border-radius: 8px;
+}
+
+.filter-field {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.filters-panel .form-label {
+  margin-bottom: 0.35rem;
+  color: #59636e;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.filters-panel .input-group-text {
+  background: #fff;
+  border-right: 0;
+}
+
+.filters-panel .input-group .form-control {
+  border-left: 0;
+}
+
+.filters-actions {
+  justify-content: flex-end;
+}
+
+.filters-actions .btn {
+  height: 38px;
+  white-space: nowrap;
+}
+
+.coupons-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid #e8eaf0;
+  border-radius: 8px;
+  scrollbar-width: thin;
+}
+
+.coupons-table {
+  min-width: 1100px;
+  margin-bottom: 0;
+}
+
+.coupons-table thead th {
+  padding: 0.8rem 0.9rem;
+  background: #f5f6f8;
+  border-bottom: 1px solid #dde1e7;
+  color: #59636e;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.coupons-table tbody td {
+  padding: 0.85rem 0.9rem;
+  border-bottom: 1px solid #edf0f3;
+  color: #30363d;
+  vertical-align: middle;
+}
+
+.coupons-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.coupons-table tbody tr:hover td {
+  background: #fafbff;
+}
+
+.coupon-code {
+  display: inline-block;
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  background: #eef2ff;
+  color: #3445c5;
+  font-family: 'SFMono-Regular', Consolas, monospace;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.coupon-title-cell {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.coupon-title-cell strong {
+  color: #2c3237;
+  font-size: 0.9rem;
+}
+
+.coupon-title-cell small {
+  color: #77808b;
+  font-size: 0.75rem;
+}
+
+.discount-badge {
+  display: inline-block;
+  padding: 0.28rem 0.6rem;
+  border-radius: 6px;
+  background: #e6f7ec;
+  color: #16794b;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.hospital-badge {
+  display: inline-block;
+  padding: 0.22rem 0.55rem;
+  margin: 0.1rem 0.15rem 0.1rem 0;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #3445c5;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.hospital-badge-muted {
+  color: #77808b;
+  font-size: 0.78rem;
+  font-style: italic;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.status-pill::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.status-active {
+  background: #e6f7ec;
+  color: #16794b;
+}
+
+.status-active::before { background: #1f9d62; }
+
+.status-inactive {
+  background: #f1f3f5;
+  color: #59636e;
+}
+
+.status-inactive::before { background: #adb5bd; }
+
+.status-deleted {
+  background: #fdecec;
+  color: #b42332;
+}
+
+.status-deleted::before { background: #dc3545; }
+
+.deleted-row td {
+  background: #fdfafa !important;
+  opacity: 0.75;
+}
+
+.show-deleted-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 38px;
+  padding: 0 0.75rem;
+  border: 1px solid #d9dee5;
+  border-radius: 6px;
+  background: #fff;
+  font-size: 0.85rem;
+  color: #30363d;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.15s ease;
+}
+
+.show-deleted-check:hover {
+  border-color: #4154f1;
+  background: #f7f8ff;
+}
+
+.show-deleted-check .form-check-input {
+  margin: 0;
+  cursor: pointer;
+}
+
+.show-deleted-check .form-check-input:checked ~ span {
+  color: #3445c5;
+  font-weight: 600;
+}
+
+.actions-column {
+  position: sticky;
+  right: 0;
+  min-width: 120px;
+  background: #fff;
+  box-shadow: -8px 0 12px -12px rgba(28, 39, 49, 0.55);
+}
+
+.coupons-table thead .actions-column {
+  z-index: 2;
+  background: #f5f6f8;
+}
+
+.coupons-table tbody tr:hover .actions-column {
+  background: #fafbff;
+}
+
+.action-button {
+  min-width: 34px;
+}
+
+.empty-state {
+  padding: 3rem 1rem !important;
+  color: #77808b;
+  text-align: center;
+}
+
+.empty-state i {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 1.8rem;
+}
+
+.empty-state strong {
+  display: block;
+  color: #49515b;
+}
+
+@media (max-width: 1200px) {
+  .filters-panel {
+    grid-template-columns: minmax(240px, 2fr) 1fr 1fr;
+  }
+  .filter-toggle,
+  .filters-actions {
+    grid-column: span 1;
+  }
+}
+
+@media (max-width: 768px) {
+  .filters-panel {
+    grid-template-columns: 1fr 1fr;
+  }
+  .filter-search {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 480px) {
+  .filters-panel {
+    grid-template-columns: 1fr;
+  }
+}

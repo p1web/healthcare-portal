@@ -1,58 +1,190 @@
 <section class="appointments-page">
-  <header class="page-header">
-    <div>
-      <h4>My Appointments</h4>
-      <p>Review your current and previous doctor bookings.</p>
+
+  <div class="card appointments-card">
+    <div class="card-body">
+
+      <div class="page-heading">
+        <div>
+          <h5 class="card-title mb-1">My Appointments</h5>
+          <p class="text-muted mb-0">Review your current and previous doctor bookings.</p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <span class="result-count">{{ appointments.length }} bookings</span>
+          <a routerLink="/doctors" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-lg me-1"></i>Book
+          </a>
+        </div>
+      </div>
+
+      <!-- Filters -->
+      <div class="filters-panel">
+        <div class="filter-field">
+          <label class="form-label">Status</label>
+          <select class="form-select" [(ngModel)]="statusFilter" (ngModelChange)="onFilterChange()">
+            <option value="all">All</option>
+            <option value="pending">Pending</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="rejected">Rejected</option>
+            <option value="cancelled">Cancelled</option>
+            <option value="completed">Completed</option>
+          </select>
+        </div>
+        <div class="filter-field">
+          <label class="form-label">From date</label>
+          <input type="date" class="form-control" [(ngModel)]="fromDate" (change)="onFilterChange()">
+        </div>
+        <div class="filter-field">
+          <label class="form-label">To date</label>
+          <input type="date" class="form-control" [(ngModel)]="toDate" (change)="onFilterChange()">
+        </div>
+        <div class="filter-field filter-reset">
+          <button type="button" class="btn btn-outline-secondary w-100" (click)="resetFilters()">
+            <i class="bi bi-x-circle me-1"></i>Clear filters
+          </button>
+        </div>
+      </div>
+
+      <div *ngIf="isLoading" class="loading-state">
+        <span class="spinner-border spinner-border-sm me-2"></span>
+        Loading appointments...
+      </div>
+
+      <div *ngIf="!isLoading && error" class="alert alert-danger d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-exclamation-circle me-2"></i>{{ error }}</span>
+        <button type="button" class="btn btn-sm btn-outline-danger" (click)="loadAppointments()">Retry</button>
+      </div>
+
+      <div *ngIf="!isLoading && !error && !appointments.length" class="empty-state">
+        <i class="bi" [ngClass]="hasActiveFilters ? 'bi-funnel' : 'bi-calendar2-x'"></i>
+        <strong>{{ hasActiveFilters ? 'No records found' : 'No appointments yet' }}</strong>
+        <span *ngIf="hasActiveFilters">
+          No bookings match the selected
+          <ng-container *ngIf="statusFilter !== 'all'"><span class="filter-chip">{{ statusFilter | titlecase }}</span></ng-container>
+          filters. Try clearing them.
+        </span>
+        <span *ngIf="!hasActiveFilters">Your booked appointments will appear here.</span>
+        <a *ngIf="!hasActiveFilters" routerLink="/doctors" class="btn btn-primary mt-3">Find a Doctor</a>
+        <button *ngIf="hasActiveFilters" type="button" class="btn btn-outline-primary btn-sm mt-3" (click)="resetFilters()">
+          <i class="bi bi-x-circle me-1"></i>Clear filters
+        </button>
+      </div>
+
+      <div *ngIf="!isLoading && !error && appointments.length" class="table-responsive appointments-table-wrap">
+        <table class="table appointments-table align-middle mb-0">
+          <thead>
+            <tr>
+              <th>Doctor</th>
+              <th>Date & Time</th>
+              <th>Reason</th>
+              <th>Pricing</th>
+              <th>Status</th>
+              <th>Booked On</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let appointment of pagedAppointments">
+              <td>
+                <div class="doctor-cell">
+                  <div class="doctor-avatar">
+                    {{ appointment.doctorName?.charAt(3)?.toUpperCase() || 'D' }}
+                  </div>
+                  <div>
+                    <strong>{{ appointment.doctorName }}</strong>
+                    <small *ngIf="appointment.specialization">{{ appointment.specialization }}</small>
+                    <small *ngIf="appointment.hospital">{{ appointment.hospital }}</small>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="date-cell">
+                  <strong>{{ appointment.date | date:'dd MMM yyyy' }}</strong>
+                  <small>{{ formatTime(appointment.time) }}</small>
+                </div>
+              </td>
+              <td class="reason-cell">
+                {{ appointment.reason || 'Not specified' }}
+                <div *ngIf="appointment.rejectionReason" class="reject-note">
+                  <i class="bi bi-x-circle me-1"></i>
+                  <strong>Rejected:</strong> {{ appointment.rejectionReason }}
+                </div>
+              </td>
+              <td class="pricing-cell">
+                <ng-container *ngIf="appointment.originalPrice !== null && appointment.originalPrice !== undefined">
+                  <strong>₹{{ appointment.finalPrice }}</strong>
+                  <div *ngIf="appointment.discountAmount && appointment.discountAmount > 0" class="small">
+                    <span class="text-muted text-decoration-line-through">₹{{ appointment.originalPrice }}</span>
+                    <span class="text-success ms-1">−₹{{ appointment.discountAmount }}</span>
+                  </div>
+                  <div *ngIf="appointment.couponCode" class="small">
+                    <code class="coupon-chip">{{ appointment.couponCode }}</code>
+                  </div>
+                </ng-container>
+                <span *ngIf="appointment.originalPrice === null || appointment.originalPrice === undefined" class="text-muted small">—</span>
+              </td>
+              <td>
+                <span class="status-badge" [ngClass]="getStatusClass(appointment.status)">
+                  {{ appointment.status | titlecase }}
+                </span>
+              </td>
+              <td>{{ appointment.createdAt | date:'dd MMM yyyy' }}</td>
+              <td class="text-end">
+                <button *ngIf="canCancel(appointment.status)"
+                        type="button" class="btn btn-sm btn-outline-danger"
+                        (click)="cancelAppointment(appointment.id)">
+                  <i class="bi bi-x-lg me-1"></i>Cancel
+                </button>
+                <span *ngIf="!canCancel(appointment.status)" class="text-muted small">—</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination footer -->
+      <div class="pagination-footer" *ngIf="!isLoading && appointments.length">
+        <div class="pagination-info">
+          <span class="text-muted small">
+            Showing <strong>{{ rangeStart }}–{{ rangeEnd }}</strong> of
+            <strong>{{ appointments.length }}</strong>
+          </span>
+          <div class="page-size">
+            <label class="text-muted small mb-0">Rows per page:</label>
+            <select class="form-select form-select-sm" [(ngModel)]="pageSize" (ngModelChange)="onPageSizeChange()">
+              <option *ngFor="let size of pageSizeOptions" [ngValue]="size">{{ size }}</option>
+            </select>
+          </div>
+        </div>
+
+        <nav *ngIf="totalPages > 1">
+          <ul class="pagination pagination-sm mb-0">
+            <li class="page-item" [class.disabled]="currentPage === 1">
+              <button type="button" class="page-link" (click)="goToPage(1)" [disabled]="currentPage === 1">
+                <i class="bi bi-chevron-double-left"></i>
+              </button>
+            </li>
+            <li class="page-item" [class.disabled]="currentPage === 1">
+              <button type="button" class="page-link" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">
+                <i class="bi bi-chevron-left"></i>
+              </button>
+            </li>
+            <li class="page-item" *ngFor="let p of visiblePages" [class.active]="p === currentPage">
+              <button type="button" class="page-link" (click)="goToPage(p)">{{ p }}</button>
+            </li>
+            <li class="page-item" [class.disabled]="currentPage === totalPages">
+              <button type="button" class="page-link" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages">
+                <i class="bi bi-chevron-right"></i>
+              </button>
+            </li>
+            <li class="page-item" [class.disabled]="currentPage === totalPages">
+              <button type="button" class="page-link" (click)="goToPage(totalPages)" [disabled]="currentPage === totalPages">
+                <i class="bi bi-chevron-double-right"></i>
+              </button>
+            </li>
+          </ul>
+        </nav>
+      </div>
+
     </div>
-    <a routerLink="/doctors" class="btn btn-primary">
-      <i class="bi bi-plus-lg me-2"></i>Book Appointment
-    </a>
-  </header>
-
-  <div *ngIf="isLoading" class="state-panel">
-    <div class="spinner-border text-primary" role="status"></div>
-    <span>Loading appointments...</span>
-  </div>
-
-  <div *ngIf="!isLoading && error" class="alert alert-danger d-flex justify-content-between align-items-center">
-    <span><i class="bi bi-exclamation-circle me-2"></i>{{ error }}</span>
-    <button type="button" class="btn btn-sm btn-outline-danger" (click)="loadAppointments()">Retry</button>
-  </div>
-
-  <div *ngIf="!isLoading && !error && !appointments.length" class="state-panel empty-state">
-    <i class="bi bi-calendar2-x"></i>
-    <h5>No appointments yet</h5>
-    <p>Your booked appointments will appear here.</p>
-    <a routerLink="/doctors" class="btn btn-primary">Find a Doctor</a>
-  </div>
-
-  <div *ngIf="!isLoading && !error && appointments.length" class="table-responsive appointments-table">
-    <table class="table align-middle mb-0">
-      <thead>
-        <tr>
-          <th>Doctor</th>
-          <th>Date & Time</th>
-          <th>Reason</th>
-          <th>Status</th>
-          <th>Booked On</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let appointment of appointments">
-          <td>
-            <strong>{{ appointment.doctorName }}</strong>
-            <small *ngIf="appointment.specialization">{{ appointment.specialization }}</small>
-            <small *ngIf="appointment.hospital">{{ appointment.hospital }}</small>
-          </td>
-          <td>
-            <strong>{{ appointment.date | date:'dd MMM yyyy' }}</strong>
-            <small>{{ formatTime(appointment.time) }}</small>
-          </td>
-          <td class="reason-cell">{{ appointment.reason || 'Not specified' }}</td>
-          <td><span class="status-badge" [ngClass]="getStatusClass(appointment.status)">{{ appointment.status | titlecase }}</span></td>
-          <td>{{ appointment.createdAt | date:'dd MMM yyyy' }}</td>
-        </tr>
-      </tbody>
-    </table>
   </div>
 </section>

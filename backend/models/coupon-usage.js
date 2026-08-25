@@ -33,6 +33,11 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true,
       field: 'order_id'
     },
+    appointmentId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      field: 'appointment_id'
+    },
     discountAmount: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: false,

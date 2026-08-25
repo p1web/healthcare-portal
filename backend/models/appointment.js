@@ -12,6 +12,12 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'patient_id',
         as: 'patient'
       });
+      if (models.Coupon) {
+        Appointment.belongsTo(models.Coupon.unscoped(), {
+          foreignKey: 'coupon_id',
+          as: 'coupon'
+        });
+      }
     }
   }
 
@@ -59,13 +65,39 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true
     },
     status: {
-      type: DataTypes.ENUM('pending', 'confirmed', 'cancelled', 'completed'),
+      type: DataTypes.ENUM('pending', 'confirmed', 'cancelled', 'completed', 'rejected'),
       defaultValue: 'pending'
+    },
+    rejectionReason: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      field: 'rejection_reason'
     },
     couponCode: {
       type: DataTypes.STRING(50),
       allowNull: true,
       field: 'coupon_code'
+    },
+    couponId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      field: 'coupon_id'
+    },
+    originalPrice: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: true,
+      field: 'original_price'
+    },
+    discountAmount: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: false,
+      defaultValue: 0,
+      field: 'discount_amount'
+    },
+    finalPrice: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: true,
+      field: 'final_price'
     }
   }, {
     sequelize,

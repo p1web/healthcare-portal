@@ -1,0 +1,229 @@
+/* Coupon form — professional sectioned layout */
+.form-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.form-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem 0;
+}
+
+.form-heading h5 {
+  color: #2c3237;
+}
+
+.form-body {
+  background: #f6f7fb;
+  margin: 0 -1.25rem -1.25rem;
+  padding: 1.5rem 1.25rem;
+}
+
+.section-card {
+  background: #fff;
+  border: 1px solid #eceef3;
+  border-radius: 10px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.section-card:last-of-type {
+  margin-bottom: 1.25rem;
+}
+
+.section-card h6 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #4154f1;
+  margin-bottom: 1.25rem;
+}
+
+.section-card h6 i {
+  font-size: 1rem;
+}
+
+.field-label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #59636e;
+  margin-bottom: 0.35rem;
+}
+
+.field-label .required {
+  color: #dc3545;
+  margin-left: 0.15rem;
+}
+
+.form-control,
+.form-select {
+  border: 1px solid #d9dee5;
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9rem;
+  color: #2c3237;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: #4154f1;
+  box-shadow: 0 0 0 3px rgba(65, 84, 241, 0.12);
+}
+
+.form-hint {
+  display: block;
+  margin-top: 0.35rem;
+  color: #8a94a6;
+  font-size: 0.75rem;
+}
+
+.field-error {
+  display: block;
+  margin-top: 0.3rem;
+  color: #dc3545;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.section-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.section-actions .btn-add {
+  padding: 0.3rem 0.65rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.term-row {
+  display: grid;
+  grid-template-columns: 32px 1fr auto;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.term-number {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #eef2ff;
+  color: #3445c5;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.empty-terms {
+  padding: 0.75rem;
+  border: 1px dashed #d9dee5;
+  border-radius: 6px;
+  color: #8a94a6;
+  font-size: 0.82rem;
+  text-align: center;
+}
+
+.form-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  padding: 1rem 1.5rem;
+  margin: 1.25rem -1.25rem -1.5rem;
+  background: #fff;
+  border-top: 1px solid #eceef3;
+  border-radius: 0 0 10px 10px;
+}
+
+.status-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: #f8f9fb;
+  border: 1px solid #e8eaf0;
+  border-radius: 8px;
+}
+
+.status-toggle-label {
+  flex: 1;
+  min-width: 0;
+}
+
+.status-toggle-label strong {
+  display: block;
+  color: #2c3237;
+  font-size: 0.88rem;
+}
+
+.status-toggle-label small {
+  color: #77808b;
+  font-size: 0.75rem;
+}
+
+.form-switch .form-check-input {
+  width: 2.5em;
+  height: 1.4em;
+}
+
+.loading-state {
+  padding: 3rem 1rem;
+  color: #77808b;
+  text-align: center;
+}
+
+/* Select2 override for professional look */
+:host ::ng-deep .select2-container--default .select2-selection--multiple {
+  min-height: 42px;
+  border: 1px solid #d9dee5;
+  border-radius: 6px;
+  padding: 0.15rem 0.35rem;
+}
+
+:host ::ng-deep .select2-container--default.select2-container--focus .select2-selection--multiple {
+  border-color: #4154f1;
+  box-shadow: 0 0 0 3px rgba(65, 84, 241, 0.12);
+}
+
+:host ::ng-deep .select2-container--default .select2-selection--multiple .select2-selection__choice {
+  background: #eef2ff;
+  border: 1px solid #d5dcff;
+  color: #3445c5;
+  border-radius: 4px;
+  padding: 0.05rem 0.4rem;
+  font-size: 0.8rem;
+}
+
+:host ::ng-deep .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+  color: #3445c5;
+}
+
+:host ::ng-deep .select2-container--default .select2-results__option--highlighted[aria-selected] {
+  background: #4154f1;
+}
+
+@media (max-width: 576px) {
+  .form-toolbar {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+  .form-toolbar .btn {
+    width: 100%;
+  }
+}

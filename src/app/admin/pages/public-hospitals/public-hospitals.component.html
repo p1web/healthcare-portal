@@ -43,8 +43,8 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr *ngFor="let h of hospitalList; let i = index">
-                                <th scope="row">{{ i + 1 }}</th>
+                            <tr *ngFor="let h of pagedHospitals; let i = index">
+                                <th scope="row">{{ (currentPage - 1) * pageSize + i + 1 }}</th>
                                 <td>
                                     <a class="btn-link">{{ h?.name }}</a>
                                 </td>
@@ -64,6 +64,13 @@
                         </tbody>
 
                     </table>
+
+                    <app-pagination
+                        [totalItems]="hospitalList.length"
+                        [(currentPage)]="currentPage"
+                        [(pageSize)]="pageSize"
+                        [pageSizeOptions]="pageSizeOptions">
+                    </app-pagination>
 
                 </div>
             </div>

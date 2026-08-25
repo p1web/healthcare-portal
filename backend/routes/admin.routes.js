@@ -8,6 +8,8 @@ const specializationController = require("../controllers/admin/specialization.co
 const doctorSpecializationController = require("../controllers/admin/doctorSpecialization.controller");
 const appointmentController = require("../controllers/appointment.controller");
 const profileController = require("../controllers/admin/profile.controller");
+const couponCategoryController = require("../controllers/admin/coupon-category.controller");
+const couponController = require("../controllers/admin/coupon.controller");
 const { authenticate, authorize } = require("../middleware/auth.middleware");
 
 router.use(authenticate, authorize("admin"));
@@ -42,6 +44,24 @@ router.put("/update-specialization/:id", specializationController.updateSpeciali
 router.delete("/delete-specialization/:id", specializationController.deleteSpecialization);
 
 router.get("/doctor-specialization-mapping", doctorSpecializationController.getDoctorSpecialization);
+
+// Coupon Categories (admin CRUD)
+router.get("/coupon-categories", couponCategoryController.getCategories);
+router.get("/coupon-categories/:id", couponCategoryController.getCategoryById);
+router.post("/coupon-categories", couponCategoryController.createCategory);
+router.put("/coupon-categories/:id", couponCategoryController.updateCategory);
+router.delete("/coupon-categories/:id", couponCategoryController.deleteCategory);
+router.patch("/coupon-categories/:id/restore", couponCategoryController.restoreCategory);
+
+// Coupons (admin CRUD)
+router.get("/coupons", couponController.getCoupons);
+router.get("/coupons-analytics", couponController.getAnalytics);
+router.post("/coupons/bulk", couponController.bulkGenerate);
+router.get("/coupons/:id", couponController.getCouponById);
+router.post("/coupons", couponController.createCoupon);
+router.put("/coupons/:id", couponController.updateCoupon);
+router.delete("/coupons/:id", couponController.deleteCoupon);
+router.patch("/coupons/:id/restore", couponController.restoreCoupon);
 
 
 // router.get("/filter", userController.getUsersByFilter);

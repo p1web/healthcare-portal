@@ -1,13 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AdminService } from '../../../services/admin.service';
+import { PaginationComponent } from '../../../shared/pagination/pagination.component';
 
 @Component({
   selector: 'app-specializations',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, PaginationComponent],
   templateUrl: './specializations.component.html',
   styleUrl: './specializations.component.css'
 })
@@ -17,6 +18,10 @@ export class SpecializationsComponent implements OnInit {
   specializationList: any[] = [];
   specializationForm!: FormGroup;
   editSpecializationForm!: FormGroup;
+
+  currentPage = 1;
+  pageSize = 10;
+  readonly pageSizeOptions = [5, 10, 25, 50];
 
   constructor(
     private fb: FormBuilder,
@@ -48,11 +53,17 @@ export class SpecializationsComponent implements OnInit {
     this.AdminService.getSpecializations().subscribe({
       next: (data) => {
         this.specializationList = data;
+        this.currentPage = 1;
       },
       error: (error) => {
         console.error('Error loading specializations:', error);
       }
     });
+  }
+
+  get pagedSpecializations(): any[] {
+    const start = (this.currentPage - 1) * this.pageSize;
+    return this.specializationList.slice(start, start + this.pageSize);
   }
 
   openAddSpecialtizationModal(): void {

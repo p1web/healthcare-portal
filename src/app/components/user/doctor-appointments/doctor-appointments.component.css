@@ -1,107 +1,471 @@
-.bookings-page {
-  color: #263238;
+/* Patient Bookings — professional design */
+
+.bookings-section {
+  padding-bottom: 3rem;
 }
 
-.page-header {
+.bookings-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.bookings-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem 0;
+}
+
+.bookings-heading h5 {
+  color: #2c3237;
+}
+
+.result-count {
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #3445c5;
+  font-size: 0.78rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* Filters */
+.filters-panel {
+  display: grid;
+  grid-template-columns: minmax(160px, 220px) minmax(150px, 200px) minmax(150px, 200px) minmax(160px, 200px);
+  align-items: end;
+  gap: 1rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background: #f8f9fb;
+  border: 1px solid #e8eaf0;
+  border-radius: 8px;
+}
+
+.filter-field {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.filter-field .form-label {
+  margin-bottom: 0.35rem;
+  color: #59636e;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.filter-reset {
+  align-self: end;
+}
+
+/* Bulk bar */
+.bulk-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  margin-bottom: 1.5rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  background: #eef7f3;
+  border: 1px solid #b7e4c7;
+  border-radius: 8px;
 }
 
-.page-header h4 {
-  margin: 0 0 0.25rem;
-  font-weight: 700;
-}
-
-.page-header p,
-.state-panel p {
+.select-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
   margin: 0;
-  color: #64748b;
+  color: #16794b;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.select-all input { margin: 0; }
+
+.bulk-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.selection-count {
+  color: #16794b;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+/* Table */
+.bookings-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid #e8eaf0;
+  border-radius: 8px;
+  margin-bottom: 1.25rem;
 }
 
 .bookings-table {
-  border: 1px solid #dce4e8;
-  border-radius: 6px;
-  background: #fff;
+  min-width: 900px;
+  margin-bottom: 0;
 }
 
-.bookings-table th {
-  padding: 0.9rem 1rem;
-  background: #f4f7f8;
-  color: #52616b;
-  font-size: 0.75rem;
+.bookings-table thead th {
+  padding: 0.85rem 1rem;
+  background: #f5f6f8;
+  border-bottom: 1px solid #dde1e7;
+  color: #59636e;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.bookings-table tbody td {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid #edf0f3;
+  color: #30363d;
+  vertical-align: middle;
+}
+
+.bookings-table tbody tr:last-child td { border-bottom: 0; }
+
+.bookings-table tbody tr:hover td {
+  background: #fafbff;
+}
+
+.bookings-table tbody tr.selected-row td {
+  background: #f5fbf7;
+}
+
+.select-col {
+  width: 52px;
+  text-align: center;
+}
+
+/* Custom high-visibility checkboxes for booking selection */
+.bookings-table .select-col .form-check-input,
+.bulk-bar .form-check-input,
+.select-all .form-check-input {
+  width: 1.35rem;
+  height: 1.35rem;
+  margin: 0;
+  border: 2px solid #adb5bd;
+  border-radius: 5px;
+  background-color: #fff;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.bookings-table .select-col .form-check-input:hover:not(:disabled),
+.bulk-bar .form-check-input:hover:not(:disabled),
+.select-all .form-check-input:hover:not(:disabled) {
+  border-color: #4154f1;
+  background-color: #f2f4ff;
+  transform: scale(1.06);
+  box-shadow: 0 2px 6px rgba(65, 84, 241, 0.2);
+}
+
+.bookings-table .select-col .form-check-input:checked,
+.bulk-bar .form-check-input:checked,
+.select-all .form-check-input:checked {
+  background-color: #16794b;
+  border-color: #16794b;
+  box-shadow: 0 2px 6px rgba(22, 121, 75, 0.35);
+}
+
+.bookings-table .select-col .form-check-input:focus,
+.bulk-bar .form-check-input:focus,
+.select-all .form-check-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(65, 84, 241, 0.22);
+  border-color: #4154f1;
+}
+
+.bookings-table .select-col .form-check-input:disabled {
+  border-color: #dfe3e8;
+  background-color: #f8f9fb;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Header checkbox — a shade brighter to draw attention */
+.bookings-table thead .select-col .form-check-input {
+  border-color: #6674dc;
+}
+
+.bookings-table thead .select-col .form-check-input:checked {
+  background-color: #4154f1;
+  border-color: #4154f1;
+  box-shadow: 0 2px 6px rgba(65, 84, 241, 0.4);
+}
+
+/* Bulk bar checkbox glows subtly to indicate it's actionable */
+.bulk-bar .form-check-input {
+  border-color: #16794b;
+  border-width: 2.5px;
+}
+
+.actions-col {
+  min-width: 200px;
+  white-space: nowrap;
+}
+
+/* Cells */
+.patient-cell {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  min-width: 220px;
+}
+
+.patient-avatar {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #e8ecff;
+  color: #3445c5;
+  font-size: 0.85rem;
+  font-weight: 800;
   text-transform: uppercase;
 }
 
-.bookings-table td {
-  padding: 1rem;
+.patient-cell strong {
+  display: block;
+  color: #2c3237;
+  font-size: 0.9rem;
 }
 
-.bookings-table small {
+.patient-cell small,
+.date-cell small {
   display: block;
   margin-top: 0.2rem;
-  color: #718096;
+  color: #77808b;
+  font-size: 0.78rem;
+}
+
+.date-cell strong {
+  color: #2c3237;
+  font-size: 0.9rem;
 }
 
 .reason-cell {
-  min-width: 180px;
-  max-width: 280px;
+  min-width: 200px;
+  max-width: 320px;
+  font-size: 0.87rem;
+  color: #4b5563;
 }
 
-.status-badge {
-  display: inline-block;
-  padding: 0.3rem 0.55rem;
+.reject-note {
+  margin-top: 0.4rem;
+  padding: 0.4rem 0.6rem;
+  background: #fdecec;
+  border-left: 3px solid #dc3545;
   border-radius: 4px;
+  color: #b42332;
+  font-size: 0.78rem;
+}
+
+/* Status */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.28rem 0.65rem;
+  border-radius: 999px;
   font-size: 0.75rem;
   font-weight: 700;
 }
 
-.status-pending {
-  background: #fff4d6;
-  color: #875f00;
+.status-badge::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
 }
 
-.status-confirmed {
-  background: #dff5ef;
-  color: #166b57;
+.status-pending    { background: #fff4d6; color: #875f00; }
+.status-pending::before    { background: #d59900; }
+
+.status-confirmed  { background: #dff5ef; color: #166b57; }
+.status-confirmed::before  { background: #1f9d62; }
+
+.status-cancelled  { background: #f1f3f5; color: #59636e; }
+.status-cancelled::before  { background: #adb5bd; }
+
+.status-completed  { background: #e6effc; color: #285a9f; }
+.status-completed::before  { background: #4a7ac9; }
+
+.status-rejected   { background: #fdecec; color: #b42332; }
+.status-rejected::before   { background: #dc3545; }
+
+/* Actions */
+.action-buttons {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
 }
 
-.status-cancelled {
-  background: #fde7e7;
-  color: #a52a2a;
-}
-
-.status-completed {
-  background: #e6effc;
-  color: #285a9f;
-}
-
-.state-panel {
+/* Pagination footer */
+.pagination-footer {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-  min-height: 220px;
-  border: 1px solid #dce4e8;
-  border-radius: 6px;
-  background: #fff;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 0 0.25rem;
+  border-top: 1px solid #edf0f3;
+  margin-top: 1rem;
+  flex-wrap: wrap;
 }
 
-.empty-state {
-  flex-direction: column;
+.pagination-info {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.page-size {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.page-size .form-select {
+  width: auto;
+  min-width: 70px;
+}
+
+.pagination .page-link {
+  color: #3445c5;
+  border-color: #dfe3e8;
+  background: #fff;
+  min-width: 34px;
   text-align: center;
 }
 
-.empty-state > i {
-  color: #6c8a94;
-  font-size: 2.5rem;
+.pagination .page-link:hover {
+  background: #eef2ff;
 }
 
-@media (max-width: 576px) {
-  .page-header {
+.pagination .page-item.active .page-link {
+  background: #4154f1;
+  border-color: #4154f1;
+  color: #fff;
+}
+
+.pagination .page-item.disabled .page-link {
+  color: #adb5bd;
+  background: #f8f9fb;
+}
+
+/* Loading / empty */
+.loading-state,
+.empty-state {
+  padding: 3rem 1rem;
+  color: #77808b;
+  text-align: center;
+  border: 1px solid #e8eaf0;
+  border-radius: 8px;
+  background: #fbfcfe;
+}
+
+.loading-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.empty-state i {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 2rem;
+}
+
+.empty-state strong {
+  display: block;
+  color: #49515b;
+  margin-bottom: 0.25rem;
+}
+
+.filter-chip {
+  display: inline-block;
+  padding: 0.1rem 0.5rem;
+  margin: 0 0.15rem;
+  border-radius: 4px;
+  background: #eef2ff;
+  color: #3445c5;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+/* Reject modal */
+.reject-modal-header {
+  background: linear-gradient(135deg, #dc3545 0%, #b42332 100%);
+  color: #fff;
+  border-bottom: none;
+  padding: 1.25rem 1.5rem;
+}
+
+.reject-modal-header .modal-title {
+  color: #fff;
+  font-weight: 600;
+}
+
+.reject-modal-header .btn-close {
+  filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+.reject-summary {
+  padding: 0.85rem 1rem;
+  background: #f8f9fb;
+  border: 1px solid #e8eaf0;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.reject-summary div {
+  margin-bottom: 0.25rem;
+}
+
+.reject-summary div:last-child { margin-bottom: 0; }
+
+/* Responsive */
+@media (max-width: 992px) {
+  .filters-panel {
+    grid-template-columns: 1fr 1fr;
+  }
+  .filter-reset {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 768px) {
+  .bulk-bar {
     align-items: stretch;
     flex-direction: column;
+  }
+  .bookings-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .pagination-footer {
+    justify-content: center;
+  }
+  .pagination-info {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .filters-panel {
+    grid-template-columns: 1fr;
   }
 }

@@ -125,6 +125,11 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true,
       field: 'usage_limit'
     },
+    maxUsesPerUser: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      field: 'max_uses_per_user'
+    },
     usedCount: {
       type: DataTypes.INTEGER,
       defaultValue: 0,
@@ -147,6 +152,11 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.BOOLEAN,
       defaultValue: true,
       field: 'is_active'
+    },
+    isDeleted: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+      field: 'is_deleted'
     }
   }, {
     sequelize,
@@ -156,13 +166,14 @@ module.exports = (sequelize, DataTypes) => {
     timestamps: true,
     defaultScope: {
       where: {
-        isActive: true
+        isDeleted: false
       }
     },
     scopes: {
       active: {
         where: {
-          isActive: true
+          isActive: true,
+          isDeleted: false
         }
       },
       expired: {

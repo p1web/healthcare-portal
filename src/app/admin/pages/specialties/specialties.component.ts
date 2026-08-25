@@ -1,13 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AdminService } from '../../../services/admin.service';
+import { PaginationComponent } from '../../../shared/pagination/pagination.component';
 
 @Component({
   selector: 'app-specialties',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, PaginationComponent],
   templateUrl: './specialties.component.html',
   styleUrl: './specialties.component.css'
 })
@@ -19,6 +20,10 @@ export class SpecialtiesComponent implements OnInit {
   specialtiesList: any[] = [];
   selectedSpecialty: any = null;
   editingId: number | null = null;
+
+  currentPage = 1;
+  pageSize = 10;
+  readonly pageSizeOptions = [5, 10, 25, 50];
 
   constructor(
     private fb: FormBuilder,
@@ -54,11 +59,17 @@ export class SpecialtiesComponent implements OnInit {
       next: (data) => {
         // console.log(data)
         this.specialtiesList = data;
+        this.currentPage = 1;
       },
       error: (error) => {
         console.error('Error loading specialties:', error);
       }
     });
+  }
+
+  get pagedSpecialties(): any[] {
+    const start = (this.currentPage - 1) * this.pageSize;
+    return this.specialtiesList.slice(start, start + this.pageSize);
   }
 
   openAddSpecialtyModal(): void {

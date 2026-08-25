@@ -10,6 +10,10 @@ import { SpecializationsComponent } from './pages/specializations/specialization
 import { DoctorSpecializationMappingComponent } from './pages/doctor-specialization-mapping/doctor-specialization-mapping.component';
 import { AppointmentsComponent } from './pages/appointments/appointments.component';
 import { ProfileComponent } from './pages/profile/profile.component';
+import { CouponCategoriesComponent } from './pages/coupon-categories/coupon-categories.component';
+import { CouponsComponent } from './pages/coupons/coupons.component';
+import { CouponFormComponent } from './pages/coupons/coupon-form/coupon-form.component';
+import { CouponAnalyticsComponent } from './pages/coupon-analytics/coupon-analytics.component';
 
 const routes: Routes = [
   {
@@ -29,6 +33,11 @@ const routes: Routes = [
       { path: 'specialties', component: SpecialtiesComponent },
       { path: 'specializations', component: SpecializationsComponent },
       { path: 'doctor-specialization-mapping', component: DoctorSpecializationMappingComponent },
+      { path: 'coupon-categories', component: CouponCategoriesComponent },
+      { path: 'coupons', component: CouponsComponent },
+      { path: 'coupons/new', component: CouponFormComponent },
+      { path: 'coupons/:id/edit', component: CouponFormComponent },
+      { path: 'coupon-analytics', component: CouponAnalyticsComponent },
     ]
   }
 ];

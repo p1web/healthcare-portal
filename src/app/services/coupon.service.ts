@@ -204,4 +204,16 @@ export class CouponService {
       discount: discountAmount
     });
   }
+
+  // Validates a coupon against the backend and returns discount/final amount
+  validateCouponRemote(
+    code: string,
+    amount: number,
+    hospitalId?: number | null
+  ): Observable<any> {
+    return this.http.post(`${this.apiUrl}/validate/${code.toUpperCase()}`, {
+      amount,
+      hospitalId: hospitalId ?? undefined
+    });
+  }
 }

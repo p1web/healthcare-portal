@@ -69,13 +69,6 @@
       </a>
     </li>
 
-    <li class="nav-item">
-      <a class="nav-link collapsed" href="#">
-        <i class="bi bi-bar-chart"></i>
-        <span>Reports</span>
-      </a>
-    </li>
-
     <!-- Masters -->
     <li class="nav-heading">Masters</li>
 
@@ -95,6 +88,41 @@
         <i class="bi bi-diagram-2"></i>
         <span>Specializations</span>
       </a>
+    </li>
+
+    <!-- Coupon Management -->
+    <li class="nav-heading">Coupon Management</li>
+
+    <li class="nav-item">
+      <a class="nav-link"
+         [class.collapsed]="!(couponsLink.isActive || couponCategoriesLink.isActive || couponAnalyticsLink.isActive)"
+         data-bs-target="#coupon-nav" data-bs-toggle="collapse" href="#">
+        <i class="bi bi-ticket-perforated"></i>
+        <span>Coupon Management</span>
+        <i class="bi bi-chevron-down ms-auto"></i>
+      </a>
+      <ul id="coupon-nav" class="nav-content collapse"
+          [class.show]="couponsLink.isActive || couponCategoriesLink.isActive || couponAnalyticsLink.isActive"
+          data-bs-parent="#sidebar-nav">
+        <li>
+          <a routerLink="/admin/coupons" routerLinkActive="active"
+             [routerLinkActiveOptions]="{ exact: true }" #couponsLink="routerLinkActive">
+            <i class="bi bi-circle"></i><span>Coupons</span>
+          </a>
+        </li>
+        <li>
+          <a routerLink="/admin/coupon-categories" routerLinkActive="active"
+             [routerLinkActiveOptions]="{ exact: true }" #couponCategoriesLink="routerLinkActive">
+            <i class="bi bi-circle"></i><span>Coupon Categories</span>
+          </a>
+        </li>
+        <li>
+          <a routerLink="/admin/coupon-analytics" routerLinkActive="active"
+             [routerLinkActiveOptions]="{ exact: true }" #couponAnalyticsLink="routerLinkActive">
+            <i class="bi bi-circle"></i><span>Analytics</span>
+          </a>
+        </li>
+      </ul>
     </li>
 
     <!-- <li class="nav-item">

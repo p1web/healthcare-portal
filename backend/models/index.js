@@ -28,7 +28,7 @@ DoctorAvailability.associate({ DoctorProfile });
 Coupon.associate({ CouponCategory, HospitalProfile, CouponUsage });
 CouponCategory.associate({ Coupon });
 CouponUsage.associate({ Coupon });
-Appointment.associate({ DoctorProfile, User });
+Appointment.associate({ DoctorProfile, User, Coupon });
 
 // User associations
 User.associate({ PatientProfile, DoctorProfile, HospitalProfile });

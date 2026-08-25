@@ -1,0 +1,243 @@
+<div class="pagetitle">
+  <h1>Coupons</h1>
+  <nav>
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a routerLink="/admin/dashboard">Dashboard</a></li>
+      <li class="breadcrumb-item">Masters</li>
+      <li class="breadcrumb-item active">Coupons</li>
+    </ol>
+  </nav>
+</div>
+
+<section class="section dashboard">
+  <div class="row">
+    <div class="col-12">
+      <div class="card coupons-card">
+        <div class="card-body">
+
+          <div class="coupons-heading">
+            <div>
+              <h5 class="card-title mb-1">Coupon Codes</h5>
+              <p class="text-muted mb-0">Create, edit, and manage promotional coupons across hospitals.</p>
+            </div>
+            <span class="result-count">{{ couponsList.length }} coupons</span>
+          </div>
+
+          <div class="filters-panel">
+            <div class="filter-field filter-search">
+              <label class="form-label" for="couponSearch">Search</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                <input id="couponSearch" type="search" class="form-control"
+                       [(ngModel)]="searchTerm" (ngModelChange)="onFilterChange()"
+                       placeholder="Search by code or title">
+              </div>
+            </div>
+            <div class="filter-field">
+              <label class="form-label">Category</label>
+              <select class="form-select" [(ngModel)]="filterCategoryId" (ngModelChange)="onFilterChange()">
+                <option value="">All categories</option>
+                <option *ngFor="let c of categoriesList" [value]="c.id">{{ c.name }}</option>
+              </select>
+            </div>
+            <div class="filter-field">
+              <label class="form-label">Status</label>
+              <select class="form-select" [(ngModel)]="statusFilter" (ngModelChange)="onFilterChange()">
+                <option value="all">All</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+            <div class="filter-field filter-toggle">
+              <label class="form-label">Deleted</label>
+              <label class="show-deleted-check">
+                <input type="checkbox" class="form-check-input"
+                       [(ngModel)]="showDeleted" (change)="onFilterChange()">
+                <span>Show deleted</span>
+              </label>
+            </div>
+            <div class="filter-field filters-actions">
+              <button class="btn btn-outline-primary me-2" (click)="openBulkModal()"
+                      data-bs-toggle="modal" data-bs-target="#bulkCouponModal">
+                <i class="bi bi-collection me-1"></i> Bulk Generate
+              </button>
+              <button class="btn btn-primary" (click)="goToCreate()">
+                <i class="bi bi-plus-lg me-1"></i> Add Coupon
+              </button>
+            </div>
+          </div>
+
+          <div class="coupons-table-wrap">
+            <table class="table coupons-table align-middle">
+              <thead>
+                <tr>
+                  <th scope="col">Code</th>
+                  <th scope="col">Title / Description</th>
+                  <th scope="col">Discount</th>
+                  <th scope="col">Category</th>
+                  <th scope="col">Hospitals</th>
+                  <th scope="col">Validity</th>
+                  <th scope="col">Usage</th>
+                  <th scope="col">Status</th>
+                  <th scope="col" class="actions-column">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let c of pagedCoupons" [class.deleted-row]="c?.isDeleted">
+                  <td><span class="coupon-code">{{ c?.code }}</span></td>
+                  <td>
+                    <div class="coupon-title-cell">
+                      <strong>{{ c?.title }}</strong>
+                      <small>{{ c?.description }}</small>
+                    </div>
+                  </td>
+                  <td><span class="discount-badge">{{ c?.discountText }}</span></td>
+                  <td>{{ c?.category?.name || '—' }}</td>
+                  <td>
+                    <span *ngIf="!c?.hospitals?.length" class="hospital-badge-muted">All hospitals</span>
+                    <ng-container *ngIf="c?.hospitals?.length">
+                      <span *ngFor="let h of c?.hospitals?.slice(0, 3)" class="hospital-badge">{{ h?.name }}</span>
+                      <span *ngIf="c?.hospitals?.length > 3" class="hospital-badge">
+                        +{{ c?.hospitals?.length - 3 }} more
+                      </span>
+                    </ng-container>
+                  </td>
+                  <td class="text-nowrap">
+                    <div class="coupon-title-cell">
+                      <strong>{{ c?.validFrom | date:'dd MMM yy' }}</strong>
+                      <small>to {{ c?.validUntil | date:'dd MMM yy' }}</small>
+                    </div>
+                  </td>
+                  <td>{{ c?.usedCount }} / {{ c?.usageLimit || '∞' }}</td>
+                  <td>
+                    <span *ngIf="c?.isDeleted" class="status-pill status-deleted">
+                      Deleted
+                    </span>
+                    <span *ngIf="!c?.isDeleted" class="status-pill"
+                          [class.status-active]="c?.isActive" [class.status-inactive]="!c?.isActive">
+                      {{ c?.isActive ? 'Active' : 'Inactive' }}
+                    </span>
+                  </td>
+                  <td class="actions-column">
+                    <button type="button" class="btn btn-sm btn-outline-primary action-button me-1"
+                            (click)="goToEdit(c?.id)" title="Edit" [disabled]="c?.isDeleted">
+                      <i class="bi bi-pencil"></i>
+                    </button>
+                    <button *ngIf="!c?.isDeleted" type="button" class="btn btn-sm btn-outline-danger action-button"
+                            (click)="deleteCoupon(c?.id)" title="Delete">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                    <button *ngIf="c?.isDeleted" type="button" class="btn btn-sm btn-outline-success action-button"
+                            (click)="restoreCoupon(c?.id)" title="Restore">
+                      <i class="bi bi-arrow-counterclockwise"></i>
+                    </button>
+                  </td>
+                </tr>
+                <tr *ngIf="!couponsList.length">
+                  <td colspan="9" class="empty-state">
+                    <i class="bi bi-ticket-perforated"></i>
+                    <strong>No coupons found</strong>
+                    <span>Adjust the filters or add a new coupon to get started.</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <app-pagination
+              [totalItems]="couponsList.length"
+              [(currentPage)]="currentPage"
+              [(pageSize)]="pageSize"
+              [pageSizeOptions]="pageSizeOptions">
+          </app-pagination>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Bulk Generate Modal -->
+<div class="modal fade" id="bulkCouponModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header bulk-modal-header">
+        <h5 class="modal-title">
+          <i class="bi bi-collection me-2"></i> Bulk Generate Coupons
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form [formGroup]="bulkForm" (ngSubmit)="submitBulk()">
+        <div class="modal-body">
+          <p class="text-muted small mb-3">
+            Generates <strong>N unique codes</strong> with the given prefix, all sharing the same template.
+          </p>
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <label class="form-label">Count <span class="text-danger">*</span></label>
+              <input type="number" class="form-control" formControlName="count" min="1" max="500">
+              <small class="text-muted">Max 500</small>
+            </div>
+            <div class="col-md-4 mb-3">
+              <label class="form-label">Code Prefix <span class="text-danger">*</span></label>
+              <input type="text" class="form-control text-uppercase" formControlName="prefix" placeholder="e.g. SUMMER">
+            </div>
+            <div class="col-md-4 mb-3">
+              <label class="form-label">Category <span class="text-danger">*</span></label>
+              <select class="form-select" formControlName="categoryId">
+                <option [ngValue]="null">Select</option>
+                <option *ngFor="let c of categoriesList" [ngValue]="c.id">{{ c.name }}</option>
+              </select>
+            </div>
+            <div class="col-md-12 mb-3">
+              <label class="form-label">Title <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" formControlName="title" placeholder="e.g. Summer Sale">
+            </div>
+            <div class="col-md-12 mb-3">
+              <label class="form-label">Description <span class="text-danger">*</span></label>
+              <textarea class="form-control" rows="2" formControlName="description"></textarea>
+            </div>
+            <div class="col-md-4 mb-3">
+              <label class="form-label">Display Text <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" formControlName="discountText" placeholder="20% OFF">
+            </div>
+            <div class="col-md-4 mb-3">
+              <label class="form-label">Discount Type <span class="text-danger">*</span></label>
+              <select class="form-select" formControlName="discountType">
+                <option value="percentage">Percentage</option>
+                <option value="fixed">Fixed</option>
+              </select>
+            </div>
+            <div class="col-md-4 mb-3">
+              <label class="form-label">Discount Value <span class="text-danger">*</span></label>
+              <input type="number" class="form-control" formControlName="discountValue" min="0.01" step="0.01">
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Valid From <span class="text-danger">*</span></label>
+              <input type="date" class="form-control" formControlName="validFrom">
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Valid Until <span class="text-danger">*</span></label>
+              <input type="date" class="form-control" formControlName="validUntil">
+            </div>
+            <div class="col-md-4 mb-3">
+              <label class="form-label">Usage Limit (per coupon)</label>
+              <input type="number" class="form-control" formControlName="usageLimit" min="1">
+            </div>
+            <div class="col-md-4 mb-3">
+              <label class="form-label">Max Uses Per User</label>
+              <input type="number" class="form-control" formControlName="maxUsesPerUser" min="1">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary" [disabled]="bulkForm.invalid || isBulkSubmitting">
+            <span class="spinner-border spinner-border-sm me-2" *ngIf="isBulkSubmitting"></span>
+            Generate
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

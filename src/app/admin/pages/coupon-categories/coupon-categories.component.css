@@ -1,0 +1,365 @@
+/* Coupon Categories list — mirrors users list */
+.categories-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.categories-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem 0;
+}
+
+.categories-heading h5 {
+  color: #2c3237;
+}
+
+.result-count {
+  flex-shrink: 0;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #3445c5;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.filters-panel {
+  display: grid;
+  grid-template-columns: minmax(160px, 240px) minmax(160px, 240px) auto;
+  align-items: end;
+  gap: 1rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background: #f8f9fb;
+  border: 1px solid #e8eaf0;
+  border-radius: 8px;
+}
+
+.filter-field {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.filters-panel .form-label {
+  margin-bottom: 0.35rem;
+  color: #59636e;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.filters-actions {
+  justify-content: flex-end;
+}
+
+.filters-actions .btn {
+  height: 38px;
+  white-space: nowrap;
+}
+
+.categories-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid #e8eaf0;
+  border-radius: 8px;
+}
+
+.categories-table {
+  min-width: 800px;
+  margin-bottom: 0;
+}
+
+.categories-table thead th {
+  padding: 0.8rem 0.9rem;
+  background: #f5f6f8;
+  border-bottom: 1px solid #dde1e7;
+  color: #59636e;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.categories-table tbody td {
+  padding: 0.85rem 0.9rem;
+  border-bottom: 1px solid #edf0f3;
+  color: #30363d;
+  vertical-align: middle;
+}
+
+.categories-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.categories-table tbody tr:hover td {
+  background: #fafbff;
+}
+
+.cat-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.cat-icon {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: #eef2ff;
+  color: #3445c5;
+  font-size: 1rem;
+}
+
+.cat-name-text strong {
+  display: block;
+  color: #2c3237;
+  font-size: 0.9rem;
+}
+
+.cat-name-text small {
+  color: #77808b;
+  font-size: 0.75rem;
+}
+
+.slug-badge {
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  background: #f1f3f5;
+  color: #59636e;
+  font-family: 'SFMono-Regular', Consolas, monospace;
+  font-size: 0.75rem;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.status-pill::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.status-active {
+  background: #e6f7ec;
+  color: #16794b;
+}
+
+.status-active::before { background: #1f9d62; }
+
+.status-inactive {
+  background: #f1f3f5;
+  color: #59636e;
+}
+
+.status-inactive::before { background: #adb5bd; }
+
+.status-deleted {
+  background: #fdecec;
+  color: #b42332;
+}
+
+.status-deleted::before { background: #dc3545; }
+
+.deleted-row td {
+  background: #fdfafa !important;
+  opacity: 0.75;
+}
+
+.show-deleted-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 38px;
+  padding: 0 0.75rem;
+  border: 1px solid #d9dee5;
+  border-radius: 6px;
+  background: #fff;
+  font-size: 0.85rem;
+  color: #30363d;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.15s ease;
+}
+
+.show-deleted-check:hover {
+  border-color: #4154f1;
+  background: #f7f8ff;
+}
+
+.show-deleted-check .form-check-input {
+  margin: 0;
+  cursor: pointer;
+}
+
+.show-deleted-check .form-check-input:checked ~ span {
+  color: #3445c5;
+  font-weight: 600;
+}
+
+.actions-column {
+  min-width: 130px;
+  text-align: right;
+}
+
+.action-button {
+  min-width: 34px;
+}
+
+.empty-state {
+  padding: 3rem 1rem !important;
+  color: #77808b;
+  text-align: center;
+}
+
+.empty-state i {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 1.8rem;
+}
+
+.empty-state strong {
+  display: block;
+  color: #49515b;
+}
+
+/* Modal styling (matches user detail modal) */
+.category-modal .modal-content {
+  border: none;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.18);
+}
+
+.category-modal .modal-header {
+  background: linear-gradient(135deg, #4154f1 0%, #2f3fc9 100%);
+  color: #fff;
+  border-bottom: none;
+  padding: 1.25rem 1.5rem;
+}
+
+.category-modal .modal-header .modal-title {
+  color: #fff;
+  font-weight: 600;
+}
+
+.category-modal .modal-header .btn-close {
+  filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+.category-modal .modal-body {
+  background: #f6f7fb;
+  padding: 1.5rem;
+}
+
+.category-modal .modal-footer {
+  background: #fff;
+  border-top: 1px solid #eceef3;
+  padding: 1rem 1.5rem;
+}
+
+.category-form-card {
+  background: #fff;
+  border: 1px solid #eceef3;
+  border-radius: 10px;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.field-label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #59636e;
+  margin-bottom: 0.35rem;
+}
+
+.field-label .required {
+  color: #dc3545;
+  margin-left: 0.15rem;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: #4154f1;
+  box-shadow: 0 0 0 3px rgba(65, 84, 241, 0.12);
+}
+
+.form-hint {
+  display: block;
+  margin-top: 0.35rem;
+  color: #8a94a6;
+  font-size: 0.75rem;
+}
+
+.field-error {
+  display: block;
+  margin-top: 0.3rem;
+  color: #dc3545;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.status-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: #f8f9fb;
+  border: 1px solid #e8eaf0;
+  border-radius: 8px;
+  margin-top: 0.5rem;
+}
+
+.status-toggle-label {
+  flex: 1;
+}
+
+.status-toggle-label strong {
+  display: block;
+  color: #2c3237;
+  font-size: 0.88rem;
+}
+
+.status-toggle-label small {
+  color: #77808b;
+  font-size: 0.75rem;
+}
+
+.form-switch .form-check-input {
+  width: 2.5em;
+  height: 1.4em;
+}
+
+@media (max-width: 768px) {
+  .filters-panel {
+    grid-template-columns: 1fr 1fr;
+  }
+  .filters-actions {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  .filters-panel {
+    grid-template-columns: 1fr;
+  }
+}

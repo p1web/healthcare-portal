@@ -1,0 +1,217 @@
+<div class="pagetitle">
+  <h1>Coupon Categories</h1>
+  <nav>
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a routerLink="/admin/dashboard">Dashboard</a></li>
+      <li class="breadcrumb-item">Masters</li>
+      <li class="breadcrumb-item active">Coupon Categories</li>
+    </ol>
+  </nav>
+</div>
+
+<section class="section dashboard">
+  <div class="row">
+    <div class="col-12">
+      <div class="card categories-card">
+        <div class="card-body">
+
+          <div class="categories-heading">
+            <div>
+              <h5 class="card-title mb-1">Coupon Categories</h5>
+              <p class="text-muted mb-0">Group coupons by purpose or campaign type.</p>
+            </div>
+            <span class="result-count">{{ categoriesList.length }} categories</span>
+          </div>
+
+          <div class="filters-panel">
+            <div class="filter-field">
+              <label class="form-label">Status</label>
+              <select class="form-select" [(ngModel)]="statusFilter" (ngModelChange)="onFilterChange()">
+                <option value="all">All</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+            <div class="filter-field filter-toggle">
+              <label class="form-label">Deleted</label>
+              <label class="show-deleted-check">
+                <input type="checkbox" class="form-check-input"
+                       [(ngModel)]="showDeleted" (change)="onFilterChange()">
+                <span>Show deleted</span>
+              </label>
+            </div>
+            <div class="filter-field filters-actions">
+              <button class="btn btn-primary" (click)="openAddModal()"
+                      data-bs-toggle="modal" data-bs-target="#createCategoryModal">
+                <i class="bi bi-plus-lg me-1"></i> Add Category
+              </button>
+            </div>
+          </div>
+
+          <div class="categories-table-wrap">
+            <table class="table categories-table align-middle">
+              <thead>
+                <tr>
+                  <th scope="col">Category</th>
+                  <th scope="col">Slug</th>
+                  <th scope="col">Description</th>
+                  <th scope="col">Status</th>
+                  <th scope="col" class="actions-column">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let c of pagedCategories" [class.deleted-row]="c?.isDeleted">
+                  <td>
+                    <div class="cat-name-cell">
+                      <span class="cat-icon"><i [class]="c?.icon || 'bi bi-tag'"></i></span>
+                      <div class="cat-name-text">
+                        <strong>{{ c?.name }}</strong>
+                        <small *ngIf="c?.icon">{{ c?.icon }}</small>
+                      </div>
+                    </div>
+                  </td>
+                  <td><span class="slug-badge">{{ c?.slug }}</span></td>
+                  <td class="text-muted">{{ c?.description || '—' }}</td>
+                  <td>
+                    <span *ngIf="c?.isDeleted" class="status-pill status-deleted">Deleted</span>
+                    <span *ngIf="!c?.isDeleted" class="status-pill"
+                          [class.status-active]="c?.isActive" [class.status-inactive]="!c?.isActive">
+                      {{ c?.isActive ? 'Active' : 'Inactive' }}
+                    </span>
+                  </td>
+                  <td class="actions-column">
+                    <button type="button" class="btn btn-sm btn-outline-primary action-button me-1"
+                            (click)="openEditModal(c)"
+                            data-bs-toggle="modal" data-bs-target="#editCategoryModal"
+                            title="Edit" [disabled]="c?.isDeleted">
+                      <i class="bi bi-pencil"></i>
+                    </button>
+                    <button *ngIf="!c?.isDeleted" type="button" class="btn btn-sm btn-outline-danger action-button"
+                            (click)="deleteCategory(c?.id)" title="Delete">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                    <button *ngIf="c?.isDeleted" type="button" class="btn btn-sm btn-outline-success action-button"
+                            (click)="restoreCategory(c?.id)" title="Restore">
+                      <i class="bi bi-arrow-counterclockwise"></i>
+                    </button>
+                  </td>
+                </tr>
+                <tr *ngIf="!categoriesList.length">
+                  <td colspan="5" class="empty-state">
+                    <i class="bi bi-tags"></i>
+                    <strong>No categories found</strong>
+                    <span>Create a category to start grouping your coupons.</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <app-pagination
+              [totalItems]="categoriesList.length"
+              [(currentPage)]="currentPage"
+              [(pageSize)]="pageSize"
+              [pageSizeOptions]="pageSizeOptions">
+          </app-pagination>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Create Modal -->
+<div class="modal fade category-modal" id="createCategoryModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="bi bi-plus-circle me-2"></i> Create Coupon Category
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form [formGroup]="categoryForm" (ngSubmit)="saveCategory()">
+        <div class="modal-body">
+          <div class="category-form-card">
+            <div class="mb-3">
+              <label class="field-label">Category Name <span class="required">*</span></label>
+              <input type="text" class="form-control" formControlName="name" placeholder="e.g. Health Checkup">
+              <span class="form-hint">A slug is generated automatically from this name</span>
+              <span *ngIf="categoryForm.get('name')?.invalid && categoryForm.get('name')?.touched" class="field-error">
+                Name is required
+              </span>
+            </div>
+            <div class="mb-3">
+              <label class="field-label">Description</label>
+              <textarea class="form-control" rows="3" formControlName="description"
+                        placeholder="Optional description shown to admins"></textarea>
+            </div>
+            <div class="mb-0">
+              <label class="field-label">Icon (Bootstrap Icon class)</label>
+              <input type="text" class="form-control" formControlName="icon" placeholder="e.g. bi bi-heart-pulse">
+              <span class="form-hint">Use any icon from Bootstrap Icons</span>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary" [disabled]="categoryForm.invalid || isSubmitting">
+            <span class="spinner-border spinner-border-sm me-2" *ngIf="isSubmitting"></span>
+            Create Category
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal fade category-modal" id="editCategoryModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="bi bi-pencil-square me-2"></i> Edit Coupon Category
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form [formGroup]="editCategoryForm" (ngSubmit)="updateCategory()">
+        <div class="modal-body">
+          <div class="category-form-card">
+            <div class="mb-3">
+              <label class="field-label">Category Name <span class="required">*</span></label>
+              <input type="text" class="form-control" formControlName="name">
+              <span *ngIf="editCategoryForm.get('name')?.invalid && editCategoryForm.get('name')?.touched" class="field-error">
+                Name is required
+              </span>
+            </div>
+            <div class="mb-3">
+              <label class="field-label">Description</label>
+              <textarea class="form-control" rows="3" formControlName="description"></textarea>
+            </div>
+            <div class="mb-3">
+              <label class="field-label">Icon</label>
+              <input type="text" class="form-control" formControlName="icon">
+            </div>
+            <div class="status-toggle">
+              <div class="status-toggle-label">
+                <strong>Active</strong>
+                <small>Inactive categories are hidden from public listings</small>
+              </div>
+              <div class="form-check form-switch mb-0">
+                <input class="form-check-input" type="checkbox" formControlName="isActive" id="editCatActive">
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary" [disabled]="editCategoryForm.invalid || isSubmitting">
+            <span class="spinner-border spinner-border-sm me-2" *ngIf="isSubmitting"></span>
+            Update Category
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

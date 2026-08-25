@@ -34,8 +34,8 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr *ngFor="let s of specializationList; let i = index">
-                                <th scope="row">{{ i + 1 }}</th>
+                            <tr *ngFor="let s of pagedSpecializations; let i = index">
+                                <th scope="row">{{ (currentPage - 1) * pageSize + i + 1 }}</th>
                                 <td>
                                     <span class="{{ s?.icon }} me-2 fs-4 align-middle text-primary"></span> <a
                                         class="btn-link align-middle">{{ s?.name }}</a>
@@ -58,6 +58,13 @@
                         </tbody>
 
                     </table>
+
+                    <app-pagination
+                        [totalItems]="specializationList.length"
+                        [(currentPage)]="currentPage"
+                        [(pageSize)]="pageSize"
+                        [pageSizeOptions]="pageSizeOptions">
+                    </app-pagination>
 
                     <div class="modal fade" id="createSpecializationModal" tabindex="-1">
                         <div class="modal-dialog modal-lg">

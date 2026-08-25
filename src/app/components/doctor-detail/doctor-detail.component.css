@@ -81,3 +81,60 @@
     height: 100px;
   }
 }
+
+/* Available Coupons panel */
+.coupons-card .coupon-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.coupon-item {
+  padding: 0.75rem 1rem;
+  border: 1px dashed #b7e4c7;
+  border-radius: 8px;
+  background: #f5fbf7;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.coupon-item:hover {
+  border-color: #198754;
+  background: #ecf7ee;
+  transform: translateX(2px);
+}
+
+.coupon-item.selected {
+  border-style: solid;
+  border-color: #198754;
+  background: #d1e7dd;
+  box-shadow: 0 0 0 3px rgba(25, 135, 84, 0.15);
+}
+
+.coupon-chip {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 6px;
+  background: #fff;
+  color: #198754;
+  font-family: 'SFMono-Regular', Consolas, monospace;
+  font-size: 0.78rem;
+  font-weight: 700;
+  border: 1px solid #b7e4c7;
+}
+
+/* Pricing summary */
+.pricing-summary {
+  padding: 0.9rem 1.1rem;
+  border: 1px solid #dfe3e8;
+  border-radius: 8px;
+  background: #f8f9fb;
+  font-size: 0.92rem;
+}
+
+.pricing-summary hr {
+  border-color: #dfe3e8;
+  opacity: 1;
+}

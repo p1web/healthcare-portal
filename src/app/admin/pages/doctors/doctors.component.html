@@ -45,8 +45,8 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr *ngFor="let doc of doctorList; let i = index">
-                                <th scope="row">{{ i + 1 }}</th>
+                            <tr *ngFor="let doc of pagedDoctors; let i = index">
+                                <th scope="row">{{ (currentPage - 1) * pageSize + i + 1 }}</th>
                                 <td>
                                     <button type="button" class="btn btn-link p-0" (click)="openDoctorModal(doc)">{{ doc.user.name }}</button>
                                 </td>
@@ -78,6 +78,14 @@
                         </tbody>
 
                     </table>
+
+
+                    <app-pagination
+                        [totalItems]="doctorList.length"
+                        [(currentPage)]="currentPage"
+                        [(pageSize)]="pageSize"
+                        [pageSizeOptions]="pageSizeOptions">
+                    </app-pagination>
 
 
                     <app-admin-doctor-profile-modal *ngIf="selectedDoctor" [profile]="selectedDoctor"

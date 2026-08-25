@@ -7,11 +7,12 @@ import { AdminService } from '../../../services/admin.service';
 import { User } from '../../../models/user.model';
 import { DoctorProfileModalComponent } from '../../shared/doctor-profile-modal/doctor-profile-modal.component';
 import { HospitalProfileModalComponent } from '../../shared/hospital-profile-modal/hospital-profile-modal.component';
+import { PaginationComponent } from '../../../shared/pagination/pagination.component';
 
 @Component({
   selector: 'app-users',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, DoctorProfileModalComponent, HospitalProfileModalComponent],
+  imports: [CommonModule, FormsModule, RouterLink, DoctorProfileModalComponent, HospitalProfileModalComponent, PaginationComponent],
   templateUrl: './users.component.html',
   styleUrl: './users.component.css'
 })
@@ -30,6 +31,10 @@ export class UsersComponent implements OnInit{
   isUpdatingAccountStatus: boolean = false;
   accountStatusMessage: string = '';
   accountStatusError: string = '';
+
+  currentPage = 1;
+  pageSize = 10;
+  readonly pageSizeOptions = [5, 10, 25, 50];
 
   statusOptions = [
     { value: 'ALL', label: 'All Statuses' },
@@ -111,6 +116,11 @@ export class UsersComponent implements OnInit{
       user.state,
       this.getVerificationStatus(user)
     ].some((value) => String(value || '').toLowerCase().includes(term)));
+  }
+
+  get pagedUsers(): User[] {
+    const start = (this.currentPage - 1) * this.pageSize;
+    return this.filteredUsers.slice(start, start + this.pageSize);
   }
 
   getAccountStatus(user: User): string {

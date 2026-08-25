@@ -1,0 +1,182 @@
+<div class="pagetitle">
+  <h1>{{ isEdit ? 'Edit Coupon' : 'Add Coupon' }}</h1>
+  <nav>
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a routerLink="/admin/dashboard">Dashboard</a></li>
+      <li class="breadcrumb-item"><a routerLink="/admin/coupons">Coupons</a></li>
+      <li class="breadcrumb-item active">{{ isEdit ? 'Edit' : 'Add' }}</li>
+    </ol>
+  </nav>
+</div>
+
+<section class="section">
+  <div class="row">
+    <div class="col-12">
+      <div class="card form-card">
+        <div class="card-body">
+
+          <div class="form-heading">
+            <div>
+              <h5 class="card-title mb-1">{{ isEdit ? 'Update coupon details' : 'New coupon' }}</h5>
+              <p class="text-muted mb-0">
+                {{ isEdit ? 'Modify the coupon information and mapped hospitals.' : 'Configure a promotional coupon and map it to hospitals.' }}
+              </p>
+            </div>
+            <button type="button" class="btn btn-outline-secondary" (click)="cancel()">
+              <i class="bi bi-arrow-left me-1"></i> Back to list
+            </button>
+          </div>
+
+          <div *ngIf="isLoading" class="loading-state">
+            <span class="spinner-border spinner-border-sm me-2"></span>
+            Loading coupon details...
+          </div>
+
+          <form *ngIf="!isLoading" [formGroup]="form" (ngSubmit)="submit()">
+            <div class="form-body">
+
+              <div class="section-card">
+                <h6><i class="bi bi-ticket-perforated"></i> Basic Information</h6>
+                <div class="row">
+                  <div class="col-md-4 mb-3">
+                    <label class="field-label">Coupon Code <span class="required">*</span></label>
+                    <input type="text" class="form-control text-uppercase" formControlName="code" placeholder="e.g. HEALTH20">
+                    <span class="form-hint">3–50 characters, alphanumeric + dashes/underscores</span>
+                    <span *ngIf="form.get('code')?.invalid && form.get('code')?.touched" class="field-error">
+                      Code must be 3–50 characters
+                    </span>
+                  </div>
+                  <div class="col-md-4 mb-3">
+                    <label class="field-label">Category <span class="required">*</span></label>
+                    <select class="form-select" formControlName="categoryId">
+                      <option [ngValue]="null">Select a category</option>
+                      <option *ngFor="let cat of categoriesList" [ngValue]="cat.id">{{ cat.name }}</option>
+                    </select>
+                    <span *ngIf="form.get('categoryId')?.invalid && form.get('categoryId')?.touched" class="field-error">
+                      Category is required
+                    </span>
+                  </div>
+                  <div class="col-md-4 mb-3">
+                    <label class="field-label">Display Text <span class="required">*</span></label>
+                    <input type="text" class="form-control" formControlName="discountText" placeholder="e.g. 20% OFF">
+                    <span class="form-hint">Shown on coupon cards</span>
+                  </div>
+                  <div class="col-md-12 mb-3">
+                    <label class="field-label">Title <span class="required">*</span></label>
+                    <input type="text" class="form-control" formControlName="title" placeholder="Short catchy title">
+                  </div>
+                  <div class="col-md-12 mb-0">
+                    <label class="field-label">Description <span class="required">*</span></label>
+                    <textarea class="form-control" rows="3" formControlName="description"
+                              placeholder="Explain what this coupon offers..."></textarea>
+                  </div>
+                </div>
+              </div>
+
+              <div class="section-card">
+                <h6><i class="bi bi-currency-rupee"></i> Discount & Limits</h6>
+                <div class="row">
+                  <div class="col-md-3 mb-3">
+                    <label class="field-label">Discount Type <span class="required">*</span></label>
+                    <select class="form-select" formControlName="discountType">
+                      <option value="percentage">Percentage (%)</option>
+                      <option value="fixed">Fixed Amount</option>
+                    </select>
+                  </div>
+                  <div class="col-md-3 mb-3">
+                    <label class="field-label">Discount Value <span class="required">*</span></label>
+                    <input type="number" class="form-control" formControlName="discountValue" min="0.01" step="0.01">
+                    <span *ngIf="form.get('discountValue')?.invalid && form.get('discountValue')?.touched" class="field-error">
+                      Value must be greater than 0
+                    </span>
+                  </div>
+                  <div class="col-md-3 mb-3">
+                    <label class="field-label">Minimum Order Amount</label>
+                    <input type="number" class="form-control" formControlName="minAmount" min="0" step="0.01" placeholder="Optional">
+                  </div>
+                  <div class="col-md-3 mb-3">
+                    <label class="field-label">Maximum Discount</label>
+                    <input type="number" class="form-control" formControlName="maxDiscount" min="0" step="0.01" placeholder="Optional">
+                    <span class="form-hint">Only applies to percentage</span>
+                  </div>
+                  <div class="col-md-4 mb-3">
+                    <label class="field-label">Usage Limit</label>
+                    <input type="number" class="form-control" formControlName="usageLimit" min="1" placeholder="Unlimited if empty">
+                    <span class="form-hint">Total redemptions across all users</span>
+                  </div>
+                  <div class="col-md-4 mb-3">
+                    <label class="field-label">Max Uses Per User</label>
+                    <input type="number" class="form-control" formControlName="maxUsesPerUser" min="1" placeholder="Unlimited if empty">
+                    <span class="form-hint">e.g. 1 = one-time use per patient</span>
+                  </div>
+                  <div class="col-md-4 mb-3">
+                    <label class="field-label">Valid From <span class="required">*</span></label>
+                    <input type="date" class="form-control" formControlName="validFrom">
+                  </div>
+                  <div class="col-md-4 mb-0">
+                    <label class="field-label">Valid Until <span class="required">*</span></label>
+                    <input type="date" class="form-control" formControlName="validUntil">
+                  </div>
+                </div>
+              </div>
+
+              <div class="section-card">
+                <h6><i class="bi bi-hospital"></i> Applicable Hospitals</h6>
+                <label class="field-label">Select Hospitals</label>
+                <select appSelect2
+                        [options]="hospitalOptions"
+                        [multiple]="true"
+                        placeholder="Search and select hospitals..."
+                        formControlName="hospitalIds"></select>
+                <span class="form-hint">Leave empty to apply this coupon to <strong>all hospitals</strong>. Type to search.</span>
+              </div>
+
+              <div class="section-card">
+                <h6><i class="bi bi-list-check"></i> Terms & Conditions</h6>
+                <div class="section-actions">
+                  <span class="form-hint mb-0">Add any restrictions or conditions users should be aware of</span>
+                  <button type="button" class="btn btn-outline-primary btn-add" (click)="addTerm()">
+                    <i class="bi bi-plus-lg me-1"></i> Add Term
+                  </button>
+                </div>
+                <div formArrayName="terms">
+                  <div *ngFor="let ctrl of terms.controls; let i = index" class="term-row">
+                    <span class="term-number">{{ i + 1 }}</span>
+                    <input type="text" class="form-control" [formControlName]="i" placeholder="e.g. Valid only on first booking">
+                    <button type="button" class="btn btn-sm btn-outline-danger" (click)="removeTerm(i)" title="Remove term">
+                      <i class="bi bi-x-lg"></i>
+                    </button>
+                  </div>
+                  <div *ngIf="!terms.length" class="empty-terms">No terms added yet</div>
+                </div>
+              </div>
+
+              <div class="section-card">
+                <h6><i class="bi bi-toggle-on"></i> Status</h6>
+                <div class="status-toggle">
+                  <div class="status-toggle-label">
+                    <strong>Active</strong>
+                    <small>Inactive coupons cannot be applied at checkout</small>
+                  </div>
+                  <div class="form-check form-switch mb-0">
+                    <input class="form-check-input" type="checkbox" formControlName="isActive" id="couponActive">
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <div class="form-toolbar">
+              <button type="button" class="btn btn-outline-secondary" (click)="cancel()">Cancel</button>
+              <button type="submit" class="btn btn-primary" [disabled]="form.invalid || isSubmitting">
+                <span class="spinner-border spinner-border-sm me-2" *ngIf="isSubmitting"></span>
+                {{ isEdit ? 'Update Coupon' : 'Create Coupon' }}
+              </button>
+            </div>
+          </form>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

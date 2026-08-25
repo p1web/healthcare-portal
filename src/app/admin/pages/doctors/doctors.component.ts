@@ -5,11 +5,12 @@ import { FormsModule } from '@angular/forms';
 import { AdminService } from '../../../services/admin.service';
 import { ProfileReviewStatus, User } from '../../../models/user.model';
 import { DoctorProfileModalComponent } from '../../shared/doctor-profile-modal/doctor-profile-modal.component';
+import { PaginationComponent } from '../../../shared/pagination/pagination.component';
 
 @Component({
   selector: 'app-users',
   standalone: true,
-  imports: [CommonModule, FormsModule, DoctorProfileModalComponent],
+  imports: [CommonModule, FormsModule, DoctorProfileModalComponent, PaginationComponent],
   templateUrl: './doctors.component.html',
   styleUrl: './doctors.component.css'
 })
@@ -25,6 +26,10 @@ export class DoctorsComponent implements OnInit{
   reviewActions: Record<number, string> = {};
   reviewComments: Record<number, string> = {};
   publicListing = false;
+
+  currentPage = 1;
+  pageSize = 10;
+  readonly pageSizeOptions = [5, 10, 25, 50];
 
   constructor(
     private route: ActivatedRoute,
@@ -70,6 +75,7 @@ export class DoctorsComponent implements OnInit{
     this.AdminService.getDoctorProfile(filters).subscribe({
       next: (response) => {
         this.doctorList = response;
+        this.currentPage = 1;
         // console.log('Users loaded:', this.doctorList);
       },
       error: (err) => {
@@ -193,6 +199,11 @@ export class DoctorsComponent implements OnInit{
         console.error('Failed to load hospitals', err);
       }
     });
+  }
+
+  get pagedDoctors(): any[] {
+    const start = (this.currentPage - 1) * this.pageSize;
+    return this.doctorList.slice(start, start + this.pageSize);
   }
 
 }

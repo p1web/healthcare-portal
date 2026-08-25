@@ -40,13 +40,23 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.BOOLEAN,
       defaultValue: true,
       field: 'is_active'
+    },
+    isDeleted: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+      field: 'is_deleted'
     }
   }, {
     sequelize,
     modelName: 'CouponCategory',
     tableName: 'coupon_categories',
     underscored: true,
-    timestamps: true
+    timestamps: true,
+    defaultScope: {
+      where: {
+        isDeleted: false
+      }
+    }
   });
 
   return CouponCategory;

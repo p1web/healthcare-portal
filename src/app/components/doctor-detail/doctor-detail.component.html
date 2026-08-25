@@ -35,10 +35,22 @@
           <div>
             <h5 class="alert-heading mb-1">Appointment Booked Successfully!</h5>
             <p class="mb-1 small">We'll contact you shortly to confirm your appointment.</p>
+            <div *ngIf="bookingResult" class="small mt-2">
+              <div *ngIf="bookingResult.couponCode">
+                Applied coupon: <strong>{{ bookingResult.couponCode }}</strong>
+              </div>
+              <div *ngIf="bookingResult.originalPrice !== null && bookingResult.originalPrice !== undefined">
+                Consultation fee: ₹{{ bookingResult.originalPrice }}
+                <span *ngIf="bookingResult.discountAmount > 0">
+                  &nbsp;·&nbsp; Discount: −₹{{ bookingResult.discountAmount }}
+                  &nbsp;·&nbsp; <strong>Total: ₹{{ bookingResult.finalPrice }}</strong>
+                </span>
+              </div>
+            </div>
             <a routerLink="/appointments" class="alert-link small">View My Appointments</a>
           </div>
         </div>
-        <button type="button" class="btn-close" (click)="bookingSuccess = false"></button>
+        <button type="button" class="btn-close" (click)="bookingSuccess = false; bookingResult = null"></button>
       </div>
 
       <div class="row g-4 mb-5">
@@ -88,33 +100,37 @@
           </div>
         </div>
 
-        <!-- Special Offer -->
+        <!-- Available Coupons -->
         <div class="col-lg-6">
-          <div class="card border-success h-100">
+          <div class="card border-success h-100 coupons-card">
             <div class="card-body">
-              <h3 class="fw-bold text-success mb-4">
-                <i class="bi bi-tags-fill me-2"></i>Special Offer
+              <h3 class="fw-bold text-success mb-3">
+                <i class="bi bi-tags-fill me-2"></i>Available Offers
               </h3>
-              
-              <div class="d-flex align-items-center mb-4">
-                <div class="bg-success bg-opacity-10 rounded-circle p-4 me-3">
-                  <i class="bi bi-percent text-success fs-2"></i>
-                </div>
-                <div>
-                  <h2 class="text-success fw-bold mb-0">20% OFF</h2>
-                  <p class="text-muted mb-0">on consultation fee</p>
-                </div>
+
+              <div *ngIf="isLoadingCoupons" class="text-center text-muted py-3">
+                <span class="spinner-border spinner-border-sm me-2"></span>Loading offers...
               </div>
 
-              <div class="alert alert-success mb-3">
-                <p class="mb-2 fw-bold">Use coupon code:</p>
-                <code class="bg-white text-success px-3 py-2 rounded fs-5">HEALTH20</code>
+              <div *ngIf="!isLoadingCoupons && !applicableCoupons.length" class="text-muted small text-center py-3">
+                No offers currently available for this consultation.
               </div>
 
-              <p class="text-muted small mb-0">
-                <i class="bi bi-info-circle me-1"></i>
-                * Valid for first-time users only
-              </p>
+              <div *ngIf="!isLoadingCoupons && applicableCoupons.length" class="coupon-list">
+                <div *ngFor="let c of applicableCoupons" class="coupon-item"
+                     [class.selected]="appliedCoupon?.code === c.code"
+                     (click)="selectCoupon(c.code)">
+                  <div class="d-flex justify-content-between align-items-start mb-1">
+                    <strong class="text-success">{{ c.discountText || c.discount }}</strong>
+                    <code class="coupon-chip">{{ c.code }}</code>
+                  </div>
+                  <div class="fw-semibold small mb-1">{{ c.title }}</div>
+                  <div class="text-muted small mb-0" *ngIf="c.description">{{ c.description }}</div>
+                  <div *ngIf="c.minAmount" class="text-muted small mt-1">
+                    <i class="bi bi-info-circle me-1"></i>Min. amount ₹{{ c.minAmount }}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -171,6 +187,59 @@
               <div class="invalid-feedback">
                 <span *ngIf="appointmentForm.get('time')?.hasError('required')">Time is required.</span>
                 <span *ngIf="appointmentForm.get('time')?.hasError('outsideAvailability')">Choose a time within the doctor's available hours.</span>
+              </div>
+            </div>
+
+            <!-- Coupon Code -->
+            <div class="col-12">
+              <label class="form-label fw-semibold">
+                <i class="bi bi-ticket-perforated me-1"></i> Coupon Code
+                <span class="text-muted small">(Optional)</span>
+              </label>
+              <div class="input-group input-group-lg">
+                <input
+                  type="text"
+                  class="form-control text-uppercase"
+                  placeholder="Enter coupon code or pick from offers"
+                  [(ngModel)]="couponInput"
+                  [ngModelOptions]="{ standalone: true }"
+                  [disabled]="!!appliedCoupon"
+                />
+                <button *ngIf="!appliedCoupon" type="button" class="btn btn-outline-success"
+                        (click)="applyCoupon()" [disabled]="isValidatingCoupon || !couponInput.trim()">
+                  <span *ngIf="!isValidatingCoupon">Apply</span>
+                  <span *ngIf="isValidatingCoupon">
+                    <span class="spinner-border spinner-border-sm"></span>
+                  </span>
+                </button>
+                <button *ngIf="appliedCoupon" type="button" class="btn btn-outline-danger" (click)="removeCoupon()">
+                  <i class="bi bi-x-lg"></i> Remove
+                </button>
+              </div>
+              <div *ngIf="couponError" class="text-danger small mt-1">
+                <i class="bi bi-x-circle me-1"></i>{{ couponError }}
+              </div>
+              <div *ngIf="couponSuccess && appliedCoupon" class="text-success small mt-1">
+                <i class="bi bi-check-circle me-1"></i>{{ couponSuccess }}
+              </div>
+            </div>
+
+            <!-- Pricing Breakdown -->
+            <div class="col-12" *ngIf="parsedFee > 0">
+              <div class="pricing-summary">
+                <div class="d-flex justify-content-between">
+                  <span class="text-muted">Consultation Fee</span>
+                  <span>₹{{ parsedFee }}</span>
+                </div>
+                <div class="d-flex justify-content-between text-success" *ngIf="appliedCoupon">
+                  <span>Discount ({{ appliedCoupon.code }})</span>
+                  <span>−₹{{ appliedCoupon.discountAmount }}</span>
+                </div>
+                <hr class="my-2" *ngIf="appliedCoupon">
+                <div class="d-flex justify-content-between fw-bold fs-6">
+                  <span>Total Payable</span>
+                  <span>₹{{ appliedCoupon ? appliedCoupon.finalAmount : parsedFee }}</span>
+                </div>
               </div>
             </div>
 

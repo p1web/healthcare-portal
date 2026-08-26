@@ -1,4 +1,5 @@
 <div class="profile-page">
+
   <div class="profile-header">
     <div class="profile-avatar">
       <i class="bi bi-person-fill"></i>
@@ -19,11 +20,40 @@
     <button type="button" class="btn-close" (click)="error = ''"></button>
   </div>
 
-  <form [formGroup]="profileForm" (ngSubmit)="onSubmit()">
+  <!-- ============ WIZARD TIMELINE ============ -->
+  <div class="wizard-timeline" role="tablist" aria-label="Profile steps">
+    <div class="wizard-progress">
+      <div class="wizard-progress-bar" [style.width.%]="progressPercent"></div>
+    </div>
 
-    <!-- BASIC INFORMATION -->
-    <section class="profile-section" formGroupName="basic">
-      <h6 class="section-title"><i class="bi bi-person-lines-fill"></i> Basic Information</h6>
+    <div class="wizard-steps">
+      <button *ngFor="let step of steps; let i = index"
+              type="button" role="tab"
+              class="wizard-step"
+              [class.active]="i === currentStep"
+              [class.completed]="isStepComplete(i)"
+              [class.invalid]="visitedSteps.has(i) && !isStepValid(i) && i !== currentStep"
+              [attr.aria-selected]="i === currentStep"
+              (click)="goToStep(i)">
+        <span class="wizard-step-marker">
+          <i class="bi" [ngClass]="isStepComplete(i) ? 'bi-check-lg' : step.icon"></i>
+        </span>
+        <span class="wizard-step-text">
+          <span class="wizard-step-title">{{ step.title }}</span>
+          <span class="wizard-step-subtitle">{{ step.subtitle }}</span>
+        </span>
+      </button>
+    </div>
+  </div>
+
+  <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="wizard-form">
+
+    <!-- ============ STEP 1: ABOUT YOU ============ -->
+    <section class="profile-section wizard-panel" *ngIf="currentStep === 0" formGroupName="basic">
+      <div class="wizard-panel-head">
+        <h6 class="section-title"><i class="bi bi-person-lines-fill"></i>About you</h6>
+        <p class="section-subtitle">Tell us who you are — we keep it private and secure.</p>
+      </div>
 
       <div class="row">
         <div class="col-md-6 mb-3">
@@ -33,8 +63,7 @@
           <div class="invalid-feedback"
             *ngIf="profileForm.get('basic.name')?.invalid && profileForm.get('basic.name')?.touched">
             <span *ngIf="profileForm.get('basic.name')?.errors?.['required']">Name is required</span>
-            <span *ngIf="profileForm.get('basic.name')?.errors?.['minlength']">Name must be at least 3
-              characters</span>
+            <span *ngIf="profileForm.get('basic.name')?.errors?.['minlength']">Name must be at least 3 characters</span>
           </div>
         </div>
 
@@ -52,8 +81,7 @@
           <div class="invalid-feedback"
             *ngIf="profileForm.get('basic.phone')?.invalid && profileForm.get('basic.phone')?.touched">
             <span *ngIf="profileForm.get('basic.phone')?.errors?.['required']">Phone is required</span>
-            <span *ngIf="profileForm.get('basic.phone')?.errors?.['pattern']">Please enter a valid 10 digit phone
-              number</span>
+            <span *ngIf="profileForm.get('basic.phone')?.errors?.['pattern']">Please enter a valid 10 digit phone number</span>
           </div>
         </div>
 
@@ -89,9 +117,17 @@
           </div>
         </div>
       </div>
+    </section>
+
+    <!-- ============ STEP 2: ADDRESS ============ -->
+    <section class="profile-section wizard-panel" *ngIf="currentStep === 1" formGroupName="basic">
+      <div class="wizard-panel-head">
+        <h6 class="section-title"><i class="bi bi-geo-alt-fill"></i>Where you live</h6>
+        <p class="section-subtitle">Address helps us surface nearby hospitals and emergency options.</p>
+      </div>
 
       <div class="row">
-        <div class="col-md-6 mb-3">
+        <div class="col-md-12 mb-3">
           <label class="form-label">Address <span class="text-danger">*</span></label>
           <input type="text" class="form-control" formControlName="address"
             [class.is-invalid]="profileForm.get('basic.address')?.invalid && profileForm.get('basic.address')?.touched" />
@@ -100,7 +136,9 @@
             Address is required
           </div>
         </div>
+      </div>
 
+      <div class="row">
         <div class="col-md-6 mb-3">
           <label class="form-label">City <span class="text-danger">*</span></label>
           <input type="text" class="form-control" formControlName="city"
@@ -110,9 +148,7 @@
             City is required
           </div>
         </div>
-      </div>
 
-      <div class="row">
         <div class="col-md-6 mb-3">
           <label class="form-label">State <span class="text-danger">*</span></label>
           <input type="text" class="form-control" formControlName="state"
@@ -122,7 +158,9 @@
             State is required
           </div>
         </div>
+      </div>
 
+      <div class="row">
         <div class="col-md-6 mb-3">
           <label class="form-label">Pincode <span class="text-danger">*</span></label>
           <input type="text" class="form-control" formControlName="pincode" placeholder="6 digit pincode"
@@ -130,36 +168,39 @@
           <div class="invalid-feedback"
             *ngIf="profileForm.get('basic.pincode')?.invalid && profileForm.get('basic.pincode')?.touched">
             <span *ngIf="profileForm.get('basic.pincode')?.errors?.['required']">Pincode is required</span>
-            <span *ngIf="profileForm.get('basic.pincode')?.errors?.['pattern']">Please enter a valid 6 digit
-              pincode</span>
+            <span *ngIf="profileForm.get('basic.pincode')?.errors?.['pattern']">Please enter a valid 6 digit pincode</span>
           </div>
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Country</label>
+          <input type="text" class="form-control" formControlName="country" />
         </div>
       </div>
     </section>
 
-    <!-- MEDICAL INFORMATION -->
-    <section class="profile-section" formGroupName="patient">
-      <h6 class="section-title"><i class="bi bi-heart-pulse"></i> Medical Information</h6>
+    <!-- ============ STEP 3: MEDICAL ============ -->
+    <section class="profile-section wizard-panel" *ngIf="currentStep === 2" formGroupName="patient">
+      <div class="wizard-panel-head">
+        <h6 class="section-title"><i class="bi bi-heart-pulse"></i>Medical snapshot</h6>
+        <p class="section-subtitle">Basic vitals plus a running list of allergies and conditions.</p>
+      </div>
 
       <div class="row">
-        <div class="col-md-6 mb-3">
+        <div class="col-md-4 mb-3">
           <label class="form-label" for="bloodGroup">Blood Group <span class="text-danger">*</span></label>
           <select class="form-control" id="bloodGroup" formControlName="bloodGroup"
             [class.is-invalid]="profileForm.get('patient.bloodGroup')?.invalid && profileForm.get('patient.bloodGroup')?.touched">
             <option value="">Select Blood Group</option>
-            <option *ngFor="let bg of bloodGroups" [value]="bg">
-              {{ bg }}
-            </option>
+            <option *ngFor="let bg of bloodGroups" [value]="bg">{{ bg }}</option>
           </select>
           <div class="invalid-feedback"
             *ngIf="profileForm.get('patient.bloodGroup')?.invalid && profileForm.get('patient.bloodGroup')?.touched">
             Blood group is required
           </div>
         </div>
-      </div>
 
-      <div class="row">
-        <div class="col-md-6 mb-3">
+        <div class="col-md-4 mb-3">
           <label class="form-label">Height (cm) <span class="text-danger">*</span></label>
           <input type="number" class="form-control" formControlName="height" placeholder="Enter height in cm"
             [class.is-invalid]="profileForm.get('patient.height')?.invalid && profileForm.get('patient.height')?.touched" />
@@ -173,7 +214,7 @@
           </div>
         </div>
 
-        <div class="col-md-6 mb-3">
+        <div class="col-md-4 mb-3">
           <label class="form-label">Weight (kg) <span class="text-danger">*</span></label>
           <input type="number" class="form-control" formControlName="weight" placeholder="Enter weight in kg"
             [class.is-invalid]="profileForm.get('patient.weight')?.invalid && profileForm.get('patient.weight')?.touched" />
@@ -309,9 +350,12 @@
       </div>
     </section>
 
-    <!-- EMERGENCY CONTACT -->
-    <section class="profile-section" formGroupName="patient">
-      <h6 class="section-title"><i class="bi bi-telephone-fill"></i> Emergency Contact</h6>
+    <!-- ============ STEP 4: EMERGENCY CONTACT ============ -->
+    <section class="profile-section wizard-panel" *ngIf="currentStep === 3" formGroupName="patient">
+      <div class="wizard-panel-head">
+        <h6 class="section-title"><i class="bi bi-telephone-fill"></i>Emergency contact</h6>
+        <p class="section-subtitle">Who should we reach when something urgent happens?</p>
+      </div>
 
       <div class="row">
         <div class="col-md-6 mb-3">
@@ -332,10 +376,8 @@
             [class.is-invalid]="profileForm.get('patient.emergencyContactPhone')?.invalid && profileForm.get('patient.emergencyContactPhone')?.touched" />
           <div class="invalid-feedback"
             *ngIf="profileForm.get('patient.emergencyContactPhone')?.invalid && profileForm.get('patient.emergencyContactPhone')?.touched">
-            <span *ngIf="profileForm.get('patient.emergencyContactPhone')?.errors?.['required']">Emergency contact
-              phone is required</span>
-            <span *ngIf="profileForm.get('patient.emergencyContactPhone')?.errors?.['pattern']">Please enter a valid
-              10 digit phone number</span>
+            <span *ngIf="profileForm.get('patient.emergencyContactPhone')?.errors?.['required']">Emergency contact phone is required</span>
+            <span *ngIf="profileForm.get('patient.emergencyContactPhone')?.errors?.['pattern']">Please enter a valid 10 digit phone number</span>
           </div>
         </div>
       </div>
@@ -352,16 +394,41 @@
           </div>
         </div>
       </div>
+
+      <div class="wizard-review">
+        <div class="wizard-review-title">
+          <i class="bi bi-check2-circle"></i>Almost there
+        </div>
+        <p class="text-muted small mb-0">
+          Review the previous steps using the timeline above, then hit
+          <strong>Save Profile</strong> to sync your details.
+        </p>
+      </div>
     </section>
 
-    <div class="form-actions">
-      <button type="submit" class="btn btn-primary px-4" [disabled]="isSubmitting">
+    <!-- ============ NAV ACTIONS ============ -->
+    <div class="wizard-actions">
+      <button type="button" class="btn btn-outline-secondary"
+              (click)="previousStep()" [disabled]="isFirstStep">
+        <i class="bi bi-arrow-left me-1"></i>Previous
+      </button>
+
+      <span class="wizard-progress-label">
+        Step <strong>{{ currentStep + 1 }}</strong> of {{ steps.length }}
+      </span>
+
+      <button *ngIf="!isLastStep" type="button" class="btn btn-primary"
+              (click)="nextStep()">
+        Next<i class="bi bi-arrow-right ms-1"></i>
+      </button>
+
+      <button *ngIf="isLastStep" type="submit" class="btn btn-primary"
+              [disabled]="isSubmitting">
         <span *ngIf="!isSubmitting">
-          <i class="bi bi-check-circle me-1"></i> Save Profile
+          <i class="bi bi-check-circle me-1"></i>Save Profile
         </span>
         <span *ngIf="isSubmitting">
-          <span class="spinner-border spinner-border-sm me-2"></span>
-          Saving...
+          <span class="spinner-border spinner-border-sm me-2"></span>Saving...
         </span>
       </button>
     </div>

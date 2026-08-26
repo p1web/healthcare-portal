@@ -9,42 +9,6 @@
     </div>
   </div>
 
-  <div class="profile-section review-overview">
-    <div class="review-summary">
-      <div>
-        <span class="me-2">Review status:</span>
-        <span [ngClass]="reviewBadgeClass">{{ reviewStatusLabel }}</span>
-      </div>
-      <button type="button" class="btn btn-outline-primary" *ngIf="canSubmitForReview"
-        [disabled]="isSubmittingReview" (click)="submitForReview()">
-        <span *ngIf="!isSubmittingReview"><i class="bi bi-send-check me-1"></i>{{ reviewStatus === 'changes_requested' ? 'Resubmit Profile' : 'Submit for Review' }}</span>
-        <span *ngIf="isSubmittingReview"><span class="spinner-border spinner-border-sm me-2"></span>Submitting...</span>
-      </button>
-    </div>
-
-    <div class="review-timeline" aria-label="Profile review timeline">
-      <div class="timeline-step" *ngFor="let step of timelineSteps" [class.complete]="step.complete"
-        [class.active]="step.active" [class.outcome]="step.outcome">
-        <span class="timeline-dot"><i class="bi" [ngClass]="step.complete ? 'bi-check-lg' : 'bi-circle'"></i></span>
-        <div class="timeline-content">
-          <div class="timeline-heading">
-            <strong>{{ step.label }}</strong>
-            <span class="timeline-date">{{ step.date ? (step.date | date:'dd MMM yyyy, hh:mm a') : 'Date not recorded' }}</span>
-          </div>
-          <p>{{ step.comment }}</p>
-          <span class="timeline-reviewer" *ngIf="step.reviewer">Reviewed by {{ step.reviewer }}</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="review-note" *ngIf="!isProfileEditable">
-      <i class="bi bi-lock me-1"></i>Profile and public listing details are locked after submission. Editing is available only if the profile is returned.
-    </div>
-    <div class="review-note returned" *ngIf="reviewStatus === 'changes_requested'">
-      <i class="bi bi-arrow-counterclockwise me-1"></i>Update the requested information, save, then resubmit your profile.
-    </div>
-  </div>
-
   <div *ngIf="success" class="alert alert-success alert-dismissible fade show">
     <i class="bi bi-check-circle me-2"></i>{{ success }}
     <button type="button" class="btn-close" (click)="success = ''"></button>
@@ -55,11 +19,82 @@
     <button type="button" class="btn-close" (click)="error = ''"></button>
   </div>
 
-  <form [formGroup]="profileForm" (ngSubmit)="onSubmit()">
+  <!-- ============ WIZARD TIMELINE ============ -->
+  <div class="wizard-timeline" role="tablist" aria-label="Profile steps">
+    <div class="wizard-progress">
+      <div class="wizard-progress-bar" [style.width.%]="progressPercent"></div>
+    </div>
 
-    <!-- BASIC INFORMATION -->
-    <section class="profile-section" formGroupName="basic">
-      <h6 class="section-title"><i class="bi bi-person-lines-fill"></i> Basic Information</h6>
+    <div class="wizard-steps">
+      <button *ngFor="let step of steps; let i = index"
+              type="button" role="tab"
+              class="wizard-step"
+              [class.active]="i === currentStep"
+              [class.completed]="isStepComplete(i)"
+              [class.invalid]="visitedSteps.has(i) && !isStepValid(i) && i !== currentStep"
+              [attr.aria-selected]="i === currentStep"
+              (click)="goToStep(i)">
+        <span class="wizard-step-marker">
+          <i class="bi" [ngClass]="isStepComplete(i) ? 'bi-check-lg' : step.icon"></i>
+        </span>
+        <span class="wizard-step-text">
+          <span class="wizard-step-title">{{ step.title }}</span>
+          <span class="wizard-step-subtitle">{{ step.subtitle }}</span>
+        </span>
+      </button>
+    </div>
+  </div>
+
+  <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="wizard-form">
+
+    <!-- ============ STEP 1: REVIEW STATUS ============ -->
+    <section class="profile-section wizard-panel review-overview" *ngIf="currentStep === 0">
+      <div class="wizard-panel-head">
+        <h6 class="section-title"><i class="bi bi-shield-check"></i>Review status</h6>
+        <p class="section-subtitle">Track your profile's verification progress and submit for admin review.</p>
+      </div>
+
+      <div class="review-summary">
+        <div>
+          <span class="me-2">Current status:</span>
+          <span [ngClass]="reviewBadgeClass">{{ reviewStatusLabel }}</span>
+        </div>
+        <button type="button" class="btn btn-outline-primary" *ngIf="canSubmitForReview"
+          [disabled]="isSubmittingReview" (click)="submitForReview()">
+          <span *ngIf="!isSubmittingReview"><i class="bi bi-send-check me-1"></i>{{ reviewStatus === 'changes_requested' ? 'Resubmit Profile' : 'Submit for Review' }}</span>
+          <span *ngIf="isSubmittingReview"><span class="spinner-border spinner-border-sm me-2"></span>Submitting...</span>
+        </button>
+      </div>
+
+      <div class="review-timeline" aria-label="Profile review timeline">
+        <div class="timeline-step" *ngFor="let step of timelineSteps" [class.complete]="step.complete"
+          [class.active]="step.active" [class.outcome]="step.outcome">
+          <span class="timeline-dot"><i class="bi" [ngClass]="step.complete ? 'bi-check-lg' : 'bi-circle'"></i></span>
+          <div class="timeline-content">
+            <div class="timeline-heading">
+              <strong>{{ step.label }}</strong>
+              <span class="timeline-date">{{ step.date ? (step.date | date:'dd MMM yyyy, hh:mm a') : 'Date not recorded' }}</span>
+            </div>
+            <p>{{ step.comment }}</p>
+            <span class="timeline-reviewer" *ngIf="step.reviewer">Reviewed by {{ step.reviewer }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="review-note" *ngIf="!isProfileEditable">
+        <i class="bi bi-lock me-1"></i>Profile and public listing details are locked after submission. Editing is available only if the profile is returned.
+      </div>
+      <div class="review-note returned" *ngIf="reviewStatus === 'changes_requested'">
+        <i class="bi bi-arrow-counterclockwise me-1"></i>Update the requested information, save, then resubmit your profile.
+      </div>
+    </section>
+
+    <!-- ============ STEP 2: ABOUT YOU ============ -->
+    <section class="profile-section wizard-panel" *ngIf="currentStep === 1" formGroupName="basic">
+      <div class="wizard-panel-head">
+        <h6 class="section-title"><i class="bi bi-person-lines-fill"></i>About you</h6>
+        <p class="section-subtitle">Basic identity — visible to patients and the admin review team.</p>
+      </div>
 
       <div class="row">
         <div class="col-md-6 mb-3">
@@ -69,8 +104,7 @@
           <div class="invalid-feedback"
             *ngIf="profileForm.get('basic.name')?.invalid && profileForm.get('basic.name')?.touched">
             <span *ngIf="profileForm.get('basic.name')?.errors?.['required']">Name is required</span>
-            <span *ngIf="profileForm.get('basic.name')?.errors?.['minlength']">Name must be at least 3
-              characters</span>
+            <span *ngIf="profileForm.get('basic.name')?.errors?.['minlength']">Name must be at least 3 characters</span>
           </div>
         </div>
 
@@ -88,8 +122,7 @@
           <div class="invalid-feedback"
             *ngIf="profileForm.get('basic.phone')?.invalid && profileForm.get('basic.phone')?.touched">
             <span *ngIf="profileForm.get('basic.phone')?.errors?.['required']">Phone is required</span>
-            <span *ngIf="profileForm.get('basic.phone')?.errors?.['pattern']">Please enter a valid 10 digit phone
-              number</span>
+            <span *ngIf="profileForm.get('basic.phone')?.errors?.['pattern']">Please enter a valid 10 digit phone number</span>
           </div>
         </div>
 
@@ -125,9 +158,17 @@
           </div>
         </div>
       </div>
+    </section>
+
+    <!-- ============ STEP 2: ADDRESS ============ -->
+    <section class="profile-section wizard-panel" *ngIf="currentStep === 2" formGroupName="basic">
+      <div class="wizard-panel-head">
+        <h6 class="section-title"><i class="bi bi-geo-alt-fill"></i>Contact location</h6>
+        <p class="section-subtitle">Where can patients find you? This drives the location shown on public listings.</p>
+      </div>
 
       <div class="row">
-        <div class="col-md-6 mb-3">
+        <div class="col-md-12 mb-3">
           <label class="form-label">Address <span class="text-danger">*</span></label>
           <input type="text" class="form-control" formControlName="address"
             [class.is-invalid]="profileForm.get('basic.address')?.invalid && profileForm.get('basic.address')?.touched" />
@@ -136,7 +177,9 @@
             Address is required
           </div>
         </div>
+      </div>
 
+      <div class="row">
         <div class="col-md-6 mb-3">
           <label class="form-label">City <span class="text-danger">*</span></label>
           <input type="text" class="form-control" formControlName="city"
@@ -146,9 +189,7 @@
             City is required
           </div>
         </div>
-      </div>
 
-      <div class="row">
         <div class="col-md-6 mb-3">
           <label class="form-label">State <span class="text-danger">*</span></label>
           <input type="text" class="form-control" formControlName="state"
@@ -158,7 +199,9 @@
             State is required
           </div>
         </div>
+      </div>
 
+      <div class="row">
         <div class="col-md-6 mb-3">
           <label class="form-label">Pincode <span class="text-danger">*</span></label>
           <input type="text" class="form-control" formControlName="pincode" placeholder="6 digit pincode"
@@ -166,25 +209,30 @@
           <div class="invalid-feedback"
             *ngIf="profileForm.get('basic.pincode')?.invalid && profileForm.get('basic.pincode')?.touched">
             <span *ngIf="profileForm.get('basic.pincode')?.errors?.['required']">Pincode is required</span>
-            <span *ngIf="profileForm.get('basic.pincode')?.errors?.['pattern']">Please enter a valid 6 digit
-              pincode</span>
+            <span *ngIf="profileForm.get('basic.pincode')?.errors?.['pattern']">Please enter a valid 6 digit pincode</span>
           </div>
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Country</label>
+          <input type="text" class="form-control" formControlName="country" />
         </div>
       </div>
     </section>
 
-    <!-- DOCTOR INFORMATION -->
-    <section class="profile-section" formGroupName="doctor">
-      <h6 class="section-title"><i class="bi bi-briefcase-fill"></i> Professional Information</h6>
+    <!-- ============ STEP 3: PROFESSIONAL ============ -->
+    <section class="profile-section wizard-panel" *ngIf="currentStep === 3" formGroupName="doctor">
+      <div class="wizard-panel-head">
+        <h6 class="section-title"><i class="bi bi-briefcase-fill"></i>Professional information</h6>
+        <p class="section-subtitle">Credentials, specialization and consultation fee — required for verification.</p>
+      </div>
 
       <div class="row">
         <div class="col-md-6 mb-3">
           <label class="form-label" for="hospitalId">Hospital <span class="text-danger">*</span></label>
           <select class="form-control" id="hospitalId" formControlName="hospitalId">
             <option value="">Select hospital</option>
-            <option *ngFor="let h of hospitals" [value]="h.id">
-              {{ h.name }}
-            </option>
+            <option *ngFor="let h of hospitals" [value]="h.id">{{ h.name }}</option>
           </select>
         </div>
 
@@ -195,9 +243,9 @@
       </div>
 
       <div class="row">
-        <div class="col-md-6 mb-3">
+        <div class="col-md-12 mb-3">
           <label class="form-label">Qualification <span class="text-danger">*</span></label>
-          <input type="text" class="form-control" formControlName="qualification" />
+          <input type="text" class="form-control" formControlName="qualification" placeholder="e.g. MBBS, MD (Cardiology)" />
         </div>
       </div>
 
@@ -206,9 +254,7 @@
           <label class="form-label" for="specializationId">Specialization <span class="text-danger">*</span></label>
           <select class="form-control" id="specializationId" formControlName="specializationId">
             <option value="">Select specialization</option>
-            <option *ngFor="let sp of specializations" [value]="sp.id">
-              {{ sp.name }}
-            </option>
+            <option *ngFor="let sp of specializations" [value]="sp.id">{{ sp.name }}</option>
           </select>
         </div>
 
@@ -236,22 +282,19 @@
             <a class="btn btn-sm btn-outline-secondary" [href]="'http://localhost:3000' + doc.url" target="_blank">View</a>
           </li>
         </ul>
-        <p class="text-muted" *ngIf="!uploadedDoctorDocuments.length">
-          No documents uploaded yet.
-        </p>
+        <p class="text-muted" *ngIf="!uploadedDoctorDocuments.length">No documents uploaded yet.</p>
 
         <input type="file" class="form-control" multiple accept=".pdf,.jpg,.jpeg,.png" [disabled]="!isProfileEditable"
           (change)="onDoctorDocumentsSelected($event)" />
 
-        <small class="text-muted d-block mt-1">
-          Allowed formats: PDF, JPG, PNG
-        </small>
+        <small class="text-muted d-block mt-1">Allowed formats: PDF, JPG, PNG</small>
 
         <ul class="list-group mt-2" *ngIf="doctorDocuments.length">
           <li class="list-group-item d-flex justify-content-between align-items-center"
             *ngFor="let doc of doctorDocuments; let i = index">
             {{ doc.name }}
-            <button type="button" class="btn btn-sm btn-outline-danger" [disabled]="!isProfileEditable" (click)="removeDoctorDocument(i)">
+            <button type="button" class="btn btn-sm btn-outline-danger"
+                    [disabled]="!isProfileEditable" (click)="removeDoctorDocument(i)">
               Remove
             </button>
           </li>
@@ -259,10 +302,11 @@
       </div>
     </section>
 
-    <section class="profile-section availability-section" formArrayName="availability">
-      <div class="section-heading">
-        <h6 class="section-title mb-1"><i class="bi bi-calendar-week-fill"></i> Weekly Availability</h6>
-        <p class="text-muted mb-0">Set the regular consultation hours shown to patients.</p>
+    <!-- ============ STEP 4: AVAILABILITY ============ -->
+    <section class="profile-section wizard-panel availability-section" *ngIf="currentStep === 4" formArrayName="availability">
+      <div class="wizard-panel-head">
+        <h6 class="section-title"><i class="bi bi-calendar-week-fill"></i>Weekly availability</h6>
+        <p class="section-subtitle">Set the regular consultation hours shown to patients when booking.</p>
       </div>
 
       <div class="availability-list">
@@ -289,21 +333,50 @@
           <span class="availability-state">{{ control.get('isAvailable')?.value ? 'Available' : 'Unavailable' }}</span>
         </div>
       </div>
+
       <div class="text-danger small mt-2" *ngIf="hasInvalidAvailability">
         End time must be later than start time for every available day.
       </div>
+
+      <div class="wizard-review">
+        <div class="wizard-review-title">
+          <i class="bi bi-check2-circle"></i>Almost there
+        </div>
+        <p class="text-muted small mb-0">
+          Review the previous steps using the timeline above, then hit
+          <strong>Save Profile</strong> to persist your changes.
+          {{ canSubmitForReview ? 'You can submit for admin review after saving.' : '' }}
+        </p>
+      </div>
     </section>
 
-    <div class="form-actions">
-      <button type="submit" class="btn btn-primary px-4" [disabled]="isSubmitting || !isProfileEditable">
+    <!-- ============ NAV ACTIONS ============ -->
+    <div class="wizard-actions">
+      <button type="button" class="btn btn-outline-secondary"
+              (click)="previousStep()" [disabled]="isFirstStep">
+        <i class="bi bi-arrow-left me-1"></i>Previous
+      </button>
+
+      <span class="wizard-progress-label">
+        Step <strong>{{ currentStep + 1 }}</strong> of {{ steps.length }}
+      </span>
+
+      <button *ngIf="!isLastStep" type="button" class="btn btn-primary"
+              (click)="nextStep()">
+        Next<i class="bi bi-arrow-right ms-1"></i>
+      </button>
+
+      <button *ngIf="isLastStep" type="submit" class="btn btn-primary"
+              [disabled]="isSubmitting || !isProfileEditable">
         <span *ngIf="!isSubmitting">
-          <i class="bi bi-check-circle me-1"></i> Save Profile
+          <i class="bi bi-check-circle me-1"></i>Save Profile
         </span>
         <span *ngIf="isSubmitting">
-          <span class="spinner-border spinner-border-sm me-2"></span>
-          Saving...
+          <span class="spinner-border spinner-border-sm me-2"></span>Saving...
         </span>
       </button>
     </div>
   </form>
+
+  <!-- Review status now lives inside the wizard as Step 1 -->
 </div>

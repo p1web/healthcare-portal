@@ -51,10 +51,18 @@ export class LoginComponent {
               return;
             }
             const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
-            const destination = returnUrl?.startsWith('/') && !returnUrl.startsWith('//')
-              ? returnUrl
-              : '/profile';
-            this.router.navigateByUrl(destination);
+            if (returnUrl?.startsWith('/') && !returnUrl.startsWith('//')) {
+              this.router.navigateByUrl(returnUrl);
+              return;
+            }
+            const roleHome = this.isDoctor()
+              ? '/doctor-analytics'
+              : this.isHospital()
+                ? '/hospital-dashboard'
+                : this.isPatient()
+                  ? '/patient-dashboard'
+                  : '/profile';
+            this.router.navigateByUrl(roleHome);
           } else {
             this.errorMessage = response.message || 'Login failed';
           }

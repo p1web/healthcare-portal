@@ -1,35 +1,79 @@
-<div class="list-group">
-  <a class="list-group-item list-group-item-action"
-     routerLink="/profile"
-     routerLinkActive="active"
-     [routerLinkActiveOptions]="{ exact: true }">
-    <i class="bi bi-person-circle me-2"></i>My Profile
-  </a>
-  <a *ngIf="isPatient"
-     class="list-group-item list-group-item-action"
-     routerLink="/appointments"
-     routerLinkActive="active">
-    <i class="bi bi-calendar2-check me-2"></i>My Appointments
-  </a>
-  <a *ngIf="isDoctor"
-     class="list-group-item list-group-item-action"
-     routerLink="/doctor-appointments"
-     routerLinkActive="active">
-    <i class="bi bi-calendar2-check me-2"></i>Patient Bookings
-  </a>
-  <a class="list-group-item list-group-item-action"
-     routerLink="/change-password"
-     routerLinkActive="active">
-    <i class="bi bi-key me-2"></i>Change Password
-  </a>
-  <button type="button"
-     class="list-group-item list-group-item-action text-danger"
-     (click)="logout()">
-    <i class="bi bi-box-arrow-right me-2"></i>Logout
-  </button>
-  <!-- <a class="list-group-item list-group-item-action"
-     routerLink="/reset-password"
-     routerLinkActive="active">
-    <i class="bi bi-arrow-repeat me-2"></i>Reset Password
-  </a> -->
-</div>
+<aside class="sidebar-shell" *ngIf="currentUser$ | async as user">
+
+  <!-- Identity card -->
+  <div class="sidebar-identity">
+    <div class="identity-avatar">
+      {{ getInitials(user.name) }}
+      <span *ngIf="isVerified(user)" class="identity-verified"
+            title="Verified account" aria-label="Verified account">
+        <i class="bi bi-patch-check-fill"></i>
+      </span>
+    </div>
+    <div class="identity-text">
+      <div class="identity-name" [title]="user.name">{{ user.name || 'Welcome' }}</div>
+      <span class="identity-role">
+        <i class="bi" [ngClass]="isDoctor ? 'bi-person-badge' : isPatient ? 'bi-heart-pulse' : isHospital ? 'bi-hospital' : 'bi-shield-check'"></i>
+        {{ roleLabel }}
+      </span>
+    </div>
+  </div>
+
+  <!-- Overview group -->
+  <div class="sidebar-group">
+    <span class="sidebar-group-label">Overview</span>
+
+    <a class="sidebar-item" [routerLink]="dashboardLink"
+       routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+      <span class="sidebar-item-icon"><i class="bi bi-speedometer2"></i></span>
+      <span class="sidebar-item-text">Dashboard</span>
+    </a>
+
+    <a *ngIf="isPatient"
+       class="sidebar-item" routerLink="/appointments"
+       routerLinkActive="active">
+      <span class="sidebar-item-icon"><i class="bi bi-calendar2-check"></i></span>
+      <span class="sidebar-item-text">My Appointments</span>
+    </a>
+
+    <a *ngIf="isDoctor"
+       class="sidebar-item" routerLink="/doctor-appointments"
+       routerLinkActive="active">
+      <span class="sidebar-item-icon"><i class="bi bi-calendar2-heart"></i></span>
+      <span class="sidebar-item-text">Patient Bookings</span>
+    </a>
+  </div>
+
+  <!-- Account group -->
+  <div class="sidebar-group">
+    <span class="sidebar-group-label">Account</span>
+
+    <a class="sidebar-item" routerLink="/profile"
+       routerLinkActive="active">
+      <span class="sidebar-item-icon"><i class="bi bi-person-circle"></i></span>
+      <span class="sidebar-item-text">My Profile</span>
+    </a>
+
+    <a class="sidebar-item" routerLink="/change-password"
+       routerLinkActive="active">
+      <span class="sidebar-item-icon"><i class="bi bi-shield-lock"></i></span>
+      <span class="sidebar-item-text">Change Password</span>
+    </a>
+  </div>
+
+  <!-- Logout + help -->
+  <div class="sidebar-footer">
+    <button type="button" class="sidebar-logout" (click)="logout()">
+      <span class="sidebar-item-icon"><i class="bi bi-box-arrow-right"></i></span>
+      <span class="sidebar-item-text">Sign out</span>
+    </button>
+
+    <div class="sidebar-help">
+      <i class="bi bi-headset"></i>
+      <div>
+        <span class="sidebar-help-title">Need help?</span>
+        <a href="mailto:support&#64;healthconnect.com" class="sidebar-help-link">support&#64;healthconnect.com</a>
+      </div>
+    </div>
+  </div>
+
+</aside>

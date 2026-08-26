@@ -9,42 +9,6 @@
     </div>
   </div>
 
-  <div class="profile-section review-overview">
-    <div class="review-summary">
-      <div>
-        <span class="me-2">Review status:</span>
-        <span [ngClass]="reviewBadgeClass">{{ reviewStatusLabel }}</span>
-      </div>
-      <button type="button" class="btn btn-outline-primary" *ngIf="canSubmitForReview"
-        [disabled]="isSubmittingReview" (click)="submitForReview()">
-        <span *ngIf="!isSubmittingReview"><i class="bi bi-send-check me-1"></i>{{ reviewStatus === 'changes_requested' ? 'Resubmit Profile' : 'Submit for Review' }}</span>
-        <span *ngIf="isSubmittingReview"><span class="spinner-border spinner-border-sm me-2"></span>Submitting...</span>
-      </button>
-    </div>
-
-    <div class="review-timeline" aria-label="Profile review timeline">
-      <div class="timeline-step" *ngFor="let step of timelineSteps" [class.complete]="step.complete"
-        [class.active]="step.active" [class.outcome]="step.outcome">
-        <span class="timeline-dot"><i class="bi" [ngClass]="step.complete ? 'bi-check-lg' : 'bi-circle'"></i></span>
-        <div class="timeline-content">
-          <div class="timeline-heading">
-            <strong>{{ step.label }}</strong>
-            <span class="timeline-date">{{ step.date ? (step.date | date:'dd MMM yyyy, hh:mm a') : 'Date not recorded' }}</span>
-          </div>
-          <p>{{ step.comment }}</p>
-          <span class="timeline-reviewer" *ngIf="step.reviewer">Reviewed by {{ step.reviewer }}</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="review-note" *ngIf="!isProfileEditable">
-      <i class="bi bi-lock me-1"></i>Profile and public listing details are locked after submission. Editing is available only if the profile is returned.
-    </div>
-    <div class="review-note returned" *ngIf="reviewStatus === 'changes_requested'">
-      <i class="bi bi-arrow-counterclockwise me-1"></i>Update the requested information, save, then resubmit your profile.
-    </div>
-  </div>
-
   <div *ngIf="success" class="alert alert-success alert-dismissible fade show">
     <i class="bi bi-check-circle me-2"></i>{{ success }}
     <button type="button" class="btn-close" (click)="success = ''"></button>
@@ -57,8 +21,69 @@
 
   <form [formGroup]="profileForm" (ngSubmit)="onSubmit()">
 
-    <!-- ACCOUNT HOLDER INFORMATION -->
-    <section class="profile-section" formGroupName="basic">
+    <!-- STEP INDICATOR -->
+    <div class="profile-section stepper-section">
+      <div class="stepper" role="tablist" aria-label="Profile completion steps">
+        <button type="button" class="step-pill"
+          *ngFor="let def of stepDefs; let i = index"
+          [class.active]="currentStep === i + 1"
+          [class.complete]="isStepComplete(i)"
+          (click)="goToStep(i + 1)"
+          [attr.aria-current]="currentStep === i + 1 ? 'step' : null">
+          <span class="step-index">
+            <i class="bi bi-check-lg" *ngIf="isStepComplete(i)"></i>
+            <span *ngIf="!isStepComplete(i)">{{ i + 1 }}</span>
+          </span>
+          <span class="step-text">
+            <span class="step-label">{{ def.label }}</span>
+            <small class="step-hint">Step {{ i + 1 }} of {{ totalSteps }}</small>
+          </span>
+        </button>
+      </div>
+      <div class="stepper-progress" aria-hidden="true">
+        <div class="stepper-progress-fill" [style.width.%]="progressPercent"></div>
+      </div>
+    </div>
+
+    <!-- REVIEW STATUS (Step 1) -->
+    <div class="profile-section review-overview" *ngIf="currentStep === 1">
+      <div class="review-summary">
+        <div>
+          <span class="me-2">Review status:</span>
+          <span [ngClass]="reviewBadgeClass">{{ reviewStatusLabel }}</span>
+        </div>
+        <button type="button" class="btn btn-outline-primary" *ngIf="canSubmitForReview"
+          [disabled]="isSubmittingReview" (click)="submitForReview()">
+          <span *ngIf="!isSubmittingReview"><i class="bi bi-send-check me-1"></i>{{ reviewStatus === 'changes_requested' ? 'Resubmit Profile' : 'Submit for Review' }}</span>
+          <span *ngIf="isSubmittingReview"><span class="spinner-border spinner-border-sm me-2"></span>Submitting...</span>
+        </button>
+      </div>
+
+      <div class="review-timeline" aria-label="Profile review timeline">
+        <div class="timeline-step" *ngFor="let step of timelineSteps" [class.complete]="step.complete"
+          [class.active]="step.active" [class.outcome]="step.outcome">
+          <span class="timeline-dot"><i class="bi" [ngClass]="step.complete ? 'bi-check-lg' : 'bi-circle'"></i></span>
+          <div class="timeline-content">
+            <div class="timeline-heading">
+              <strong>{{ step.label }}</strong>
+              <span class="timeline-date">{{ step.date ? (step.date | date:'dd MMM yyyy, hh:mm a') : 'Date not recorded' }}</span>
+            </div>
+            <p>{{ step.comment }}</p>
+            <span class="timeline-reviewer" *ngIf="step.reviewer">Reviewed by {{ step.reviewer }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="review-note" *ngIf="!isProfileEditable">
+        <i class="bi bi-lock me-1"></i>Profile and public listing details are locked after submission. Editing is available only if the profile is returned.
+      </div>
+      <div class="review-note returned" *ngIf="reviewStatus === 'changes_requested'">
+        <i class="bi bi-arrow-counterclockwise me-1"></i>Update the requested information, save, then resubmit your profile.
+      </div>
+    </div>
+
+    <!-- STEP 2: ACCOUNT HOLDER INFORMATION -->
+    <section class="profile-section" formGroupName="basic" *ngIf="currentStep === 2">
       <h6 class="section-title"><i class="bi bi-person-lines-fill"></i> Account Holder Information</h6>
 
       <div class="row">
@@ -173,8 +198,8 @@
       </div>
     </section>
 
-    <!-- HOSPITAL INFORMATION -->
-    <section class="profile-section" formGroupName="hospital">
+    <!-- STEP 3: HOSPITAL INFORMATION -->
+    <section class="profile-section" formGroupName="hospital" *ngIf="currentStep === 3">
       <h6 class="section-title"><i class="bi bi-building"></i> Hospital Information</h6>
 
       <div class="row">
@@ -282,6 +307,11 @@
           <input type="text" class="form-control" placeholder="e.g. 24x7 / 9AM - 6PM" formControlName="operatingHours">
         </div>
       </div>
+    </section>
+
+    <!-- STEP 4: SPECIALTIES & SERVICES -->
+    <section class="profile-section" formGroupName="hospital" *ngIf="currentStep === 4">
+      <h6 class="section-title"><i class="bi bi-heart-pulse"></i> Specialties & Services</h6>
 
       <div class="mb-3">
         <label class="form-label" for="hospitalBio">Hospital Bio</label>
@@ -321,8 +351,8 @@
       </div>
     </section>
 
-    <!-- VERIFICATION DOCUMENTS -->
-    <section class="profile-section">
+    <!-- STEP 5: VERIFICATION DOCUMENTS -->
+    <section class="profile-section" *ngIf="currentStep === 5">
       <h6 class="section-title"><i class="bi bi-file-earmark-medical"></i> Verification Documents</h6>
 
       <div class="subsection">
@@ -360,8 +390,21 @@
       </div>
     </section>
 
-    <div class="form-actions">
-      <button type="submit" class="btn btn-primary px-4" [disabled]="isSubmitting || !isProfileEditable">
+    <div class="form-actions wizard-actions">
+      <button type="button" class="btn btn-outline-secondary px-3"
+        [disabled]="isFirstStep || isSubmitting" (click)="prevStep()">
+        <i class="bi bi-chevron-left me-1"></i> Previous
+      </button>
+
+      <span class="wizard-step-label">Step {{ currentStep }} of {{ totalSteps }}</span>
+
+      <button type="button" class="btn btn-primary px-4" *ngIf="currentStep < 5"
+        [disabled]="isSubmitting" (click)="nextStep()">
+        Next <i class="bi bi-chevron-right ms-1"></i>
+      </button>
+
+      <button type="submit" class="btn btn-primary px-4" *ngIf="currentStep === 5"
+        [disabled]="isSubmitting || !isProfileEditable">
         <span *ngIf="!isSubmitting">
           <i class="bi bi-check-circle me-1"></i> Save Profile
         </span>

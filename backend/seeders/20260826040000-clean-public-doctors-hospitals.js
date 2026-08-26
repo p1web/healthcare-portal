@@ -207,7 +207,7 @@ const DOCTOR_USERS = [
   },
   {
     name: 'Dr. Sneha Reddy',
-    email: 'sneha.reddy@fortisgv.example',
+    email: '  ',
     phone: '9812345605',
     gender: 'female',
     date_of_birth: new Date('1980-09-18'),

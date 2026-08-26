@@ -34,6 +34,36 @@ export class PatientProfileComponent implements OnInit {
   newCondition = { name: '', diagnosedDate: '', notes: '' };
   medicalRecordError: string = '';
 
+  currentStep = 0;
+  visitedSteps = new Set<number>([0]);
+
+  readonly steps = [
+    {
+      title: 'About you',
+      subtitle: 'Personal details',
+      icon: 'bi-person',
+      controls: ['basic.name', 'basic.phone', 'basic.dateOfBirth', 'basic.gender']
+    },
+    {
+      title: 'Address',
+      subtitle: 'Where you live',
+      icon: 'bi-geo-alt',
+      controls: ['basic.address', 'basic.city', 'basic.state', 'basic.pincode']
+    },
+    {
+      title: 'Medical',
+      subtitle: 'Health snapshot',
+      icon: 'bi-heart-pulse',
+      controls: ['patient.bloodGroup', 'patient.height', 'patient.weight']
+    },
+    {
+      title: 'Emergency',
+      subtitle: 'Contact of trust',
+      icon: 'bi-telephone',
+      controls: ['patient.emergencyContactName', 'patient.emergencyContactPhone', 'patient.emergencyContactRelation']
+    }
+  ];
+
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
@@ -135,6 +165,67 @@ export class PatientProfileComponent implements OnInit {
         this.markFormGroupTouched(control);
       }
     });
+  }
+
+  isStepValid(index: number): boolean {
+    const step = this.steps[index];
+    if (!step || !this.profileForm) return true;
+    return step.controls.every(path => {
+      const control = this.profileForm.get(path);
+      return !control || control.valid || control.disabled;
+    });
+  }
+
+  isStepComplete(index: number): boolean {
+    return index < this.currentStep && this.isStepValid(index);
+  }
+
+  markStepTouched(index: number): void {
+    const step = this.steps[index];
+    if (!step) return;
+    step.controls.forEach(path => this.profileForm.get(path)?.markAsTouched());
+  }
+
+  goToStep(index: number): void {
+    if (index < 0 || index >= this.steps.length) return;
+    if (index > this.currentStep && !this.isStepValid(this.currentStep)) {
+      this.markStepTouched(this.currentStep);
+      return;
+    }
+    this.currentStep = index;
+    this.visitedSteps.add(index);
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  nextStep(): void {
+    if (!this.isStepValid(this.currentStep)) {
+      this.markStepTouched(this.currentStep);
+      return;
+    }
+    if (this.currentStep < this.steps.length - 1) {
+      this.goToStep(this.currentStep + 1);
+    }
+  }
+
+  previousStep(): void {
+    if (this.currentStep > 0) {
+      this.goToStep(this.currentStep - 1);
+    }
+  }
+
+  get progressPercent(): number {
+    if (this.steps.length <= 1) return 100;
+    return (this.currentStep / (this.steps.length - 1)) * 100;
+  }
+
+  get isLastStep(): boolean {
+    return this.currentStep === this.steps.length - 1;
+  }
+
+  get isFirstStep(): boolean {
+    return this.currentStep === 0;
   }
 
   onSubmit(): void {

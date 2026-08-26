@@ -1,0 +1,10 @@
+.layout-row {
+  --bs-gutter-x: 2rem;
+  margin-bottom: 3rem;
+}
+
+@media (min-width: 768px) {
+  .layout-main {
+    padding-left: 1rem;
+  }
+}

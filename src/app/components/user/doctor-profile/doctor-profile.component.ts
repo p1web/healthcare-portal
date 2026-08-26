@@ -30,6 +30,45 @@ export class DoctorProfileComponent implements OnInit {
   success: string = '';
   loading: boolean = false;
 
+  currentStep = 0;
+  visitedSteps = new Set<number>([0]);
+
+  readonly steps = [
+    {
+      title: 'Review Status',
+      subtitle: 'Verification progress',
+      icon: 'bi-shield-check',
+      controls: [] as string[]
+    },
+    {
+      title: 'About you',
+      subtitle: 'Personal details',
+      icon: 'bi-person',
+      controls: ['basic.name', 'basic.phone', 'basic.dateOfBirth', 'basic.gender']
+    },
+    {
+      title: 'Address',
+      subtitle: 'Contact location',
+      icon: 'bi-geo-alt',
+      controls: ['basic.address', 'basic.city', 'basic.state', 'basic.pincode']
+    },
+    {
+      title: 'Professional',
+      subtitle: 'Credentials & fee',
+      icon: 'bi-briefcase',
+      controls: [
+        'doctor.hospitalId', 'doctor.registrationNumber', 'doctor.qualification',
+        'doctor.specializationId', 'doctor.yearsOfExperience', 'doctor.consultationFee'
+      ]
+    },
+    {
+      title: 'Availability',
+      subtitle: 'Weekly hours',
+      icon: 'bi-calendar-week',
+      controls: [] as string[]
+    }
+  ];
+
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
@@ -187,6 +226,73 @@ export class DoctorProfileComponent implements OnInit {
         this.markFormGroupTouched(control);
       }
     });
+  }
+
+  isStepValid(index: number): boolean {
+    const step = this.steps[index];
+    if (!step || !this.profileForm) return true;
+    // Step 5 (availability) — validate every FormArray row via hasInvalidAvailability.
+    if (index === 4) return !this.hasInvalidAvailability;
+    return step.controls.every(path => {
+      const control = this.profileForm.get(path);
+      return !control || control.valid || control.disabled;
+    });
+  }
+
+  isStepComplete(index: number): boolean {
+    return index < this.currentStep && this.isStepValid(index);
+  }
+
+  markStepTouched(index: number): void {
+    const step = this.steps[index];
+    if (!step) return;
+    if (index === 4) {
+      this.availabilityControls.forEach(control => this.markFormGroupTouched(control));
+      return;
+    }
+    step.controls.forEach(path => this.profileForm.get(path)?.markAsTouched());
+  }
+
+  goToStep(index: number): void {
+    if (index < 0 || index >= this.steps.length) return;
+    if (index > this.currentStep && !this.isStepValid(this.currentStep)) {
+      this.markStepTouched(this.currentStep);
+      return;
+    }
+    this.currentStep = index;
+    this.visitedSteps.add(index);
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  nextStep(): void {
+    if (!this.isStepValid(this.currentStep)) {
+      this.markStepTouched(this.currentStep);
+      return;
+    }
+    if (this.currentStep < this.steps.length - 1) {
+      this.goToStep(this.currentStep + 1);
+    }
+  }
+
+  previousStep(): void {
+    if (this.currentStep > 0) {
+      this.goToStep(this.currentStep - 1);
+    }
+  }
+
+  get progressPercent(): number {
+    if (this.steps.length <= 1) return 100;
+    return (this.currentStep / (this.steps.length - 1)) * 100;
+  }
+
+  get isLastStep(): boolean {
+    return this.currentStep === this.steps.length - 1;
+  }
+
+  get isFirstStep(): boolean {
+    return this.currentStep === 0;
   }
 
   onDoctorDocumentsSelected(event: Event): void {

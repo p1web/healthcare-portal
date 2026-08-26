@@ -26,6 +26,120 @@ export class HospitalProfileComponent implements OnInit {
   success: string = '';
   loading: boolean = false;
 
+  // Multi-step wizard state
+  currentStep = 1;
+  readonly stepDefs: { label: string; icon: string; groupPath: 'basic' | 'hospital' | null; controlNames: string[] }[] = [
+    {
+      label: 'Review Status',
+      icon: 'bi-shield-check',
+      groupPath: null,
+      controlNames: []
+    },
+    {
+      label: 'Account Holder',
+      icon: 'bi-person-lines-fill',
+      groupPath: 'basic',
+      controlNames: ['name', 'phone', 'dateOfBirth', 'gender', 'address', 'city', 'state', 'pincode']
+    },
+    {
+      label: 'Hospital Info',
+      icon: 'bi-building',
+      groupPath: 'hospital',
+      controlNames: [
+        'hospitalName', 'hospitalEmail', 'hospitalPhone', 'emergencyContactNumber',
+        'hospitalAddress', 'hospitalCity', 'hospitalState', 'hospitalPincode',
+        'website', 'registrationNumber', 'establishedYear', 'totalBeds',
+        'hospitalType', 'operatingHours'
+      ]
+    },
+    {
+      label: 'Specialties & Services',
+      icon: 'bi-heart-pulse',
+      groupPath: 'hospital',
+      controlNames: ['bio', 'specialtyIds', 'emergencyServices', 'ambulanceServices']
+    },
+    {
+      label: 'Verification Documents',
+      icon: 'bi-file-earmark-medical',
+      groupPath: null,
+      controlNames: []
+    }
+  ];
+
+  get totalSteps(): number { return this.stepDefs.length; }
+  get isLastStep(): boolean { return this.currentStep === this.totalSteps; }
+  get isFirstStep(): boolean { return this.currentStep === 1; }
+  get progressPercent(): number { return Math.round((this.currentStep / this.totalSteps) * 100); }
+
+  isStepComplete(index: number): boolean {
+    return index + 1 < this.currentStep && this.isStepValid(index);
+  }
+
+  isStepValid(index: number): boolean {
+    const def = this.stepDefs[index];
+    if (!def?.groupPath) return true;
+    return def.controlNames.every((name) => {
+      const control = this.profileForm.get(`${def.groupPath}.${name}`);
+      return !control || control.disabled || control.valid;
+    });
+  }
+
+  private markStepTouched(index: number): void {
+    const def = this.stepDefs[index];
+    if (!def?.groupPath) return;
+    def.controlNames.forEach((name) => {
+      this.profileForm.get(`${def.groupPath}.${name}`)?.markAsTouched();
+    });
+  }
+
+  nextStep(): void {
+    if (!this.isProfileEditable) {
+      if (this.currentStep < this.totalSteps) this.currentStep++;
+      return;
+    }
+    if (!this.isStepValid(this.currentStep - 1)) {
+      this.markStepTouched(this.currentStep - 1);
+      this.error = 'Please complete the required fields in this step.';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+    this.error = '';
+    if (this.currentStep < this.totalSteps) {
+      this.currentStep++;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  prevStep(): void {
+    if (this.currentStep > 1) {
+      this.currentStep--;
+      this.error = '';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  goToStep(step: number): void {
+    if (step < 1 || step > this.totalSteps || step === this.currentStep) return;
+    if (step < this.currentStep || !this.isProfileEditable) {
+      this.currentStep = step;
+      this.error = '';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+    for (let i = this.currentStep - 1; i < step - 1; i++) {
+      if (!this.isStepValid(i)) {
+        this.markStepTouched(i);
+        this.currentStep = i + 1;
+        this.error = 'Complete this step before continuing.';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+    }
+    this.currentStep = step;
+    this.error = '';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,

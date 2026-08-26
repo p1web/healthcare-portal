@@ -1,0 +1,286 @@
+<section class="dashboard-page">
+
+  <div class="dashboard-header">
+    <div>
+      <h1 class="dashboard-title">{{ greeting }}<span *ngIf="patientName">, {{ patientName.split(' ')[0] }}</span> 👋</h1>
+      <p class="dashboard-subtitle">Here’s a quick look at your care journey.</p>
+    </div>
+    <div class="header-actions">
+      <a routerLink="/doctors" class="btn btn-primary btn-sm">
+        <i class="bi bi-plus-circle me-1"></i> Book an appointment
+      </a>
+      <button type="button" class="btn btn-outline-secondary btn-sm" (click)="load()" [disabled]="isLoading">
+        <i class="bi bi-arrow-clockwise me-1"></i>
+        {{ isLoading ? 'Refreshing…' : 'Refresh' }}
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="isLoading" class="dashboard-loading">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading…</span>
+    </div>
+    <p>Loading your dashboard…</p>
+  </div>
+
+  <div *ngIf="!isLoading && error" class="alert alert-danger d-flex justify-content-between align-items-center">
+    <span><i class="bi bi-exclamation-triangle me-2"></i>{{ error }}</span>
+    <button type="button" class="btn btn-sm btn-outline-danger" (click)="load()">Retry</button>
+  </div>
+
+  <ng-container *ngIf="!isLoading && !error && analytics as data">
+
+    <!-- Next appointment hero -->
+    <div class="next-appt-card" *ngIf="data.nextAppointment as next">
+      <div class="next-appt-left">
+        <span class="next-appt-eyebrow">Upcoming visit</span>
+        <div class="next-appt-doctor">
+          <div class="next-appt-avatar">{{ initials(next.doctorName) }}</div>
+          <div>
+            <div class="next-appt-name">{{ next.doctorName }}</div>
+            <div class="next-appt-meta">
+              <span *ngIf="next.specialization">{{ next.specialization }}</span>
+              <span *ngIf="next.hospital"> · {{ next.hospital }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="next-appt-right">
+        <div class="next-appt-when">
+          <i class="bi bi-calendar-event"></i>
+          <div>
+            <strong>{{ formatDate(next.date) }}</strong>
+            <span>{{ formatTime(next.time) }}</span>
+          </div>
+        </div>
+        <span class="next-appt-badge">{{ daysUntil(next.date) }}</span>
+        <a routerLink="/appointments" class="btn btn-light btn-sm">View all</a>
+      </div>
+    </div>
+
+    <div class="next-appt-card next-appt-empty" *ngIf="!data.nextAppointment">
+      <div>
+        <span class="next-appt-eyebrow">No upcoming visits</span>
+        <div class="next-appt-name">You’re all caught up.</div>
+        <div class="next-appt-meta">Book your next consultation to keep on top of your health.</div>
+      </div>
+      <a routerLink="/doctors" class="btn btn-primary btn-sm">
+        <i class="bi bi-search me-1"></i> Find a doctor
+      </a>
+    </div>
+
+    <!-- KPI cards -->
+    <div class="kpi-grid">
+      <div class="kpi-card kpi-primary">
+        <div class="kpi-icon"><i class="bi bi-calendar2-check"></i></div>
+        <div class="kpi-body">
+          <span class="kpi-label">Total appointments</span>
+          <span class="kpi-value">{{ data.totals.totalAppointments }}</span>
+          <span class="kpi-hint">All time</span>
+        </div>
+      </div>
+
+      <div class="kpi-card kpi-info">
+        <div class="kpi-icon"><i class="bi bi-hourglass-split"></i></div>
+        <div class="kpi-body">
+          <span class="kpi-label">Upcoming</span>
+          <span class="kpi-value">{{ data.totals.upcomingAppointments }}</span>
+          <span class="kpi-hint">Pending or confirmed</span>
+        </div>
+      </div>
+
+      <div class="kpi-card kpi-success">
+        <div class="kpi-icon"><i class="bi bi-check2-circle"></i></div>
+        <div class="kpi-body">
+          <span class="kpi-label">Completed</span>
+          <span class="kpi-value">{{ data.totals.completedAppointments }}</span>
+          <span class="kpi-hint">Consultations done</span>
+        </div>
+      </div>
+
+      <div class="kpi-card kpi-purple">
+        <div class="kpi-icon"><i class="bi bi-person-heart"></i></div>
+        <div class="kpi-body">
+          <span class="kpi-label">Doctors seen</span>
+          <span class="kpi-value">{{ data.totals.uniqueDoctors }}</span>
+          <span class="kpi-hint">Unique providers</span>
+        </div>
+      </div>
+
+      <div class="kpi-card kpi-warning">
+        <div class="kpi-icon"><i class="bi bi-wallet2"></i></div>
+        <div class="kpi-body">
+          <span class="kpi-label">Total spent</span>
+          <span class="kpi-value">{{ formatCurrency(data.totals.totalSpent) }}</span>
+          <span class="kpi-hint">On confirmed visits</span>
+        </div>
+      </div>
+
+      <div class="kpi-card kpi-pink">
+        <div class="kpi-icon"><i class="bi bi-piggy-bank"></i></div>
+        <div class="kpi-body">
+          <span class="kpi-label">You saved</span>
+          <span class="kpi-value">{{ formatCurrency(data.totals.totalSaved) }}</span>
+          <span class="kpi-hint">With coupons</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row: status donut + monthly trend -->
+    <div class="dashboard-row">
+
+      <div class="dashboard-card status-card">
+        <div class="dashboard-card-header">
+          <h2>Appointment status</h2>
+          <span class="text-muted small">{{ statusTotal }} total</span>
+        </div>
+
+        <div *ngIf="statusTotal === 0" class="empty-inline">
+          <i class="bi bi-inbox"></i>
+          <span>No appointments yet.</span>
+        </div>
+
+        <div *ngIf="statusTotal > 0" class="status-body">
+          <svg viewBox="0 0 120 120" class="donut" aria-hidden="true">
+            <circle cx="60" cy="60" [attr.r]="donutRadius" fill="none" stroke="#f1f3f5" stroke-width="14"></circle>
+            <circle
+              *ngFor="let slice of donutSlices"
+              cx="60" cy="60" [attr.r]="donutRadius"
+              fill="none"
+              [attr.stroke]="slice.color"
+              stroke-width="14"
+              [attr.stroke-dasharray]="slice.length + ' ' + donutCircumference"
+              [attr.stroke-dashoffset]="-slice.offset"
+              stroke-linecap="butt"
+              transform="rotate(-90 60 60)">
+            </circle>
+            <text x="60" y="56" text-anchor="middle" class="donut-total">{{ statusTotal }}</text>
+            <text x="60" y="72" text-anchor="middle" class="donut-caption">visits</text>
+          </svg>
+
+          <ul class="status-legend">
+            <li *ngFor="let meta of statusMeta">
+              <span class="legend-swatch" [style.background]="meta.color"></span>
+              <span class="legend-label">{{ meta.label }}</span>
+              <span class="legend-value">{{ data.statusBreakdown[meta.key] }}</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="dashboard-card trend-card">
+        <div class="dashboard-card-header">
+          <h2>Visits over the last 6 months</h2>
+          <span class="text-muted small" *ngIf="maxMonthly > 0">Peak {{ maxMonthly }}</span>
+        </div>
+
+        <div class="trend-chart">
+          <div class="trend-col" *ngFor="let m of data.monthlyTrend" [title]="m.label + ': ' + m.count + ' visit' + (m.count === 1 ? '' : 's')">
+            <div class="trend-col-track">
+              <div class="trend-col-fill" [style.height.%]="monthlyBarHeight(m.count)"></div>
+            </div>
+            <span class="trend-col-label">{{ m.label }}</span>
+            <span class="trend-col-value">{{ m.count }}</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Row: top doctors + top specializations -->
+    <div class="dashboard-row">
+
+      <div class="dashboard-card">
+        <div class="dashboard-card-header">
+          <h2>Your regular doctors</h2>
+          <span class="text-muted small">By total visits</span>
+        </div>
+
+        <div *ngIf="!data.topDoctors.length" class="empty-inline">
+          <i class="bi bi-person-x"></i>
+          <span>No doctor visits yet.</span>
+        </div>
+
+        <ul *ngIf="data.topDoctors.length" class="patients-list">
+          <li *ngFor="let d of data.topDoctors">
+            <div class="patient-avatar patient-avatar-doctor">{{ initials(d.name) }}</div>
+            <div class="patient-body">
+              <div class="patient-top">
+                <span class="patient-name">{{ d.name }}</span>
+                <span class="patient-count">{{ d.count }} visit{{ d.count === 1 ? '' : 's' }}</span>
+              </div>
+              <div class="patient-track">
+                <div class="patient-fill" [style.width.%]="doctorBarWidth(d.count)"></div>
+              </div>
+              <div class="patient-meta text-muted small">
+                <span *ngIf="d.specialization">{{ d.specialization }}</span>
+                <span *ngIf="d.specialization && d.lastVisit"> · </span>
+                <span *ngIf="d.lastVisit">Last visit {{ formatDate(d.lastVisit) }}</span>
+              </div>
+            </div>
+          </li>
+        </ul>
+      </div>
+
+      <div class="dashboard-card">
+        <div class="dashboard-card-header">
+          <h2>Care areas</h2>
+          <span class="text-muted small">Most consulted</span>
+        </div>
+
+        <div *ngIf="!data.topSpecializations.length" class="empty-inline">
+          <i class="bi bi-clipboard-x"></i>
+          <span>No specialization data yet.</span>
+        </div>
+
+        <ul *ngIf="data.topSpecializations.length" class="hbar-list">
+          <li *ngFor="let s of data.topSpecializations">
+            <span class="hbar-label">{{ s.name }}</span>
+            <div class="hbar-track">
+              <div class="hbar-fill hbar-fill-info" [style.width.%]="specBarWidth(s.count)"></div>
+            </div>
+            <span class="hbar-value">{{ s.count }}</span>
+          </li>
+        </ul>
+      </div>
+
+    </div>
+
+    <!-- Recent activity -->
+    <div class="dashboard-card">
+      <div class="dashboard-card-header">
+        <h2>Recent activity</h2>
+        <a routerLink="/appointments" class="small">View all →</a>
+      </div>
+
+      <div *ngIf="!data.recentActivity.length" class="empty-inline">
+        <i class="bi bi-clock-history"></i>
+        <span>No recent appointments.</span>
+      </div>
+
+      <ul *ngIf="data.recentActivity.length" class="activity-list">
+        <li *ngFor="let a of data.recentActivity">
+          <div class="activity-dot" [style.background]="statusColor(a.status)"></div>
+          <div class="activity-body">
+            <div class="activity-top">
+              <span class="activity-doctor">{{ a.doctorName }}</span>
+              <span class="activity-status" [style.background]="statusColor(a.status) + '22'" [style.color]="statusColor(a.status)">
+                {{ a.status | titlecase }}
+              </span>
+            </div>
+            <div class="activity-meta text-muted small">
+              <i class="bi bi-calendar3 me-1"></i>{{ formatDate(a.date) }}
+              <span *ngIf="a.time"> · <i class="bi bi-clock me-1"></i>{{ formatTime(a.time) }}</span>
+              <span *ngIf="a.specialization"> · {{ a.specialization }}</span>
+            </div>
+          </div>
+          <div class="activity-price" *ngIf="a.finalPrice as price">
+            {{ formatCurrency(price) }}
+          </div>
+        </li>
+      </ul>
+    </div>
+
+  </ng-container>
+
+</section>

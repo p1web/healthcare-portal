@@ -3,6 +3,57 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Appointment, AppointmentHistory, DoctorAppointment } from '../models/appointment.model';
 
+export interface DoctorAnalytics {
+  totals: {
+    totalAppointments: number;
+    upcomingAppointments: number;
+    uniquePatients: number;
+    totalRevenue: number;
+    averageRevenue: number;
+    completionRate: number;
+  };
+  statusBreakdown: {
+    pending: number;
+    confirmed: number;
+    cancelled: number;
+    completed: number;
+    rejected: number;
+  };
+  dailyTrend: { date: string; count: number }[];
+  weekdayDistribution: number[];
+  hourDistribution: { morning: number; afternoon: number; evening: number; night: number };
+  topPatients: { id: number; name: string; count: number; lastVisit: string | null }[];
+}
+
+export interface PatientAnalytics {
+  totals: {
+    totalAppointments: number;
+    upcomingAppointments: number;
+    completedAppointments: number;
+    uniqueDoctors: number;
+    totalSpent: number;
+    totalSaved: number;
+  };
+  statusBreakdown: {
+    pending: number;
+    confirmed: number;
+    cancelled: number;
+    completed: number;
+    rejected: number;
+  };
+  monthlyTrend: { label: string; count: number }[];
+  topDoctors: {
+    id: number;
+    name: string;
+    specialization?: string | null;
+    count: number;
+    lastVisit: string | null;
+  }[];
+  topSpecializations: { name: string; count: number }[];
+  nextAppointment: AppointmentHistory | null;
+  recentActivity: AppointmentHistory[];
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -53,5 +104,13 @@ export class AppointmentService {
 
   cancelAppointment(id: number): Observable<{ success: boolean; message: string; data: any }> {
     return this.http.patch<{ success: boolean; message: string; data: any }>(`${this.apiUrl}/${id}/cancel`, {});
+  }
+
+  getDoctorAnalytics(): Observable<{ success: boolean; data: DoctorAnalytics }> {
+    return this.http.get<{ success: boolean; data: DoctorAnalytics }>(`${this.apiUrl}/doctor/analytics`);
+  }
+
+  getPatientAnalytics(): Observable<{ success: boolean; data: PatientAnalytics }> {
+    return this.http.get<{ success: boolean; data: PatientAnalytics }>(`${this.apiUrl}/patient/analytics`);
   }
 }

@@ -13,9 +13,12 @@ import { LayoutComponent  } from './components/user/layout/layout.component';
 import { ProfileComponent } from './components/user/profile/profile.component';
 import { PatientProfileComponent } from './components/user/patient-profile/patient-profile.component';
 import { AppointmentHistoryComponent } from './components/user/appointment-history/appointment-history.component';
+import { PatientDashboardComponent } from './components/user/patient-dashboard/patient-dashboard.component';
 import { DoctorAppointmentsComponent } from './components/user/doctor-appointments/doctor-appointments.component';
+import { DoctorAnalyticsComponent } from './components/user/doctor-analytics/doctor-analytics.component';
 import { DoctorProfileComponent } from './components/user/doctor-profile/doctor-profile.component';
 import { HospitalProfileComponent } from './components/user/hospital-profile/hospital-profile.component';
+import { HospitalDashboardComponent } from './components/user/hospital-dashboard/hospital-dashboard.component';
 import { ChangePasswordComponent } from './components/user/change-password/change-password.component';
 import { ResetPasswordComponent } from './components/user/reset-password/reset-password.component';
 import { PublicLayoutComponent } from './public-layout.component';
@@ -69,10 +72,13 @@ export const routes: Routes = [
     children: [
       { path: 'profile', component: ProfileComponent, data: { title: 'My Profile' } },
       { path: 'profile/patient', component: PatientProfileComponent, canActivate: [RoleGuard], data: { title: 'My Profile', roles: ['patient'] } },
+      { path: 'patient-dashboard', component: PatientDashboardComponent, canActivate: [RoleGuard], data: { title: 'Dashboard', roles: ['patient'] } },
       { path: 'appointments', component: AppointmentHistoryComponent, canActivate: [RoleGuard], data: { title: 'My Appointments', roles: ['patient'] } },
       { path: 'doctor-appointments', component: DoctorAppointmentsComponent, canActivate: [RoleGuard], data: { title: 'Patient Bookings', roles: ['doctor'] } },
+      { path: 'doctor-analytics', component: DoctorAnalyticsComponent, canActivate: [RoleGuard], data: { title: 'Practice Analytics', roles: ['doctor'] } },
       { path: 'profile/doctor', component: DoctorProfileComponent, canActivate: [RoleGuard], data: { title: 'My Profile', roles: ['doctor'] } },
       { path: 'profile/hospital', component: HospitalProfileComponent, canActivate: [RoleGuard], data: { title: 'My Profile', roles: ['hospital'] } },
+      { path: 'hospital-dashboard', component: HospitalDashboardComponent, canActivate: [RoleGuard], data: { title: 'Dashboard', roles: ['hospital'] } },
       { path: 'change-password', component: ChangePasswordComponent, data: { title: 'Change Password' } },
       { path: 'reset-password', component: ResetPasswordComponent, data: { title: 'Reset Password' } }
     ]

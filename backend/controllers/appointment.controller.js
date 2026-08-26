@@ -418,6 +418,256 @@ exports.rejectAppointment = async (req, res) => {
   }
 };
 
+exports.getPatientAnalytics = async (req, res) => {
+  try {
+    const appointments = await Appointment.findAll({
+      where: { patientId: req.user.id },
+      include: [doctorInclude],
+      order: [['appointmentDate', 'DESC'], ['appointmentTime', 'DESC']]
+    });
+
+    const rows = appointments.map((a) => formatAppointment(a));
+
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    const todayStr = now.toISOString().slice(0, 10);
+
+    const statusCounts = { pending: 0, confirmed: 0, cancelled: 0, completed: 0, rejected: 0 };
+    let totalSpent = 0;
+    let totalSaved = 0;
+    let upcomingCount = 0;
+    let nextAppointment = null;
+    const doctorMap = new Map();
+    const specializationMap = new Map();
+
+    // Init last 6 months buckets (YYYY-MM keys)
+    const monthMap = new Map();
+    const monthOrder = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const key = d.toISOString().slice(0, 7);
+      monthMap.set(key, 0);
+      monthOrder.push({ key, label: d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' }) });
+    }
+
+    for (const row of rows) {
+      if (statusCounts[row.status] !== undefined) statusCounts[row.status]++;
+
+      if (['confirmed', 'completed'].includes(row.status)) {
+        if (typeof row.finalPrice === 'number' && !Number.isNaN(row.finalPrice)) {
+          totalSpent += row.finalPrice;
+        } else if (typeof row.originalPrice === 'number' && !Number.isNaN(row.originalPrice)) {
+          totalSpent += row.originalPrice;
+        }
+        if (typeof row.discountAmount === 'number' && !Number.isNaN(row.discountAmount)) {
+          totalSaved += row.discountAmount;
+        }
+      }
+
+      const dateStr = row.date ? String(row.date).slice(0, 10) : null;
+      if (dateStr) {
+        const monthKey = dateStr.slice(0, 7);
+        if (monthMap.has(monthKey)) monthMap.set(monthKey, monthMap.get(monthKey) + 1);
+
+        if (dateStr >= todayStr && ['pending', 'confirmed'].includes(row.status)) {
+          upcomingCount++;
+          if (!nextAppointment || dateStr < String(nextAppointment.date).slice(0, 10)) {
+            nextAppointment = row;
+          }
+        }
+      }
+
+      if (row.doctorId) {
+        if (!doctorMap.has(row.doctorId)) {
+          doctorMap.set(row.doctorId, {
+            id: row.doctorId,
+            name: row.doctorName,
+            specialization: row.specialization,
+            count: 0,
+            lastVisit: dateStr
+          });
+        }
+        const doc = doctorMap.get(row.doctorId);
+        doc.count++;
+        if (dateStr && (!doc.lastVisit || dateStr > doc.lastVisit)) doc.lastVisit = dateStr;
+      }
+
+      if (row.specialization) {
+        specializationMap.set(row.specialization, (specializationMap.get(row.specialization) || 0) + 1);
+      }
+    }
+
+    const topDoctors = Array.from(doctorMap.values())
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+
+    const topSpecializations = Array.from(specializationMap.entries())
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+
+    const monthlyTrend = monthOrder.map(({ key, label }) => ({
+      label,
+      count: monthMap.get(key) || 0
+    }));
+
+    const total = rows.length;
+    const recentActivity = rows.slice(0, 5);
+
+    return res.json({
+      success: true,
+      data: {
+        totals: {
+          totalAppointments: total,
+          upcomingAppointments: upcomingCount,
+          completedAppointments: statusCounts.completed,
+          uniqueDoctors: doctorMap.size,
+          totalSpent: Math.round(totalSpent * 100) / 100,
+          totalSaved: Math.round(totalSaved * 100) / 100
+        },
+        statusBreakdown: statusCounts,
+        monthlyTrend,
+        topDoctors,
+        topSpecializations,
+        nextAppointment,
+        recentActivity
+      }
+    });
+  } catch (error) {
+    console.error('Get patient analytics error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to fetch analytics' });
+  }
+};
+
+exports.getDoctorAnalytics = async (req, res) => {
+  try {
+    const doctorProfile = await getDoctorProfile(req.user.id);
+    if (!doctorProfile) {
+      return res.status(404).json({ success: false, message: 'Doctor profile not found' });
+    }
+
+    const appointments = await Appointment.findAll({
+      where: { doctorProfileId: doctorProfile.id },
+      order: [['appointmentDate', 'DESC'], ['appointmentTime', 'DESC']]
+    });
+
+    const rows = appointments.map((a) => a.toJSON());
+
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    const todayStr = now.toISOString().slice(0, 10);
+
+    const statusCounts = { pending: 0, confirmed: 0, cancelled: 0, completed: 0, rejected: 0 };
+    let totalRevenue = 0;
+    let revenueAppointmentCount = 0;
+    let upcomingCount = 0;
+    const patientMap = new Map();
+    const weekdayCounts = [0, 0, 0, 0, 0, 0, 0]; // Sun..Sat
+    const hourBuckets = { morning: 0, afternoon: 0, evening: 0, night: 0 };
+
+    // Init last 30-day buckets
+    const dailyMap = new Map();
+    const dayOrder = [];
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      const key = d.toISOString().slice(0, 10);
+      dailyMap.set(key, 0);
+      dayOrder.push(key);
+    }
+
+    const toDateStr = (value) => {
+      if (!value) return null;
+      if (typeof value === 'string') return value.slice(0, 10);
+      const d = new Date(value);
+      return Number.isNaN(d.getTime()) ? null : d.toISOString().slice(0, 10);
+    };
+
+    for (const row of rows) {
+      if (statusCounts[row.status] !== undefined) statusCounts[row.status]++;
+
+      if (['confirmed', 'completed'].includes(row.status)) {
+        const priceRaw = row.finalPrice !== null && row.finalPrice !== undefined
+          ? row.finalPrice
+          : row.originalPrice;
+        const price = priceRaw !== null && priceRaw !== undefined ? parseFloat(priceRaw) : null;
+        if (price !== null && !Number.isNaN(price)) {
+          totalRevenue += price;
+          revenueAppointmentCount++;
+        }
+      }
+
+      const dateStr = toDateStr(row.appointmentDate);
+      if (dateStr) {
+        if (dailyMap.has(dateStr)) dailyMap.set(dateStr, dailyMap.get(dateStr) + 1);
+        const dt = new Date(dateStr + 'T00:00:00');
+        if (!Number.isNaN(dt.getTime())) weekdayCounts[dt.getDay()]++;
+        if (dateStr >= todayStr && ['pending', 'confirmed'].includes(row.status)) {
+          upcomingCount++;
+        }
+      }
+
+      if (row.appointmentTime) {
+        const [hStr] = String(row.appointmentTime).split(':');
+        const hour = parseInt(hStr, 10);
+        if (!Number.isNaN(hour)) {
+          if (hour < 12) hourBuckets.morning++;
+          else if (hour < 16) hourBuckets.afternoon++;
+          else if (hour < 20) hourBuckets.evening++;
+          else hourBuckets.night++;
+        }
+      }
+
+      const pKey = row.patientId;
+      if (!patientMap.has(pKey)) {
+        patientMap.set(pKey, {
+          id: row.patientId,
+          name: row.patientName || 'Patient',
+          count: 0,
+          lastVisit: dateStr
+        });
+      }
+      const patient = patientMap.get(pKey);
+      patient.count++;
+      if (dateStr && (!patient.lastVisit || dateStr > patient.lastVisit)) {
+        patient.lastVisit = dateStr;
+      }
+    }
+
+    const topPatients = Array.from(patientMap.values())
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+
+    const dailyTrend = dayOrder.map((key) => ({ date: key, count: dailyMap.get(key) || 0 }));
+
+    const total = rows.length;
+    const avgRevenue = revenueAppointmentCount > 0 ? totalRevenue / revenueAppointmentCount : 0;
+    const completionRate = total > 0 ? (statusCounts.completed / total) * 100 : 0;
+
+    return res.json({
+      success: true,
+      data: {
+        totals: {
+          totalAppointments: total,
+          upcomingAppointments: upcomingCount,
+          uniquePatients: patientMap.size,
+          totalRevenue: Math.round(totalRevenue * 100) / 100,
+          averageRevenue: Math.round(avgRevenue * 100) / 100,
+          completionRate: Math.round(completionRate * 10) / 10
+        },
+        statusBreakdown: statusCounts,
+        dailyTrend,
+        weekdayDistribution: weekdayCounts,
+        hourDistribution: hourBuckets,
+        topPatients
+      }
+    });
+  } catch (error) {
+    console.error('Get doctor analytics error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to fetch analytics' });
+  }
+};
+
 exports.bulkApproveAppointments = async (req, res) => {
   try {
     const { ids } = req.body || {};

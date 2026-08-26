@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { filter } from 'rxjs/operators';
@@ -28,6 +28,12 @@ export class HeaderComponent {
   }
 
   mobileMenuOpen = false;
+  isScrolled = false;
+
+  @HostListener('window:scroll')
+  onWindowScroll(): void {
+    this.isScrolled = (typeof window !== 'undefined') && window.scrollY > 8;
+  }
 
   toggleMobileMenu() {
     this.mobileMenuOpen = !this.mobileMenuOpen;

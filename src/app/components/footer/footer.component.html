@@ -1,90 +1,137 @@
-<footer class="bg-dark text-white">
+<footer class="site-footer">
+  <div class="footer-accent-bar" aria-hidden="true"></div>
+
   <div class="container py-5">
-    <div class="row g-4">
-      <!-- Brand Column -->
-      <div class="col-lg-3 col-md-6">
-        <div class="d-flex align-items-center mb-3">
-          <i class="bi bi-hospital fs-3 me-2"></i>
-          <h5 class="mb-0 fw-bold">HealthConnect</h5>
-        </div>
-        <p class="text-muted small">
-          Your trusted healthcare partner. Find the best doctors and hospitals with exclusive discounts.
+
+    <div class="row g-4 g-lg-5">
+
+      <!-- Brand + About + Social -->
+      <div class="col-lg-4 col-md-6">
+        <a routerLink="/" class="footer-brand">
+          <span class="footer-brand-mark" aria-hidden="true">
+            <i class="bi bi-heart-pulse-fill"></i>
+          </span>
+          <span class="footer-brand-text">
+            <span class="footer-brand-name">HealthConnect</span>
+            <span class="footer-brand-tagline">Trusted care, made simple</span>
+          </span>
+        </a>
+
+        <p class="footer-about">
+          Your trusted healthcare partner. Book verified doctors, discover top-rated hospitals,
+          and unlock exclusive savings — all in one place.
         </p>
+
+        <div class="footer-socials">
+          <span class="footer-socials-label">Follow us</span>
+          <div class="footer-socials-icons">
+            <a href="https://facebook.com/healthconnect" target="_blank" rel="noopener noreferrer"
+               class="social-link" aria-label="Facebook" title="Facebook">
+              <i class="bi bi-facebook"></i>
+            </a>
+            <a href="https://instagram.com/healthconnect" target="_blank" rel="noopener noreferrer"
+               class="social-link" aria-label="Instagram" title="Instagram">
+              <i class="bi bi-instagram"></i>
+            </a>
+            <a href="https://twitter.com/healthconnect" target="_blank" rel="noopener noreferrer"
+               class="social-link" aria-label="X (Twitter)" title="X">
+              <i class="bi bi-twitter-x"></i>
+            </a>
+            <a href="https://linkedin.com/company/healthconnect" target="_blank" rel="noopener noreferrer"
+               class="social-link" aria-label="LinkedIn" title="LinkedIn">
+              <i class="bi bi-linkedin"></i>
+            </a>
+            <a href="https://youtube.com/@healthconnect" target="_blank" rel="noopener noreferrer"
+               class="social-link" aria-label="YouTube" title="YouTube">
+              <i class="bi bi-youtube"></i>
+            </a>
+          </div>
+        </div>
       </div>
 
       <!-- Quick Links -->
-      <div class="col-lg-3 col-md-6">
-        <h5 class="fw-bold mb-3">Quick Links</h5>
-        <ul class="list-unstyled">
-          <li class="mb-2">
-            <a href="#" class="text-muted text-decoration-none footer-link">
-              <i class="bi bi-chevron-right me-1"></i>About Us
-            </a>
-          </li>
-          <li class="mb-2">
-            <a href="#" class="text-muted text-decoration-none footer-link">
-              <i class="bi bi-chevron-right me-1"></i>Contact
-            </a>
-          </li>
-          <li class="mb-2">
-            <a href="#" class="text-muted text-decoration-none footer-link">
-              <i class="bi bi-chevron-right me-1"></i>Terms & Conditions
-            </a>
-          </li>
-          <li class="mb-2">
-            <a href="#" class="text-muted text-decoration-none footer-link">
-              <i class="bi bi-chevron-right me-1"></i>Privacy Policy
-            </a>
-          </li>
+      <div class="col-lg-2 col-md-6 col-6">
+        <h6 class="footer-heading">Explore</h6>
+        <ul class="footer-links">
+          <li><a routerLink="/">Home</a></li>
+          <li><a routerLink="/hospitals">Hospitals</a></li>
+          <li><a routerLink="/doctors">Doctors</a></li>
+          <li><a routerLink="/coupons">Coupons &amp; Offers</a></li>
+          <li><a href="#">About Us</a></li>
         </ul>
       </div>
 
       <!-- For Providers -->
-      <div class="col-lg-3 col-md-6">
-        <h5 class="fw-bold mb-3">For Providers</h5>
-        <ul class="list-unstyled">
-          <li class="mb-2">
-            <a href="#" class="text-muted text-decoration-none footer-link">
-              <i class="bi bi-chevron-right me-1"></i>Hospital Registration
-            </a>
-          </li>
-          <li class="mb-2">
-            <a href="#" class="text-muted text-decoration-none footer-link">
-              <i class="bi bi-chevron-right me-1"></i>Doctor Registration
-            </a>
-          </li>
-          <li class="mb-2">
-            <a href="#" class="text-muted text-decoration-none footer-link">
-              <i class="bi bi-chevron-right me-1"></i>Partner With Us
-            </a>
-          </li>
+      <div class="col-lg-3 col-md-6 col-6">
+        <h6 class="footer-heading">For Providers</h6>
+        <ul class="footer-links">
+          <li><a routerLink="/register">Hospital Registration</a></li>
+          <li><a routerLink="/register">Doctor Registration</a></li>
+          <li><a href="#">Partner With Us</a></li>
+          <li><a href="#">Terms &amp; Conditions</a></li>
+          <li><a href="#">Privacy Policy</a></li>
         </ul>
       </div>
 
-      <!-- Contact -->
+      <!-- Contact + Newsletter -->
       <div class="col-lg-3 col-md-6">
-        <h5 class="fw-bold mb-3">Contact Us</h5>
-        <ul class="list-unstyled">
-          <li class="mb-2 d-flex align-items-start">
-            <i class="bi bi-telephone-fill text-primary me-2 mt-1"></i>
-            <span class="text-muted small">+91 98765 43210</span>
+        <h6 class="footer-heading">Get in touch</h6>
+
+        <ul class="footer-contact">
+          <li>
+            <span class="contact-icon"><i class="bi bi-telephone-fill"></i></span>
+            <div>
+              <span class="contact-label">Call us</span>
+              <a href="tel:+919876543210">+91 98765 43210</a>
+            </div>
           </li>
-          <li class="mb-2 d-flex align-items-start">
-            <i class="bi bi-envelope-fill text-primary me-2 mt-1"></i>
-            <span class="text-muted small">support&#64;healthconnect.com</span>
+          <li>
+            <span class="contact-icon"><i class="bi bi-envelope-fill"></i></span>
+            <div>
+              <span class="contact-label">Email</span>
+              <a href="mailto:support&#64;healthconnect.com">support&#64;healthconnect.com</a>
+            </div>
           </li>
-          <li class="mb-2 d-flex align-items-start">
-            <i class="bi bi-geo-alt-fill text-primary me-2 mt-1"></i>
-            <span class="text-muted small">Mumbai, Maharashtra, India</span>
+          <li>
+            <span class="contact-icon"><i class="bi bi-geo-alt-fill"></i></span>
+            <div>
+              <span class="contact-label">Head office</span>
+              <span>Mumbai, Maharashtra, India</span>
+            </div>
           </li>
         </ul>
+
+        <form class="footer-newsletter" (submit)="$event.preventDefault()">
+          <label for="footerNewsletter" class="footer-newsletter-label">
+            Subscribe to health tips &amp; offers
+          </label>
+          <div class="footer-newsletter-group">
+            <input id="footerNewsletter" type="email" class="form-control"
+                   placeholder="Enter your email" autocomplete="email" required />
+            <button type="submit" class="footer-newsletter-btn" aria-label="Subscribe">
+              <i class="bi bi-send-fill"></i>
+            </button>
+          </div>
+        </form>
       </div>
+
     </div>
 
-    <!-- Copyright -->
-    <hr class="border-secondary my-4">
-    <div class="text-center text-muted small">
-      <p class="mb-0">&copy; {{ currentYear }} HealthConnect. All rights reserved.</p>
+    <hr class="footer-divider" />
+
+    <div class="footer-bottom">
+      <p class="mb-0">
+        &copy; {{ currentYear }} HealthConnect. All rights reserved.
+      </p>
+      <p class="mb-0 footer-tagline">
+        Made with <i class="bi bi-heart-fill"></i> in India
+      </p>
+      <ul class="footer-legal">
+        <li><a href="#">Terms</a></li>
+        <li><a href="#">Privacy</a></li>
+        <li><a href="#">Cookies</a></li>
+      </ul>
     </div>
+
   </div>
 </footer>

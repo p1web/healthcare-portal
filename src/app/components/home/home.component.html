@@ -76,35 +76,48 @@
   <!-- Specializations -->
   <div class="section-band section-band-white">
     <div class="container py-5 position-relative">
-    <section>
+    <section class="specialties-section">
       <div class="text-center mb-4">
         <span class="section-eyebrow section-eyebrow-blue">OUR SPECIALTIES</span>
         <h2 class="fw-bold mb-1">Browse by Specialization</h2>
         <p class="text-muted mb-0">Find the right specialist for your health needs</p>
       </div>
-      <!-- Loader -->
 
-      <div class="row g-3">
-        <div *ngIf="isLoadingSpecialization" class="d-flex justify-content-center py-5">
-          <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Loading...</span>
-          </div>
+      <div *ngIf="isLoadingSpecialization" class="d-flex justify-content-center py-5">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
         </div>
-        <ng-container *ngIf="!isLoadingSpecialization">
-          <div *ngFor="let spec of specializations; let i = index" class="col-6 col-md-4 col-lg-2">
-            <div class="card h-100 text-center border-0 shadow-sm specialty-card"
-              [title]="spec.description" (click)="searchBySpecialization(spec.id)">
-              <div class="card-body d-flex flex-column align-items-center justify-content-center">
-                <div class="specialty-icon-box mb-2" [ngClass]="['bg-' + getSpecialtyColor(i) + '-subtle', 'text-' + getSpecialtyColor(i)]">
-                  <i [class]="'bi fs-3 ' + spec.icon"></i>
-                </div>
-                <p class="mb-0 fw-semibold small">{{ spec.name }}</p>
-              </div>
-            </div>
-          </div>
-        </ng-container>
-
       </div>
+
+      <div *ngIf="!isLoadingSpecialization" class="row g-3 g-md-4">
+        <div *ngFor="let spec of specializations; let i = index"
+             class="col-6 col-md-4 col-lg-3 col-xl-2">
+          <button type="button"
+                  class="specialty-tile w-100 h-100"
+                  [ngClass]="'specialty-tile-' + getSpecialtyColor(i)"
+                  [attr.title]="spec.description"
+                  (click)="searchBySpecialization(spec.id)">
+            <span class="specialty-tile-accent" aria-hidden="true"></span>
+            <span class="specialty-tile-icon">
+              <i [class]="'bi ' + (spec.icon || 'bi-heart-pulse')"></i>
+            </span>
+            <span class="specialty-tile-name">{{ spec.name }}</span>
+            <span class="specialty-tile-desc" *ngIf="spec.description">{{ spec.description }}</span>
+            <span class="specialty-tile-cta" aria-hidden="true">
+              <i class="bi bi-arrow-right"></i>
+            </span>
+          </button>
+        </div>
+      </div>
+
+      <div *ngIf="!isLoadingSpecialization && specializations.length"
+           class="text-center mt-4">
+        <a routerLink="/doctors" class="specialty-view-all">
+          Explore all doctors
+          <i class="bi bi-arrow-right ms-1"></i>
+        </a>
+      </div>
+
     </section>
     </div>
   </div>

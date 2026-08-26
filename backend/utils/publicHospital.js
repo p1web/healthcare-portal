@@ -52,7 +52,7 @@ function formatPublicHospital({ profile, specialties }) {
     emergencyContactNumber: data.emergencyContactNumber,
     website: data.website,
     rating: Number(data.rating || 0),
-    discount: data.discount || '0%',
+    discount: data.discount || null,
     description: data.bio || '',
     beds: data.totalBeds,
     established: data.establishedYear,

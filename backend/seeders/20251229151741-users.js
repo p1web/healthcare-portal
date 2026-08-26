@@ -60,81 +60,8 @@ module.exports = {
         updated_at: new Date()
       },
 
-      // Doctor Users
-      {
-        name: 'Dr. Amit Patel',
-        email: 'amit.doctor@example.com',
-        phone: '9876543212',
-        password: hashedPassword,
-        role: 'doctor',
-        is_email_verified: true,
-        is_phone_verified: true,
-        gender: 'male',
-        date_of_birth: new Date('1980-03-10'),
-        address: '789 Doctor Colony',
-        city: 'Mumbai',
-        state: 'Maharashtra',
-        pincode: '400003',
-        is_active: true,
-        terms_accepted_at: new Date(),
-        created_at: new Date(),
-        updated_at: new Date()
-      },
-      {
-        name: 'Dr. Sneha Desai',
-        email: 'sneha.doctor@example.com',
-        phone: '9876543213',
-        password: hashedPassword,
-        role: 'doctor',
-        is_email_verified: true,
-        is_phone_verified: true,
-        gender: 'female',
-        date_of_birth: new Date('1985-11-25'),
-        address: '321 Medical Plaza',
-        city: 'Mumbai',
-        state: 'Maharashtra',
-        pincode: '400004',
-        is_active: true,
-        terms_accepted_at: new Date(),
-        created_at: new Date(),
-        updated_at: new Date()
-      },
-
-      // Hospital Users
-      {
-        name: 'City General Hospital Admin',
-        email: 'admin@citygeneral.com',
-        phone: '9876543214',
-        password: hashedPassword,
-        role: 'hospital',
-        is_email_verified: true,
-        is_phone_verified: true,
-        address: '123 Main Street, Downtown',
-        city: 'Mumbai',
-        state: 'Maharashtra',
-        pincode: '400001',
-        is_active: true,
-        terms_accepted_at: new Date(),
-        created_at: new Date(),
-        updated_at: new Date()
-      },
-      {
-        name: 'MediCare Plus Admin',
-        email: 'admin@medicareplus.com',
-        phone: '9876543215',
-        password: hashedPassword,
-        role: 'hospital',
-        is_email_verified: true,
-        is_phone_verified: true,
-        address: '456 West Road, Andheri',
-        city: 'Mumbai',
-        state: 'Maharashtra',
-        pincode: '400053',
-        is_active: true,
-        terms_accepted_at: new Date(),
-        created_at: new Date(),
-        updated_at: new Date()
-      }
+      // Doctor / hospital users are provisioned by the newer seeder
+      // 20260826040000-clean-public-doctors-hospitals.js.
     ], { ignoreDuplicates: true });
   },
 

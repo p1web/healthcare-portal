@@ -24,121 +24,178 @@
   <!-- Search and Filter Section -->
   <div class="row mb-4">
     <div class="col-12">
-      <div class="card shadow-sm border-0">
-        <div class="card-body p-4">
-          
-          <!-- Search Bar -->
-          <div class="row mb-3">
-            <div class="col-lg-8">
-              <div class="input-group input-group-lg">
-                <span class="input-group-text bg-white">
-                  <i class="bi bi-search"></i>
-                </span>
+      <div class="filter-card">
+
+        <div class="filter-header">
+          <span class="filter-title">
+            <i class="bi bi-sliders me-2"></i>Refine your search
+          </span>
+          <button *ngIf="hasActiveFilters" type="button"
+                  class="btn btn-sm filter-clear-btn"
+                  (click)="resetFilters()">
+            <i class="bi bi-x-circle me-1"></i>Clear all
+          </button>
+        </div>
+
+        <div class="filter-body">
+          <div class="row g-3 align-items-end">
+
+            <!-- Search -->
+            <div class="col-lg-4 col-md-12">
+              <label class="filter-label">Search</label>
+              <div class="input-group input-group-sm filter-input">
+                <span class="input-group-text"><i class="bi bi-search"></i></span>
                 <input
                   type="text"
                   class="form-control"
-                  placeholder="Search by doctor name, specialization, or hospital..."
+                  placeholder="Doctor, specialization or hospital"
                   [(ngModel)]="searchQuery"
                   (input)="searchDoctors()"
                 />
-                <button 
-                  class="btn btn-outline-secondary" 
-                  type="button"
-                  (click)="resetFilters()"
-                  *ngIf="searchQuery || selectedSpecialization !== 'all' || selectedHospital !== 'all' || selectedExperience !== 'all' || selectedRating > 0"
-                >
-                  <i class="bi bi-x-circle me-1"></i>Reset
-                </button>
               </div>
             </div>
-            <div class="col-lg-4 mt-3 mt-lg-0">
-              <div class="d-flex gap-2">
-                <select class="form-select form-select-lg" [(ngModel)]="sortBy" (change)="sortDoctors(sortBy)">
-                  <option value="rating">Sort by Rating</option>
-                  <option value="name">Sort by Name</option>
-                  <option value="experience">Sort by Experience</option>
-                  <option value="fee">Sort by Fee (Low to High)</option>
+
+            <!-- Specialization -->
+            <div class="col-lg col-md-6 col-6">
+              <label class="filter-label">Specialization</label>
+              <div class="input-group input-group-sm filter-input">
+                <span class="input-group-text"><i class="bi bi-clipboard2-pulse"></i></span>
+                <select
+                  class="form-select"
+                  [(ngModel)]="selectedSpecialization"
+                  (ngModelChange)="filterBySpecialization($event)"
+                >
+                  <option value="">All</option>
+                  <option *ngFor="let spec of specializations" [value]="spec.id">{{ spec.name }}</option>
                 </select>
-                <button 
-                  class="btn btn-outline-primary"
-                  (click)="toggleViewMode()"
-                  title="Toggle View"
+              </div>
+            </div>
+
+            <!-- Hospital -->
+            <div class="col-lg col-md-6 col-6">
+              <label class="filter-label">Hospital</label>
+              <div class="input-group input-group-sm filter-input">
+                <span class="input-group-text"><i class="bi bi-hospital"></i></span>
+                <select
+                  class="form-select"
+                  [(ngModel)]="selectedHospital"
+                  (ngModelChange)="filterByHospital($event)"
                 >
-                  <i class="bi" [ngClass]="viewMode === 'grid' ? 'bi-list' : 'bi-grid'"></i>
+                  <option value="">All</option>
+                  <option *ngFor="let hospital of hospitalList" [value]="hospital.id">{{ hospital.name }}</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Experience -->
+            <div class="col-lg col-md-6 col-6">
+              <label class="filter-label">Experience</label>
+              <div class="input-group input-group-sm filter-input">
+                <span class="input-group-text"><i class="bi bi-mortarboard"></i></span>
+                <select
+                  class="form-select"
+                  [(ngModel)]="selectedExperience"
+                  (change)="filterByExperience(selectedExperience)"
+                >
+                  <option *ngFor="let exp of experienceRanges" [value]="exp.value">{{ exp.label }}</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Rating -->
+            <div class="col-lg col-md-6 col-6">
+              <label class="filter-label">Rating</label>
+              <div class="input-group input-group-sm filter-input">
+                <span class="input-group-text"><i class="bi bi-star-fill text-warning"></i></span>
+                <select
+                  class="form-select"
+                  [(ngModel)]="selectedRating"
+                  (ngModelChange)="filterByRating(+$event)"
+                >
+                  <option [ngValue]="0">Any</option>
+                  <option [ngValue]="3">3+</option>
+                  <option [ngValue]="4">4+</option>
+                  <option [ngValue]="4.5">4.5+</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Sort -->
+            <div class="col-lg col-md-6 col-8">
+              <label class="filter-label">Sort by</label>
+              <div class="input-group input-group-sm filter-input">
+                <span class="input-group-text"><i class="bi bi-arrow-down-up"></i></span>
+                <select class="form-select"
+                        [(ngModel)]="sortBy" (change)="sortDoctors(sortBy)">
+                  <option value="rating">Rating</option>
+                  <option value="name">Name</option>
+                  <option value="experience">Experience</option>
+                  <option value="fee">Fee: Low to High</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- View toggle -->
+            <div class="col-lg-auto col-md-6 col-4 text-end">
+              <label class="filter-label d-block">View</label>
+              <div class="btn-group btn-group-sm view-toggle" role="group" aria-label="View mode">
+                <button type="button" class="btn"
+                        [class.btn-primary]="viewMode === 'grid'"
+                        [class.btn-outline-secondary]="viewMode !== 'grid'"
+                        (click)="viewMode !== 'grid' && toggleViewMode()"
+                        title="Grid view">
+                  <i class="bi bi-grid"></i>
+                </button>
+                <button type="button" class="btn"
+                        [class.btn-primary]="viewMode === 'list'"
+                        [class.btn-outline-secondary]="viewMode !== 'list'"
+                        (click)="viewMode !== 'list' && toggleViewMode()"
+                        title="List view">
+                  <i class="bi bi-list"></i>
                 </button>
               </div>
             </div>
+
           </div>
 
-          <!-- Filters -->
-          <div class="row g-3">
-            <!-- Specialization Filter -->
-            <div class="col-md-6">
-              <label class="form-label small text-muted fw-bold">Filter by Specialization:</label>
-              <select 
-                class="form-select" 
-                [(ngModel)]="selectedSpecialization" 
-                (ngModelChange)="filterBySpecialization($event)"
-              >
-                <option value="">Select Specialization</option>
-                <option *ngFor="let spec of specializations" [value]="spec.id">
-                  {{ spec.name }}
-                </option>
-              </select>
-            </div>
+          <!-- Active filter chips -->
+          <div class="active-chips" *ngIf="hasActiveFilters">
+            <span class="active-chips-label">Active filters:</span>
 
-            <!-- Hospital Filter -->
-            <div class="col-md-6">
-              <label class="form-label small text-muted fw-bold">Filter by Hospital:</label>
-              <select 
-                class="form-select" 
-                [(ngModel)]="selectedHospital" 
-                (ngModelChange)="filterByHospital($event)"
-              >
-                <option value="">Select Hospital</option>
-                <option *ngFor="let hospital of hospitalList" [value]="hospital.id">
-                  {{ hospital.name }}
-                </option>
-              </select>
-            </div>
+            <span class="active-chip" *ngIf="searchQuery">
+              <i class="bi bi-search"></i>{{ searchQuery }}
+              <button type="button" class="chip-remove" (click)="clearSearch()" aria-label="Clear search">
+                <i class="bi bi-x"></i>
+              </button>
+            </span>
 
-            <!-- Experience Filter -->
-            <div class="col-md-6">
-              <label class="form-label small text-muted fw-bold">Filter by Experience:</label>
-              <select 
-                class="form-select" 
-                [(ngModel)]="selectedExperience" 
-                (change)="filterByExperience(selectedExperience)"
-              >
-                <option *ngFor="let exp of experienceRanges" [value]="exp.value">
-                  {{ exp.label }}
-                </option>
-              </select>
-            </div>
+            <span class="active-chip" *ngIf="selectedSpecialization !== '' && selectedSpecialization != null">
+              <i class="bi bi-clipboard2-pulse"></i>{{ specializationLabel(selectedSpecialization) }}
+              <button type="button" class="chip-remove" (click)="clearSpecialization()" aria-label="Clear specialization">
+                <i class="bi bi-x"></i>
+              </button>
+            </span>
 
-            <!-- Rating Filter -->
-            <div class="col-md-6">
-              <label class="form-label small text-muted fw-bold">Minimum Rating:</label>
-              <div class="d-flex gap-2 flex-wrap">
-                <button
-                  class="btn btn-sm"
-                  [class.btn-warning]="selectedRating === 0"
-                  [class.btn-outline-warning]="selectedRating !== 0"
-                  (click)="filterByRating(0)"
-                >
-                  All
-                </button>
-                <button
-                  *ngFor="let rating of [3, 4, 4.5]"
-                  class="btn btn-sm"
-                  [class.btn-warning]="selectedRating === rating"
-                  [class.btn-outline-warning]="selectedRating !== rating"
-                  (click)="filterByRating(rating)"
-                >
-                  {{ rating }}+ <i class="bi bi-star-fill"></i>
-                </button>
-              </div>
-            </div>
+            <span class="active-chip" *ngIf="selectedHospital !== '' && selectedHospital != null">
+              <i class="bi bi-hospital"></i>{{ hospitalLabel(selectedHospital) }}
+              <button type="button" class="chip-remove" (click)="clearHospital()" aria-label="Clear hospital">
+                <i class="bi bi-x"></i>
+              </button>
+            </span>
+
+            <span class="active-chip" *ngIf="selectedExperience !== 'all'">
+              <i class="bi bi-mortarboard"></i>{{ experienceLabel(selectedExperience) }}
+              <button type="button" class="chip-remove" (click)="clearExperience()" aria-label="Clear experience">
+                <i class="bi bi-x"></i>
+              </button>
+            </span>
+
+            <span class="active-chip" *ngIf="selectedRating > 0">
+              <i class="bi bi-star-fill text-warning"></i>{{ selectedRating }}+
+              <button type="button" class="chip-remove" (click)="clearRating()" aria-label="Clear rating">
+                <i class="bi bi-x"></i>
+              </button>
+            </span>
           </div>
 
         </div>

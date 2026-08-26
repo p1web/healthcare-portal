@@ -299,6 +299,38 @@ export class DoctorsComponent implements OnInit {
     this.applyFiltersAndSort();
   }
 
+  get hasActiveFilters(): boolean {
+    return !!this.searchQuery
+      || (this.selectedSpecialization !== '' && this.selectedSpecialization != null)
+      || (this.selectedHospital !== '' && this.selectedHospital != null)
+      || this.selectedExperience !== 'all'
+      || this.selectedRating > 0;
+  }
+
+  specializationLabel(id: any): string {
+    if (id === '' || id == null) return '';
+    const spec = this.specializations.find(s => Number(s.id) === Number(id));
+    return spec?.name || '';
+  }
+
+  hospitalLabel(id: any): string {
+    if (id === '' || id == null) return '';
+    const hospital = this.hospitalList.find(h => Number(h.id) === Number(id));
+    return hospital?.name || '';
+  }
+
+  experienceLabel(value: string): string {
+    if (value === 'all') return '';
+    const range = this.experienceRanges.find(r => r.value === value);
+    return range?.label || '';
+  }
+
+  clearSpecialization() { this.filterBySpecialization(''); }
+  clearHospital()       { this.filterByHospital(''); }
+  clearExperience()     { this.filterByExperience('all'); }
+  clearRating()         { this.filterByRating(0); }
+  clearSearch()         { this.searchQuery = ''; this.searchDoctors(); }
+
   viewDoctorProfile(doctorId: number) {
     this.router.navigate(['/doctor', doctorId]);
   }

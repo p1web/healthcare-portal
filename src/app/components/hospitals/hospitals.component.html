@@ -22,92 +22,134 @@
   <!-- Search and Filter Section -->
   <div class="row mb-4">
     <div class="col-12">
-      <div class="card shadow-sm border-0">
-        <div class="card-body p-4">
-          
-          <!-- Search Bar -->
-          <div class="row mb-3">
-            <div class="col-lg-8">
-              <div class="input-group input-group-lg">
-                <span class="input-group-text bg-white">
-                  <i class="bi bi-search"></i>
-                </span>
+      <div class="filter-card">
+
+        <div class="filter-header">
+          <span class="filter-title">
+            <i class="bi bi-sliders me-2"></i>Refine your search
+          </span>
+          <button *ngIf="hasActiveFilters" type="button"
+                  class="btn btn-sm filter-clear-btn"
+                  (click)="resetFilters()">
+            <i class="bi bi-x-circle me-1"></i>Clear all
+          </button>
+        </div>
+
+        <div class="filter-body">
+          <div class="row g-3 align-items-end">
+
+            <!-- Search -->
+            <div class="col-lg-4 col-md-12">
+              <label class="filter-label">Search</label>
+              <div class="input-group input-group-sm filter-input">
+                <span class="input-group-text"><i class="bi bi-search"></i></span>
                 <input
                   type="text"
                   class="form-control"
-                  placeholder="Search by hospital name, location, or specialty..."
+                  placeholder="Hospital, location or specialty"
                   [(ngModel)]="searchQuery"
                   (input)="searchHospitals()"
                 />
-                <button 
-                  class="btn btn-outline-secondary" 
-                  type="button"
-                  (click)="resetFilters()"
-                  *ngIf="searchQuery || selectedSpecialty !== 'all' || selectedRating > 0"
-                >
-                  <i class="bi bi-x-circle me-1"></i>Reset
-                </button>
               </div>
             </div>
-            <div class="col-lg-4 mt-3 mt-lg-0">
-              <div class="d-flex gap-2">
-                <select class="form-select form-select-lg" [(ngModel)]="sortBy" (change)="sortHospitals(sortBy)">
-                  <option value="rating">Sort by Rating</option>
-                  <option value="name">Sort by Name</option>
-                  <option value="discount">Sort by Discount</option>
+
+            <!-- Specialty -->
+            <div class="col-lg col-md-6 col-12">
+              <label class="filter-label">Specialty</label>
+              <div class="input-group input-group-sm filter-input">
+                <span class="input-group-text"><i class="bi bi-heart-pulse"></i></span>
+                <select
+                  class="form-select"
+                  [(ngModel)]="selectedSpecialty"
+                  (ngModelChange)="filterBySpecialty($event)"
+                >
+                  <option *ngFor="let specialty of specialties"
+                          [value]="specialty === 'All Specialties' ? 'all' : specialty">
+                    {{ specialty }}
+                  </option>
                 </select>
-                <button 
-                  class="btn btn-outline-primary"
-                  (click)="toggleViewMode()"
-                  title="Toggle View"
+              </div>
+            </div>
+
+            <!-- Rating -->
+            <div class="col-lg col-md-6 col-6">
+              <label class="filter-label">Rating</label>
+              <div class="input-group input-group-sm filter-input">
+                <span class="input-group-text"><i class="bi bi-star-fill text-warning"></i></span>
+                <select
+                  class="form-select"
+                  [(ngModel)]="selectedRating"
+                  (ngModelChange)="filterByRating(+$event)"
                 >
-                  <i class="bi" [ngClass]="viewMode === 'grid' ? 'bi-list' : 'bi-grid'"></i>
+                  <option [ngValue]="0">Any</option>
+                  <option [ngValue]="3">3+</option>
+                  <option [ngValue]="4">4+</option>
+                  <option [ngValue]="4.5">4.5+</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Sort -->
+            <div class="col-lg col-md-6 col-6">
+              <label class="filter-label">Sort by</label>
+              <div class="input-group input-group-sm filter-input">
+                <span class="input-group-text"><i class="bi bi-arrow-down-up"></i></span>
+                <select class="form-select"
+                        [(ngModel)]="sortBy" (change)="sortHospitals(sortBy)">
+                  <option value="rating">Rating</option>
+                  <option value="name">Name</option>
+                  <option value="discount">Discount</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- View toggle -->
+            <div class="col-lg-auto col-md-6 col-12 text-end">
+              <label class="filter-label d-block">View</label>
+              <div class="btn-group btn-group-sm view-toggle" role="group" aria-label="View mode">
+                <button type="button" class="btn"
+                        [class.btn-primary]="viewMode === 'grid'"
+                        [class.btn-outline-secondary]="viewMode !== 'grid'"
+                        (click)="viewMode !== 'grid' && toggleViewMode()"
+                        title="Grid view">
+                  <i class="bi bi-grid"></i>
+                </button>
+                <button type="button" class="btn"
+                        [class.btn-primary]="viewMode === 'list'"
+                        [class.btn-outline-secondary]="viewMode !== 'list'"
+                        (click)="viewMode !== 'list' && toggleViewMode()"
+                        title="List view">
+                  <i class="bi bi-list"></i>
                 </button>
               </div>
             </div>
+
           </div>
 
-          <!-- Filters -->
-          <div class="row g-3">
-            <!-- Specialty Filter -->
-            <div class="col-md-8">
-              <label class="form-label small text-muted fw-bold">Filter by Specialty:</label>
-              <div class="d-flex flex-wrap gap-2">
-                <button
-                  *ngFor="let specialty of specialties"
-                  class="btn btn-sm"
-                  [class.btn-primary]="selectedSpecialty === specialty || (specialty === 'All Specialties' && selectedSpecialty === 'all')"
-                  [class.btn-outline-primary]="selectedSpecialty !== specialty && !(specialty === 'All Specialties' && selectedSpecialty === 'all')"
-                  (click)="filterBySpecialty(specialty === 'All Specialties' ? 'all' : specialty)"
-                >
-                  {{ specialty }}
-                </button>
-              </div>
-            </div>
+          <!-- Active filter chips -->
+          <div class="active-chips" *ngIf="hasActiveFilters">
+            <span class="active-chips-label">Active filters:</span>
 
-            <!-- Rating Filter -->
-            <div class="col-md-4">
-              <label class="form-label small text-muted fw-bold">Minimum Rating:</label>
-              <div class="d-flex gap-2 flex-wrap">
-                <button
-                  class="btn btn-sm"
-                  [class.btn-warning]="selectedRating === 0"
-                  [class.btn-outline-warning]="selectedRating !== 0"
-                  (click)="filterByRating(0)"
-                >
-                  All
-                </button>
-                <button
-                  *ngFor="let rating of [3, 4, 4.5]"
-                  class="btn btn-sm"
-                  [class.btn-warning]="selectedRating === rating"
-                  [class.btn-outline-warning]="selectedRating !== rating"
-                  (click)="filterByRating(rating)"
-                >
-                  {{ rating }}+ <i class="bi bi-star-fill"></i>
-                </button>
-              </div>
-            </div>
+            <span class="active-chip" *ngIf="searchQuery">
+              <i class="bi bi-search"></i>{{ searchQuery }}
+              <button type="button" class="chip-remove" (click)="clearSearch()" aria-label="Clear search">
+                <i class="bi bi-x"></i>
+              </button>
+            </span>
+
+            <span class="active-chip" *ngIf="selectedSpecialty !== 'all' && selectedSpecialty !== 'All Specialties'">
+              <i class="bi bi-heart-pulse"></i>{{ selectedSpecialty }}
+              <button type="button" class="chip-remove" (click)="clearSpecialty()" aria-label="Clear specialty">
+                <i class="bi bi-x"></i>
+              </button>
+            </span>
+
+            <span class="active-chip" *ngIf="selectedRating > 0">
+              <i class="bi bi-star-fill text-warning"></i>{{ selectedRating }}+
+              <button type="button" class="chip-remove" (click)="clearRating()" aria-label="Clear rating">
+                <i class="bi bi-x"></i>
+              </button>
+            </span>
           </div>
 
         </div>
@@ -132,7 +174,7 @@
           <div class="hospital-image-placeholder bg-gradient-primary">
             <i class="bi bi-hospital fs-1 text-white"></i>
           </div>
-          <span class="position-absolute top-0 end-0 m-3 badge bg-success">
+          <span *ngIf="hospital.discount" class="position-absolute top-0 end-0 m-3 badge bg-success">
             {{ hospital.discount }} OFF
           </span>
           <span *ngIf="hospital.emergencyAvailable" class="position-absolute bottom-0 start-0 m-3 badge bg-danger">
@@ -255,7 +297,7 @@
                 <span *ngIf="hospital.emergencyAvailable" class="text-danger">
                   <i class="bi bi-lightning-fill me-1"></i>24/7 Emergency
                 </span>
-                <span class="text-success">
+                <span *ngIf="hospital.discount" class="text-success">
                   <i class="bi bi-tag-fill me-1"></i>{{ hospital.discount }} OFF
                 </span>
               </div>
@@ -347,7 +389,7 @@
                 <span class="fw-bold">{{ selectedHospital.rating }}</span>
                 <span class="text-muted">/5.0</span>
               </div>
-              <span class="badge bg-success fs-6">{{ selectedHospital.discount }} OFF</span>
+              <span *ngIf="selectedHospital.discount" class="badge bg-success fs-6">{{ selectedHospital.discount }} OFF</span>
               <span *ngIf="selectedHospital.emergencyAvailable" class="badge bg-danger fs-6">
                 <i class="bi bi-lightning-fill me-1"></i>24/7 Emergency
               </span>
@@ -457,7 +499,7 @@
                 </div>
               </div>
             </div>
-            <div class="col-md-3 col-6">
+            <div class="col-md-3 col-6" *ngIf="selectedHospital.discount">
               <div class="card bg-danger bg-opacity-10 border-0 text-center">
                 <div class="card-body">
                   <i class="bi bi-tag-fill fs-2 text-danger mb-2"></i>

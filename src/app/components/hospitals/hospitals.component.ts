@@ -129,8 +129,8 @@ export class HospitalsComponent implements OnInit {
         break;
       case 'discount':
         filtered.sort((a, b) => {
-          const aDiscount = parseInt(a.discount);
-          const bDiscount = parseInt(b.discount);
+          const aDiscount = a.discount ? parseInt(a.discount) || 0 : 0;
+          const bDiscount = b.discount ? parseInt(b.discount) || 0 : 0;
           return bDiscount - aDiscount;
         });
         break;
@@ -182,6 +182,16 @@ export class HospitalsComponent implements OnInit {
     this.currentPage = 1;
     this.applyFiltersAndSort();
   }
+
+  get hasActiveFilters(): boolean {
+    return !!this.searchQuery
+      || (this.selectedSpecialty !== 'all' && this.selectedSpecialty !== 'All Specialties')
+      || this.selectedRating > 0;
+  }
+
+  clearSpecialty() { this.filterBySpecialty('all'); }
+  clearRating()    { this.filterByRating(0); }
+  clearSearch()    { this.searchQuery = ''; this.searchHospitals(); }
 
   getStarArray(rating: number): number[] {
     return Array(5).fill(0).map((_, i) => i + 1);

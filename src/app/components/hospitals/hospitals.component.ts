@@ -167,7 +167,7 @@ export class HospitalsComponent implements OnInit {
   }
 
   viewHospitalDetails(hospital: Hospital) {
-    this.selectedHospital = hospital;
+    this.router.navigate(['/hospital', hospital.id]);
   }
 
   closeHospitalDetails() {

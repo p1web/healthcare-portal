@@ -1,0 +1,249 @@
+<!-- Breadcrumb -->
+<nav class="hospital-breadcrumb" aria-label="breadcrumb">
+  <div class="container">
+    <ol class="breadcrumb mb-0">
+      <li class="breadcrumb-item"><a routerLink="/">Home</a></li>
+      <li class="breadcrumb-item"><a routerLink="/hospitals">Hospitals</a></li>
+      <li class="breadcrumb-item active" aria-current="page">
+        {{ hospital?.name || 'Details' }}
+      </li>
+    </ol>
+  </div>
+</nav>
+
+<!-- Loading -->
+<div class="container my-5" *ngIf="isLoading">
+  <div class="detail-state">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <span>Loading hospital details...</span>
+  </div>
+</div>
+
+<!-- Error -->
+<div class="container my-5" *ngIf="!isLoading && loadError">
+  <div class="detail-state detail-state-error">
+    <i class="bi bi-exclamation-triangle"></i>
+    <h5 class="mb-1">{{ loadError }}</h5>
+    <p class="text-muted mb-3">The hospital you are looking for may have been removed or is not published yet.</p>
+    <div class="d-flex gap-2">
+      <button class="btn btn-outline-secondary" (click)="goBack()">
+        <i class="bi bi-arrow-left me-1"></i>Go back
+      </button>
+      <a routerLink="/hospitals" class="btn btn-primary">
+        <i class="bi bi-hospital me-1"></i>Browse hospitals
+      </a>
+    </div>
+  </div>
+</div>
+
+<ng-container *ngIf="!isLoading && !loadError && hospital as h">
+
+  <!-- Hero -->
+  <section class="hospital-hero">
+    <div class="container position-relative">
+
+      <button type="button" class="hero-back-btn" (click)="goBack()">
+        <i class="bi bi-arrow-left"></i>
+        <span>Back to hospitals</span>
+      </button>
+
+      <div class="row align-items-center g-4 mt-2">
+        <div class="col-lg-8">
+          <div class="hero-identity">
+            <div class="hero-logo" aria-hidden="true">
+              <i class="bi bi-hospital"></i>
+            </div>
+            <div class="hero-identity-text">
+              <span class="hero-eyebrow" *ngIf="h.emergencyAvailable">
+                <i class="bi bi-lightning-fill"></i>24/7 Emergency
+              </span>
+              <h1 class="hero-title">{{ h.name }}</h1>
+              <p class="hero-location" *ngIf="h.location">
+                <i class="bi bi-geo-alt-fill"></i>{{ h.location }}
+              </p>
+            </div>
+          </div>
+
+          <div class="hero-badges">
+            <span class="hero-rating">
+              <i class="bi bi-star-fill"></i>
+              <strong>{{ h.rating }}</strong>
+              <span class="rating-scale">/ 5.0</span>
+            </span>
+            <span class="hero-badge hero-badge-discount" *ngIf="h.discount">
+              <i class="bi bi-tag-fill"></i>{{ h.discount }} OFF
+            </span>
+            <span class="hero-badge hero-badge-neutral" *ngIf="h.ambulanceAvailable">
+              <i class="bi bi-truck"></i>Ambulance
+            </span>
+            <span class="hero-badge hero-badge-neutral" *ngIf="h.beds">
+              <i class="bi bi-hospital"></i>{{ h.beds }} beds
+            </span>
+          </div>
+        </div>
+
+        <div class="col-lg-4">
+          <div class="hero-cta">
+            <button type="button" class="btn hero-cta-primary w-100" (click)="bookAppointment()">
+              <i class="bi bi-calendar-plus me-2"></i>Book Appointment
+            </button>
+            <a *ngIf="h.phone" [href]="'tel:' + h.phone"
+               class="btn hero-cta-secondary w-100 mt-2">
+              <i class="bi bi-telephone me-2"></i>
+              <span class="hero-cta-label">Call now</span>
+              <span class="hero-cta-value">{{ h.phone }}</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="container my-5">
+    <div class="row g-4">
+
+      <!-- Main column -->
+      <div class="col-lg-8">
+
+        <!-- About -->
+        <section class="detail-card" *ngIf="h.description">
+          <h2 class="detail-card-title">
+            <i class="bi bi-info-circle text-primary"></i>About the hospital
+          </h2>
+          <p class="text-muted mb-0">{{ h.description }}</p>
+        </section>
+
+        <!-- Specialties -->
+        <section class="detail-card" *ngIf="h.specialties && h.specialties.length">
+          <h2 class="detail-card-title">
+            <i class="bi bi-heart-pulse text-danger"></i>Specialties
+          </h2>
+          <div class="chip-list">
+            <span *ngFor="let specialty of h.specialties" class="chip chip-primary">
+              {{ specialty }}
+            </span>
+          </div>
+        </section>
+
+        <!-- Facilities -->
+        <section class="detail-card" *ngIf="h.facilities && h.facilities.length">
+          <h2 class="detail-card-title">
+            <i class="bi bi-building text-info"></i>Facilities &amp; Services
+          </h2>
+          <div class="row g-2">
+            <div *ngFor="let facility of h.facilities" class="col-md-6">
+              <div class="facility-item">
+                <i class="bi bi-check-circle-fill"></i>
+                <span>{{ facility }}</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Accreditations -->
+        <section class="detail-card" *ngIf="h.accreditations && h.accreditations.length">
+          <h2 class="detail-card-title">
+            <i class="bi bi-award text-warning"></i>Accreditations &amp; Certifications
+          </h2>
+          <div class="chip-list">
+            <span *ngFor="let accreditation of h.accreditations" class="chip chip-warning">
+              <i class="bi bi-patch-check-fill me-1"></i>{{ accreditation }}
+            </span>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- Sidebar column -->
+      <div class="col-lg-4">
+        <div class="detail-sidebar">
+
+          <!-- Contact card -->
+          <section class="detail-card sidebar-card">
+            <h2 class="detail-card-title">
+              <i class="bi bi-envelope-paper text-primary"></i>Contact information
+            </h2>
+            <ul class="contact-list">
+              <li *ngIf="h.address">
+                <span class="contact-icon"><i class="bi bi-geo-alt-fill"></i></span>
+                <div>
+                  <span class="contact-label">Address</span>
+                  <span>{{ h.address }}</span>
+                </div>
+              </li>
+              <li *ngIf="h.phone">
+                <span class="contact-icon"><i class="bi bi-telephone-fill"></i></span>
+                <div>
+                  <span class="contact-label">Phone</span>
+                  <a [href]="'tel:' + h.phone">{{ h.phone }}</a>
+                </div>
+              </li>
+              <li *ngIf="h.emergencyContactNumber">
+                <span class="contact-icon contact-icon-danger"><i class="bi bi-hospital-fill"></i></span>
+                <div>
+                  <span class="contact-label">Emergency</span>
+                  <a [href]="'tel:' + h.emergencyContactNumber">{{ h.emergencyContactNumber }}</a>
+                </div>
+              </li>
+              <li *ngIf="h.email">
+                <span class="contact-icon"><i class="bi bi-envelope-fill"></i></span>
+                <div>
+                  <span class="contact-label">Email</span>
+                  <a [href]="'mailto:' + h.email">{{ h.email }}</a>
+                </div>
+              </li>
+              <li *ngIf="h.website">
+                <span class="contact-icon"><i class="bi bi-globe2"></i></span>
+                <div>
+                  <span class="contact-label">Website</span>
+                  <a [href]="h.website" target="_blank" rel="noopener noreferrer">Visit website</a>
+                </div>
+              </li>
+              <li *ngIf="h.operatingHours">
+                <span class="contact-icon"><i class="bi bi-clock-fill"></i></span>
+                <div>
+                  <span class="contact-label">Operating hours</span>
+                  <span>{{ h.operatingHours }}</span>
+                </div>
+              </li>
+            </ul>
+          </section>
+
+          <!-- Info stats card -->
+          <section class="detail-card sidebar-card">
+            <h2 class="detail-card-title">
+              <i class="bi bi-graph-up text-success"></i>Hospital snapshot
+            </h2>
+            <div class="stats-grid">
+              <div class="stat-tile stat-primary" *ngIf="h.beds">
+                <i class="bi bi-hospital"></i>
+                <span class="stat-value">{{ h.beds }}</span>
+                <span class="stat-label">Total beds</span>
+              </div>
+              <div class="stat-tile stat-success" *ngIf="h.established">
+                <i class="bi bi-calendar-check"></i>
+                <span class="stat-value">{{ h.established }}</span>
+                <span class="stat-label">Established</span>
+              </div>
+              <div class="stat-tile stat-warning">
+                <i class="bi bi-star-fill"></i>
+                <span class="stat-value">{{ h.rating }}</span>
+                <span class="stat-label">Rating</span>
+              </div>
+              <div class="stat-tile stat-danger" *ngIf="h.discount">
+                <i class="bi bi-tag-fill"></i>
+                <span class="stat-value">{{ h.discount }}</span>
+                <span class="stat-label">Discount</span>
+              </div>
+            </div>
+          </section>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</ng-container>

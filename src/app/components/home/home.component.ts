@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -28,6 +28,19 @@ export class HomeComponent implements OnInit {
   isLoadingHospitals = false;
   isLoadingSpecialization = false;
   specialtyColors = ['primary', 'success', 'warning', 'info', 'danger', 'secondary'];
+
+  showScrollTop = false;
+
+  @HostListener('window:scroll')
+  onWindowScroll(): void {
+    if (typeof window === 'undefined') return;
+    this.showScrollTop = window.scrollY > 320;
+  }
+
+  scrollToTop(): void {
+    if (typeof window === 'undefined') return;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 
   constructor(
     private hospitalService: HospitalService,

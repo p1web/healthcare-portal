@@ -71,9 +71,26 @@
 
               <div class="d-flex align-items-start mb-3">
                 <i class="bi bi-hospital text-primary fs-4 me-3"></i>
-                <div>
+                <div class="w-100">
                   <h6 class="fw-bold mb-1">Hospital</h6>
-                  <p class="text-muted mb-0">{{ doctor.hospital }}</p>
+                  <ng-container *ngIf="practices.length > 1; else singleHospital">
+                    <label class="form-label small mb-1">Consulting at</label>
+                    <select
+                      class="form-select form-select-sm"
+                      [value]="selectedPractice?.id"
+                      (change)="onPracticeChange($any($event.target).value)"
+                    >
+                      <option *ngFor="let p of practices" [value]="p.id">
+                        {{ p.hospital?.hospitalName }}<ng-container *ngIf="p.hospital?.hospitalCity"> — {{ p.hospital?.hospitalCity }}</ng-container>
+                        · ₹{{ p.consultationFee }}
+                      </option>
+                    </select>
+                  </ng-container>
+                  <ng-template #singleHospital>
+                    <p class="text-muted mb-0">
+                      {{ selectedPractice?.hospital?.hospitalName || doctor.hospital }}
+                    </p>
+                  </ng-template>
                 </div>
               </div>
 
@@ -93,7 +110,10 @@
                 <i class="bi bi-currency-rupee text-primary fs-4 me-3"></i>
                 <div>
                   <h6 class="fw-bold mb-1">Consultation Fee</h6>
-                  <p class="text-muted mb-0">{{ doctor.fee }}</p>
+                  <p class="text-muted mb-0">
+                    <ng-container *ngIf="selectedPractice; else legacyFee">₹{{ selectedPractice.consultationFee }}</ng-container>
+                    <ng-template #legacyFee>{{ doctor.fee }}</ng-template>
+                  </p>
                 </div>
               </div>
             </div>
@@ -225,11 +245,11 @@
             </div>
 
             <!-- Pricing Breakdown -->
-            <div class="col-12" *ngIf="parsedFee > 0">
+            <div class="col-12" *ngIf="activeConsultationFee > 0">
               <div class="pricing-summary">
                 <div class="d-flex justify-content-between">
                   <span class="text-muted">Consultation Fee</span>
-                  <span>₹{{ parsedFee }}</span>
+                  <span>₹{{ activeConsultationFee }}</span>
                 </div>
                 <div class="d-flex justify-content-between text-success" *ngIf="appliedCoupon">
                   <span>Discount ({{ appliedCoupon.code }})</span>
@@ -238,7 +258,7 @@
                 <hr class="my-2" *ngIf="appliedCoupon">
                 <div class="d-flex justify-content-between fw-bold fs-6">
                   <span>Total Payable</span>
-                  <span>₹{{ appliedCoupon ? appliedCoupon.finalAmount : parsedFee }}</span>
+                  <span>₹{{ appliedCoupon ? appliedCoupon.finalAmount : activeConsultationFee }}</span>
                 </div>
               </div>
             </div>

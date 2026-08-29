@@ -5,24 +5,102 @@
     </div>
     <div>
       <h1 class="dashboard-hero-title">Hospital Dashboard</h1>
-      <p class="dashboard-hero-subtitle">A workspace for your hospital is on the way.</p>
+      <p class="dashboard-hero-subtitle">Manage doctor affiliations and keep your hospital profile up to date.</p>
     </div>
   </div>
 
-  <div class="dashboard-empty">
-    <i class="bi bi-tools"></i>
-    <h2>Coming soon</h2>
-    <p>
-      Analytics, bed occupancy, department metrics and doctor rosters will appear here.
-      In the meantime, keep your public listing up to date.
-    </p>
-    <div class="dashboard-empty-actions">
-      <a routerLink="/profile/hospital" class="btn btn-primary">
-        <i class="bi bi-building-gear me-1"></i> Manage hospital profile
-      </a>
-      <a routerLink="/change-password" class="btn btn-outline-secondary">
-        <i class="bi bi-shield-lock me-1"></i> Change password
+  <div class="row g-3 dashboard-tiles">
+    <div class="col-md-4">
+      <a routerLink="/hospital-practices" class="tile tile-warning" [class.tile-muted]="!pendingCount">
+        <div class="tile-icon"><i class="bi bi-hourglass-split"></i></div>
+        <div class="tile-body">
+          <div class="tile-value">{{ pendingCount }}</div>
+          <div class="tile-label">Pending affiliations</div>
+        </div>
+        <div class="tile-cta">Review <i class="bi bi-arrow-right"></i></div>
       </a>
     </div>
+    <div class="col-md-4">
+      <a routerLink="/hospital-practices" class="tile tile-success">
+        <div class="tile-icon"><i class="bi bi-people-fill"></i></div>
+        <div class="tile-body">
+          <div class="tile-value">{{ activeCount }}</div>
+          <div class="tile-label">Active doctors</div>
+        </div>
+        <div class="tile-cta">View roster <i class="bi bi-arrow-right"></i></div>
+      </a>
+    </div>
+    <div class="col-md-4">
+      <a routerLink="/profile/hospital" class="tile tile-primary">
+        <div class="tile-icon"><i class="bi bi-building-gear"></i></div>
+        <div class="tile-body">
+          <div class="tile-value">Profile</div>
+          <div class="tile-label">Public hospital listing</div>
+        </div>
+        <div class="tile-cta">Edit <i class="bi bi-arrow-right"></i></div>
+      </a>
+    </div>
+  </div>
+
+  <div class="row g-3 dashboard-tiles" *ngIf="summary">
+    <div class="col-md-4">
+      <div class="tile tile-info">
+        <div class="tile-icon"><i class="bi bi-calendar2-heart"></i></div>
+        <div class="tile-body">
+          <div class="tile-value">{{ summary.totals.totalAppointments }}</div>
+          <div class="tile-label">Total appointments</div>
+        </div>
+        <div class="tile-cta"><small class="text-muted">{{ summary.totals.upcomingAppointments }} upcoming</small></div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="tile tile-warning">
+        <div class="tile-icon"><i class="bi bi-cash-coin"></i></div>
+        <div class="tile-body">
+          <div class="tile-value">₹{{ summary.totals.grossRevenue }}</div>
+          <div class="tile-label">Gross revenue</div>
+        </div>
+        <div class="tile-cta"><small class="text-muted">Fees paid by patients</small></div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="tile tile-success">
+        <div class="tile-icon"><i class="bi bi-wallet2"></i></div>
+        <div class="tile-body">
+          <div class="tile-value">₹{{ summary.totals.hospitalPayout }}</div>
+          <div class="tile-label">Hospital payout</div>
+        </div>
+        <div class="tile-cta"><small class="text-muted">Doctors ₹{{ summary.totals.doctorPayout }} · Platform ₹{{ summary.totals.platformCommission }}</small></div>
+      </div>
+    </div>
+  </div>
+
+  <section class="doctor-earnings" *ngIf="topDoctors.length">
+    <h6 class="section-title mb-3"><i class="bi bi-graph-up-arrow me-2"></i>Top earning doctors</h6>
+    <table class="table table-sm doctors-table">
+      <thead>
+        <tr>
+          <th>Doctor</th>
+          <th class="text-end">Appointments</th>
+          <th class="text-end">Hospital payout</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let d of topDoctors">
+          <td>{{ d.doctorName }}</td>
+          <td class="text-end">{{ d.appointmentCount }}</td>
+          <td class="text-end"><strong>₹{{ d.hospitalPayout }}</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <div class="dashboard-empty" *ngIf="!pendingCount && !activeCount && !isLoading">
+    <i class="bi bi-info-circle"></i>
+    <h2>No doctors here yet</h2>
+    <p>
+      Once doctors request affiliation with your hospital, they'll appear under
+      <a routerLink="/hospital-practices">Doctor Affiliations</a> for you to approve.
+    </p>
   </div>
 </section>

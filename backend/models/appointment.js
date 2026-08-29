@@ -12,6 +12,18 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'patient_id',
         as: 'patient'
       });
+      if (models.DoctorPractice) {
+        Appointment.belongsTo(models.DoctorPractice, {
+          foreignKey: 'practice_id',
+          as: 'practice'
+        });
+      }
+      if (models.HospitalProfile) {
+        Appointment.belongsTo(models.HospitalProfile, {
+          foreignKey: 'hospital_profile_id',
+          as: 'hospitalProfile'
+        });
+      }
       if (models.Coupon) {
         Appointment.belongsTo(models.Coupon.unscoped(), {
           foreignKey: 'coupon_id',
@@ -98,6 +110,39 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: true,
       field: 'final_price'
+    },
+    practiceId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      field: 'practice_id'
+    },
+    hospitalProfileId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      field: 'hospital_profile_id'
+    },
+    platformRevenueAmount: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: false,
+      defaultValue: 0,
+      field: 'platform_revenue_amount'
+    },
+    hospitalPayoutAmount: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: false,
+      defaultValue: 0,
+      field: 'hospital_payout_amount'
+    },
+    doctorPayoutAmount: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: false,
+      defaultValue: 0,
+      field: 'doctor_payout_amount'
+    },
+    commissionModeSnapshot: {
+      type: DataTypes.ENUM('single', 'split'),
+      allowNull: true,
+      field: 'commission_mode_snapshot'
     }
   }, {
     sequelize,

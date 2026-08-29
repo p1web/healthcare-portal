@@ -75,3 +75,78 @@
   gap: 0.6rem;
   flex-wrap: wrap;
 }
+
+
+.dashboard-tiles {
+  margin-bottom: 1.5rem;
+}
+
+.tile {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  color: inherit;
+  text-decoration: none;
+  height: 100%;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  position: relative;
+}
+.tile:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  color: inherit;
+  text-decoration: none;
+}
+.tile-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  color: #fff;
+  flex-shrink: 0;
+}
+.tile-warning .tile-icon { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.tile-success .tile-icon { background: linear-gradient(135deg, #10b981, #059669); }
+.tile-primary .tile-icon { background: linear-gradient(135deg, #6366f1, #4f46e5); }
+.tile-muted .tile-icon   { background: linear-gradient(135deg, #94a3b8, #64748b); }
+
+.tile-body { flex: 1; }
+.tile-value { font-size: 1.5rem; font-weight: 700; color: #0f172a; }
+.tile-label { color: #64748b; font-size: 0.875rem; }
+.tile-cta {
+  font-size: 0.8rem;
+  color: #475569;
+  white-space: nowrap;
+}
+
+
+.tile-info .tile-icon    { background: linear-gradient(135deg, #38bdf8, #0284c7); }
+
+.doctor-earnings {
+  margin-top: 1.5rem;
+  padding: 1.25rem;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+.doctor-earnings .section-title {
+  font-size: 0.9rem;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.doctors-table th {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+  font-weight: 500;
+}
+.doctors-table td { vertical-align: middle; }

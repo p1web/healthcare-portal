@@ -32,6 +32,11 @@ export interface DoctorAppointment {
   reason?: string | null;
   status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'rejected';
   rejectionReason?: string | null;
+  hospital?: string | null;
+  originalPrice?: number | null;
+  finalPrice?: number | null;
+  doctorPayoutAmount?: number;
+  commissionMode?: 'single' | 'split' | null;
   createdAt: string;
 }
 

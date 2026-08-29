@@ -224,16 +224,28 @@
     <section class="profile-section wizard-panel" *ngIf="currentStep === 3" formGroupName="doctor">
       <div class="wizard-panel-head">
         <h6 class="section-title"><i class="bi bi-briefcase-fill"></i>Professional information</h6>
-        <p class="section-subtitle">Credentials, specialization and consultation fee — required for verification.</p>
+        <p class="section-subtitle">Credentials and specialization — required for verification. Manage hospitals and fees on the Practices page.</p>
       </div>
 
       <div class="row">
-        <div class="col-md-6 mb-3">
-          <label class="form-label" for="hospitalId">Hospital <span class="text-danger">*</span></label>
-          <select class="form-control" id="hospitalId" formControlName="hospitalId">
-            <option value="">Select hospital</option>
-            <option *ngFor="let h of hospitals" [value]="h.id">{{ h.name }}</option>
-          </select>
+        <div class="col-md-12 mb-3">
+          <div class="alert alert-info d-flex align-items-center justify-content-between mb-0" role="alert">
+            <div>
+              <i class="bi bi-hospital me-2"></i>
+              <ng-container *ngIf="primaryPractice; else noPrimaryPractice">
+                <strong>Primary practice:</strong>
+                {{ primaryPractice.hospital?.hospitalName }} · ₹{{ primaryPractice.consultationFee }}
+                <span class="text-muted small ms-2">({{ practices.length }} affiliation{{ practices.length === 1 ? '' : 's' }})</span>
+              </ng-container>
+              <ng-template #noPrimaryPractice>
+                <strong>No primary practice yet.</strong>
+                Add a hospital affiliation before submitting for review.
+              </ng-template>
+            </div>
+            <a class="btn btn-sm btn-outline-primary" routerLink="/doctor-practices">
+              <i class="bi bi-gear me-1"></i>Manage practices
+            </a>
+          </div>
         </div>
 
         <div class="col-md-6 mb-3">
@@ -261,13 +273,6 @@
         <div class="col-md-6 mb-3">
           <label class="form-label">Years of Experience</label>
           <input type="number" class="form-control" formControlName="yearsOfExperience" min="0" max="100" />
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="col-md-6 mb-3">
-          <label class="form-label">Consultation Fee (₹)</label>
-          <input type="number" class="form-control" formControlName="consultationFee" min="0" />
         </div>
       </div>
 

@@ -1,4 +1,4 @@
-const { DoctorProfile, User, Specialization, HospitalProfile, DoctorAvailability } = require('../models');
+const { DoctorProfile, User, Specialization, HospitalProfile, DoctorAvailability, DoctorPractice } = require('../models');
 const { PROFILE_REVIEW_STATUSES } = require('../utils/providerReview');
 
 // Helper function to format availability days
@@ -51,20 +51,24 @@ function formatAvailabilitySchedule(availabilities) {
 // Format doctor data for Angular component
 function formatDoctorForFrontend(profile) {
   const doctorJSON = profile.toJSON();
+  const primaryPractice = (doctorJSON.practices || []).find(p => p.isPrimary && p.isActive)
+    || (doctorJSON.practices || [])[0]
+    || null;
+  const hospital = primaryPractice?.hospital || null;
 
   return {
     id: doctorJSON.id,
     name: doctorJSON.user.name,
 
     specialization_id: doctorJSON.specializationId,
-    hospital_id: doctorJSON.hospitalId,
-  
+    hospital_id: hospital?.id ?? null,
+
     specialization: doctorJSON.specialization?.name || '',
-    hospital: doctorJSON.hospital?.hospitalName || '',
+    hospital: hospital?.hospitalName || '',
 
     experience: `${doctorJSON.yearsOfExperience || 0} years`,
     rating: 0,
-    fee: `${doctorJSON.consultationFee || 0}`,
+    fee: `${primaryPractice?.consultationFee ?? 0}`,
     available: formatAvailabilityDays(doctorJSON.availabilities || []),
     availabilitySchedule: formatAvailabilitySchedule(doctorJSON.availabilities),
     email: doctorJSON.user.email,
@@ -85,7 +89,18 @@ const publicDoctorIncludes = [
     attributes: ['id', 'name', 'email', 'phone', 'profileImage']
   },
   { model: Specialization, as: 'specialization', required: true },
-  { model: HospitalProfile, as: 'hospital', required: true },
+  {
+    model: DoctorPractice,
+    as: 'practices',
+    required: false,
+    where: { isActive: true, status: 'active' },
+    include: [{
+      model: HospitalProfile,
+      as: 'hospital',
+      attributes: ['id', 'hospitalName', 'hospitalCity', 'hospitalState',
+        'hospitalAddress', 'hospitalPhone', 'hospitalEmail']
+    }]
+  },
   { model: DoctorAvailability, as: 'availabilities', required: false }
 ];
 
@@ -137,13 +152,16 @@ exports.getById = async (req, res) => {
 
     // Format for frontend
     const formattedDoctor = formatDoctorForFrontend(doctor);
-    
-    // Add additional details for single doctor view
+
     const doctorJSON = doctor.toJSON();
-    formattedDoctor.hospitalLocation = [doctorJSON.hospital?.hospitalCity, doctorJSON.hospital?.hospitalState].filter(Boolean).join(', ');
-    formattedDoctor.hospitalAddress = doctorJSON.hospital?.hospitalAddress;
-    formattedDoctor.hospitalPhone = doctorJSON.hospital?.hospitalPhone;
-    formattedDoctor.hospitalEmail = doctorJSON.hospital?.hospitalEmail;
+    const primary = (doctorJSON.practices || []).find(p => p.isPrimary && p.isActive)
+      || (doctorJSON.practices || [])[0]
+      || null;
+    const hospital = primary?.hospital || null;
+    formattedDoctor.hospitalLocation = [hospital?.hospitalCity, hospital?.hospitalState].filter(Boolean).join(', ');
+    formattedDoctor.hospitalAddress = hospital?.hospitalAddress;
+    formattedDoctor.hospitalPhone = hospital?.hospitalPhone;
+    formattedDoctor.hospitalEmail = hospital?.hospitalEmail;
     formattedDoctor.specializationDescription = doctorJSON.specialization?.description;
     res.status(200).json({
       success: true,

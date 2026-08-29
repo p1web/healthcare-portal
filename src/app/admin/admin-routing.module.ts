@@ -14,6 +14,8 @@ import { CouponCategoriesComponent } from './pages/coupon-categories/coupon-cate
 import { CouponsComponent } from './pages/coupons/coupons.component';
 import { CouponFormComponent } from './pages/coupons/coupon-form/coupon-form.component';
 import { CouponAnalyticsComponent } from './pages/coupon-analytics/coupon-analytics.component';
+import { AdminPracticesComponent } from './pages/practices/practices.component';
+import { AdminCommissionSettingsComponent } from './pages/commission-settings/commission-settings.component';
 
 const routes: Routes = [
   {
@@ -38,6 +40,8 @@ const routes: Routes = [
       { path: 'coupons/new', component: CouponFormComponent },
       { path: 'coupons/:id/edit', component: CouponFormComponent },
       { path: 'coupon-analytics', component: CouponAnalyticsComponent },
+      { path: 'practices', component: AdminPracticesComponent },
+      { path: 'commission-settings', component: AdminCommissionSettingsComponent },
     ]
   }
 ];

@@ -1,0 +1,184 @@
+<div class="profile-page">
+  <div class="profile-header">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+      <div>
+        <h2 class="mb-1"><i class="bi bi-hospital me-2"></i>My Practices</h2>
+        <p class="mb-0 text-white-50">Hospitals where you consult. Each practice has its own fee, availability and revenue-share settings.</p>
+      </div>
+      <button type="button" class="btn btn-light" (click)="toggleAdd()" [disabled]="isSaving">
+        <i class="bi" [class.bi-plus-lg]="!showAdd" [class.bi-x-lg]="showAdd"></i>
+        {{ showAdd ? 'Cancel' : 'Add practice' }}
+      </button>
+    </div>
+  </div>
+
+  <div class="profile-section" *ngIf="error">
+    <div class="alert alert-danger mb-0"><i class="bi bi-exclamation-triangle me-2"></i>{{ error }}</div>
+  </div>
+  <div class="profile-section" *ngIf="success">
+    <div class="alert alert-success mb-0"><i class="bi bi-check-circle me-2"></i>{{ success }}</div>
+  </div>
+
+  <section class="profile-section" *ngIf="showAdd">
+    <h6 class="section-title"><i class="bi bi-plus-circle"></i>Request affiliation</h6>
+    <p class="text-muted small mb-3">
+      Choose a hospital and propose your consultation fee. The hospital owner will approve
+      before your practice becomes bookable (unless you own the hospital yourself).
+    </p>
+    <form [formGroup]="addForm" (ngSubmit)="submitAdd()">
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Hospital <span class="text-danger">*</span></label>
+          <select class="form-select" formControlName="hospitalProfileId">
+            <option value="">Select hospital</option>
+            <option *ngFor="let h of availableHospitals()" [value]="h.id">{{ h.name }}</option>
+          </select>
+          <small class="text-muted" *ngIf="!availableHospitals().length">
+            You already have a practice at every listed hospital.
+          </small>
+        </div>
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Consultation Fee (₹) <span class="text-danger">*</span></label>
+          <input type="number" class="form-control" formControlName="consultationFee" min="0" />
+        </div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Notes</label>
+        <textarea class="form-control" rows="2" formControlName="notes" placeholder="Optional message to the hospital owner"></textarea>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary" [disabled]="isSaving">
+          <span *ngIf="isSaving" class="spinner-border spinner-border-sm me-2"></span>
+          Submit request
+        </button>
+      </div>
+    </form>
+  </section>
+
+  <section class="profile-section" *ngIf="isLoading">
+    <div class="text-center text-muted py-4">
+      <span class="spinner-border spinner-border-sm me-2"></span>Loading your practices...
+    </div>
+  </section>
+
+  <section class="profile-section" *ngIf="!isLoading && !practices.length">
+    <div class="text-center py-4">
+      <i class="bi bi-hospital display-5 text-muted"></i>
+      <p class="mt-3 mb-0 text-muted">You don't have any hospital affiliations yet.</p>
+      <button class="btn btn-primary mt-3" (click)="toggleAdd()" *ngIf="!showAdd">
+        <i class="bi bi-plus-lg me-1"></i>Add your first practice
+      </button>
+    </div>
+  </section>
+
+  <section class="profile-section" *ngIf="!isLoading && practices.length">
+    <h6 class="section-title"><i class="bi bi-list-ul"></i>Your practices ({{ practices.length }})</h6>
+
+    <div class="practice-card" *ngFor="let p of practices">
+      <div class="practice-card-head">
+        <div>
+          <h5 class="mb-1">
+            {{ p.hospital?.hospitalName || 'Hospital' }}
+            <span *ngIf="p.isPrimary" class="badge bg-primary ms-2">Primary</span>
+            <span *ngIf="p.hospital?.hospitalKind === 'solo_practice'" class="badge bg-info ms-1">Solo</span>
+          </h5>
+          <p class="text-muted mb-0 small">
+            <span *ngIf="p.hospital?.hospitalCity">{{ p.hospital?.hospitalCity }}, </span>
+            <span *ngIf="p.hospital?.hospitalState">{{ p.hospital?.hospitalState }}</span>
+          </p>
+        </div>
+        <span class="badge" [ngClass]="statusBadgeClass(p.status)">{{ statusLabel(p.status) }}</span>
+      </div>
+
+      <div class="practice-card-body">
+        <!-- View mode -->
+        <div *ngIf="editingId !== p.id" class="row">
+          <div class="col-md-4">
+            <div class="detail-label">Consultation fee</div>
+            <div class="detail-value">₹{{ p.consultationFee }}</div>
+          </div>
+          <div class="col-md-4">
+            <div class="detail-label">Commission mode</div>
+            <div class="detail-value text-capitalize">{{ p.commissionMode }}</div>
+          </div>
+          <div class="col-md-4">
+            <div class="detail-label">Your payout</div>
+            <div class="detail-value">
+              <ng-container *ngIf="p.commissionMode === 'single'; else splitBreakdown">
+                {{ 100 - p.platformCommissionPercent }}% (platform keeps {{ p.platformCommissionPercent }}%)
+              </ng-container>
+              <ng-template #splitBreakdown>
+                {{ p.doctorPayoutPercent }}%
+                <small class="text-muted d-block">Hospital {{ p.hospitalPayoutPercent }}% · Platform {{ p.platformCommissionPercent }}%</small>
+              </ng-template>
+            </div>
+          </div>
+          <div class="col-12 mt-2" *ngIf="p.notes">
+            <div class="detail-label">Notes</div>
+            <div class="detail-value">{{ p.notes }}</div>
+          </div>
+        </div>
+
+        <!-- Edit mode -->
+        <form *ngIf="editingId === p.id" [formGroup]="editForm" (ngSubmit)="submitEdit(p)">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Consultation Fee (₹) <span class="text-danger">*</span></label>
+              <input type="number" class="form-control" formControlName="consultationFee" min="0" />
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Notes</label>
+              <input type="text" class="form-control" formControlName="notes" />
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary btn-sm me-2" [disabled]="isSaving || editForm.invalid">Save</button>
+          <button type="button" class="btn btn-outline-secondary btn-sm" (click)="cancelEdit()">Cancel</button>
+        </form>
+      </div>
+
+      <div class="practice-card-actions" *ngIf="editingId !== p.id">
+        <button type="button" class="btn btn-sm btn-outline-primary" (click)="startEdit(p)" [disabled]="isSaving || p.status !== 'active'">
+          <i class="bi bi-pencil me-1"></i>Edit fee
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-primary" (click)="toggleAvailability(p)"
+                *ngIf="p.status === 'active'" [disabled]="isSaving">
+          <i class="bi" [class.bi-clock]="availabilityId !== p.id" [class.bi-clock-fill]="availabilityId === p.id"></i>
+          {{ availabilityId === p.id ? 'Hide hours' : 'Manage hours' }}
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-primary" (click)="markPrimary(p)"
+                *ngIf="!p.isPrimary && p.status === 'active'" [disabled]="isSaving">
+          <i class="bi bi-star me-1"></i>Set as primary
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-danger" (click)="deactivate(p)"
+                *ngIf="!p.isPrimary && p.status === 'active'" [disabled]="isSaving">
+          <i class="bi bi-x-circle me-1"></i>Deactivate
+        </button>
+      </div>
+
+      <div class="availability-panel" *ngIf="availabilityId === p.id">
+        <h6 class="section-title mt-3"><i class="bi bi-calendar-week me-1"></i>Weekly hours at {{ p.hospital?.hospitalName }}</h6>
+        <p class="text-muted small mb-2">Toggle each day the doctor consults at this hospital. Times must not overlap with hours at other practices.</p>
+        <div *ngIf="isLoadingAvailability" class="text-muted small">
+          <span class="spinner-border spinner-border-sm me-1"></span>Loading hours...
+        </div>
+        <form *ngIf="!isLoadingAvailability" [formGroup]="availabilityForm">
+          <div formArrayName="slots" class="availability-grid">
+            <div *ngFor="let slot of availabilitySlots.controls; let day = index" [formGroupName]="day" class="availability-row">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" formControlName="isAvailable" [id]="'p'+p.id+'-day'+day" />
+                <label class="form-check-label" [for]="'p'+p.id+'-day'+day">{{ weekDays[day] }}</label>
+              </div>
+              <input type="time" class="form-control form-control-sm" formControlName="startTime" [readonly]="!slot.get('isAvailable')?.value" />
+              <span class="text-muted">to</span>
+              <input type="time" class="form-control form-control-sm" formControlName="endTime" [readonly]="!slot.get('isAvailable')?.value" />
+            </div>
+          </div>
+          <button type="button" class="btn btn-sm btn-primary mt-3" (click)="saveAvailability(p)" [disabled]="isSaving">
+            <span *ngIf="isSaving" class="spinner-border spinner-border-sm me-1"></span>Save hours
+          </button>
+          <button type="button" class="btn btn-sm btn-outline-secondary mt-3 ms-2" (click)="toggleAvailability(p)">Cancel</button>
+        </form>
+      </div>
+    </div>
+  </section>
+</div>

@@ -10,6 +10,8 @@ export interface DoctorAnalytics {
     uniquePatients: number;
     totalRevenue: number;
     averageRevenue: number;
+    totalDoctorPayout: number;
+    averageDoctorPayout: number;
     completionRate: number;
   };
   statusBreakdown: {

@@ -19,26 +19,30 @@ const DoctorProfile = require("./doctor-profile")(sequelize, DataTypes);
 const HospitalProfile = require("./hospital-profile")(sequelize, DataTypes);
 const PatientAllergy = require("./patient-allergy")(sequelize, DataTypes);
 const PatientMedicalCondition = require("./patient-medical-condition")(sequelize, DataTypes);
+const DoctorPractice = require("./doctor-practice")(sequelize, DataTypes);
+const PlatformCommissionSettings = require("./platform-commission-settings")(sequelize, DataTypes);
 
 
 // Run associations
 Specialization.associate({ DoctorProfile });
-DoctorAvailability.associate({ DoctorProfile });
+DoctorAvailability.associate({ DoctorProfile, DoctorPractice });
 
 Coupon.associate({ CouponCategory, HospitalProfile, CouponUsage });
 CouponCategory.associate({ Coupon });
 CouponUsage.associate({ Coupon });
-Appointment.associate({ DoctorProfile, User, Coupon });
+Appointment.associate({ DoctorProfile, User, Coupon, DoctorPractice, HospitalProfile });
 
 // User associations
 User.associate({ PatientProfile, DoctorProfile, HospitalProfile });
 
 // Profile associations
 PatientProfile.associate({ User, PatientAllergy, PatientMedicalCondition });
-DoctorProfile.associate({ User, Specialization, HospitalProfile, DoctorAvailability, Appointment });
-HospitalProfile.associate({ User, DoctorProfile, Coupon });
+DoctorProfile.associate({ User, Specialization, DoctorAvailability, Appointment, DoctorPractice });
+HospitalProfile.associate({ User, Coupon, DoctorPractice });
 PatientAllergy.associate({ PatientProfile });
 PatientMedicalCondition.associate({ PatientProfile });
+DoctorPractice.associate({ DoctorProfile, HospitalProfile, DoctorAvailability, Appointment });
+PlatformCommissionSettings.associate({ User });
 
 
 module.exports = {
@@ -59,5 +63,7 @@ module.exports = {
   DoctorProfile,
   HospitalProfile,
   PatientAllergy,
-  PatientMedicalCondition
+  PatientMedicalCondition,
+  DoctorPractice,
+  PlatformCommissionSettings
 };

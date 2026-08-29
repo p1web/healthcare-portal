@@ -1,0 +1,178 @@
+<div class="pagetitle">
+  <h1>Doctor Practices</h1>
+  <p class="text-muted">Every doctor–hospital affiliation across the platform. Override commission percents or reset to defaults.</p>
+</div>
+
+<div class="card mb-3">
+  <div class="card-body">
+    <div class="row g-2 align-items-end">
+      <div class="col-md-3">
+        <label class="form-label small text-muted mb-1">Status</label>
+        <select class="form-select form-select-sm" [(ngModel)]="statusFilter" (ngModelChange)="load()">
+          <option value="">All statuses</option>
+          <option value="pending_hospital_approval">Pending</option>
+          <option value="active">Active</option>
+          <option value="rejected">Rejected</option>
+          <option value="inactive">Inactive</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small text-muted mb-1">Commission mode</label>
+        <select class="form-select form-select-sm" [(ngModel)]="modeFilter" (ngModelChange)="load()">
+          <option value="">Any mode</option>
+          <option value="single">Single</option>
+          <option value="split">Split</option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label small text-muted mb-1">Search doctor / hospital / reg #</label>
+        <input type="text" class="form-control form-control-sm" [(ngModel)]="search" placeholder="Type to filter..." />
+      </div>
+      <div class="col-md-2 text-end">
+        <button class="btn btn-sm btn-outline-primary" (click)="load()" [disabled]="isLoading">
+          <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="alert alert-danger" *ngIf="error">{{ error }}</div>
+<div class="alert alert-success" *ngIf="success">{{ success }}</div>
+
+<div class="card">
+  <div class="card-body">
+    <div *ngIf="isLoading" class="text-center text-muted py-4">
+      <span class="spinner-border spinner-border-sm me-2"></span>Loading...
+    </div>
+
+    <div *ngIf="!isLoading && !filtered.length" class="text-center text-muted py-4">
+      No practices match the current filters.
+    </div>
+
+    <table class="table table-hover align-middle" *ngIf="!isLoading && filtered.length">
+      <thead>
+        <tr>
+          <th>Doctor</th>
+          <th>Hospital</th>
+          <th class="text-end">Fee</th>
+          <th>Mode</th>
+          <th class="text-center">Percents (P / H / D)</th>
+          <th>Status</th>
+          <th class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <ng-container *ngFor="let p of filtered">
+          <tr [class.table-warning]="p.status === 'pending_hospital_approval'">
+            <td>
+              <div><strong>{{ p.doctor?.user?.name || 'Unknown' }}</strong></div>
+              <small class="text-muted">
+                {{ p.doctor?.specialization?.name || 'General' }}
+                <span *ngIf="p.doctor?.registrationNumber"> · {{ p.doctor?.registrationNumber }}</span>
+              </small>
+            </td>
+            <td>
+              <div>{{ p.hospital?.hospitalName || 'Unknown' }}</div>
+              <small class="text-muted">
+                {{ p.hospital?.hospitalCity }}
+                <span class="badge bg-info ms-1" *ngIf="p.hospital?.hospitalKind === 'solo_practice'">Solo</span>
+              </small>
+            </td>
+            <td class="text-end">₹{{ p.consultationFee }}</td>
+            <td>
+              <span class="badge" [ngClass]="p.commissionMode === 'single' ? 'bg-info' : 'bg-primary'">
+                {{ p.commissionMode | titlecase }}
+              </span>
+              <i *ngIf="p.commissionOverridden" class="bi bi-shield-exclamation text-warning ms-1"
+                 title="Overridden by admin"></i>
+            </td>
+            <td class="text-center">
+              <code>{{ p.platformCommissionPercent }}</code> /
+              <code>{{ p.hospitalPayoutPercent }}</code> /
+              <code>{{ p.doctorPayoutPercent }}</code>
+            </td>
+            <td>
+              <span class="badge" [ngClass]="statusBadgeClass(p.status)">{{ statusLabel(p.status) }}</span>
+              <span *ngIf="p.isPrimary" class="badge bg-primary ms-1">Primary</span>
+            </td>
+            <td class="text-end">
+              <button *ngIf="editingId !== p.id" class="btn btn-sm btn-outline-primary" (click)="startEdit(p)">
+                <i class="bi bi-pencil me-1"></i>Override
+              </button>
+              <button *ngIf="editingId !== p.id && p.commissionOverridden"
+                      class="btn btn-sm btn-outline-secondary ms-1" (click)="resetToDefaults(p)" [disabled]="isSaving">
+                <i class="bi bi-arrow-counterclockwise me-1"></i>Reset
+              </button>
+            </td>
+          </tr>
+
+          <tr *ngIf="editingId === p.id">
+            <td colspan="7" class="edit-cell">
+              <form [formGroup]="editForm" (ngSubmit)="save(p)">
+                <div class="row g-3">
+                  <div class="col-md-2">
+                    <label class="form-label small">Commission mode</label>
+                    <select class="form-select form-select-sm" formControlName="commissionMode" (ngModelChange)="onModeChange()">
+                      <option value="single">Single</option>
+                      <option value="split">Split</option>
+                    </select>
+                    <small class="text-muted d-block mt-1">
+                      Auto-detected: <strong>{{ soloDetected(p) ? 'single' : 'split' }}</strong>
+                    </small>
+                  </div>
+                  <div class="col-md-2">
+                    <label class="form-label small">Platform %</label>
+                    <input type="number" class="form-control form-control-sm" formControlName="platformCommissionPercent"
+                           min="0" max="100" step="0.01" />
+                  </div>
+                  <div class="col-md-2">
+                    <label class="form-label small">Hospital payout %</label>
+                    <input type="number" class="form-control form-control-sm" formControlName="hospitalPayoutPercent"
+                           min="0" max="100" step="0.01"
+                           [readonly]="editForm.value.commissionMode === 'single'" />
+                  </div>
+                  <div class="col-md-2">
+                    <label class="form-label small">Doctor payout %</label>
+                    <input type="number" class="form-control form-control-sm" formControlName="doctorPayoutPercent"
+                           min="0" max="100" step="0.01"
+                           [readonly]="editForm.value.commissionMode === 'single'" />
+                  </div>
+                  <div class="col-md-2">
+                    <label class="form-label small">Status</label>
+                    <select class="form-select form-select-sm" formControlName="status">
+                      <option value="active">Active</option>
+                      <option value="pending_hospital_approval">Pending hospital</option>
+                      <option value="rejected">Rejected</option>
+                      <option value="inactive">Inactive</option>
+                    </select>
+                  </div>
+                  <div class="col-md-2 d-flex align-items-end">
+                    <div>
+                      <div class="small text-muted">Sum</div>
+                      <div [class.text-danger]="percentSum > 100"
+                           [class.text-success]="percentSum <= 100"
+                           class="fw-bold">{{ percentSum }} / 100</div>
+                    </div>
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label small">Notes</label>
+                    <input type="text" class="form-control form-control-sm" formControlName="notes"
+                           placeholder="Optional context (visible to hospital + doctor)" />
+                  </div>
+                </div>
+
+                <div class="mt-3">
+                  <button type="submit" class="btn btn-sm btn-primary me-2" [disabled]="isSaving || percentSum > 100">
+                    <span *ngIf="isSaving" class="spinner-border spinner-border-sm me-1"></span>Save override
+                  </button>
+                  <button type="button" class="btn btn-sm btn-outline-secondary" (click)="cancelEdit()">Cancel</button>
+                </div>
+              </form>
+            </td>
+          </tr>
+        </ng-container>
+      </tbody>
+    </table>
+  </div>
+</div>

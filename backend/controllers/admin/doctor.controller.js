@@ -118,12 +118,6 @@ module.exports = {
             attributes: ['id', 'name']
           },
           {
-            model: HospitalProfile,
-            as: 'hospital',
-            required: publicListing,
-            attributes: ['id', 'hospitalName', 'hospitalCity', 'hospitalState']
-          },
-          {
             model: DoctorAvailability,
             as: 'availabilities',
             required: false,

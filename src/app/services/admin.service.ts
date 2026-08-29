@@ -146,4 +146,25 @@ export class AdminService {
     return this.http.post(`${this.apiUrl}/coupons/bulk`, payload);
   }
 
+  listPractices(filters?: { status?: string; hospitalProfileId?: number; doctorProfileId?: number; commissionMode?: string }): Observable<any> {
+    const params: any = {};
+    if (filters?.status) params.status = filters.status;
+    if (filters?.hospitalProfileId) params.hospitalProfileId = filters.hospitalProfileId;
+    if (filters?.doctorProfileId) params.doctorProfileId = filters.doctorProfileId;
+    if (filters?.commissionMode) params.commissionMode = filters.commissionMode;
+    return this.http.get(`${this.apiUrl}/practices`, { params });
+  }
+
+  updatePractice(id: number, body: any): Observable<any> {
+    return this.http.put(`${this.apiUrl}/practices/${id}`, body);
+  }
+
+  getCommissionSettings(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/commission-settings`);
+  }
+
+  updateCommissionSettings(body: any): Observable<any> {
+    return this.http.put(`${this.apiUrl}/commission-settings`, body);
+  }
+
 }

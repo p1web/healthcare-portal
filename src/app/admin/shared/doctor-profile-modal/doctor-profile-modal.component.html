@@ -38,10 +38,53 @@
             <div><label>Registration No.</label><span>{{ doctorProfile.registrationNumber || '—' }}</span></div>
             <div><label>Qualification</label><span>{{ doctorProfile.qualification || '—' }}</span></div>
             <div><label>Experience</label><span>{{ doctorProfile.yearsOfExperience ?? '—' }} years</span></div>
-            <div><label>Consultation Fee</label><span>₹{{ doctorProfile.consultationFee ?? '—' }}</span></div>
             <div><label>Specialization</label><span>{{ doctorProfile.specialization?.name || '—' }}</span></div>
-            <div class="wide"><label>Hospital</label><span>{{ doctorProfile.hospital?.hospitalName || '—' }}</span></div>
           </div>
+        </section>
+
+        <section class="profile-section">
+          <h6><i class="bi bi-hospital"></i> Practices &amp; Fees</h6>
+          <div *ngIf="isLoadingPractices" class="text-muted small">
+            <span class="spinner-border spinner-border-sm me-1"></span>Loading practices...
+          </div>
+          <p *ngIf="!isLoadingPractices && !practices.length" class="text-muted mb-0">
+            This doctor has no hospital affiliations yet.
+          </p>
+          <table *ngIf="!isLoadingPractices && practices.length" class="table table-sm practices-table mb-0">
+            <thead>
+              <tr>
+                <th>Hospital</th>
+                <th class="text-end">Fee</th>
+                <th>Mode</th>
+                <th class="text-center">P / H / D %</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let p of practices">
+                <td>
+                  <strong>{{ p.hospital?.hospitalName || '—' }}</strong>
+                  <span *ngIf="p.isPrimary" class="badge bg-primary ms-1">Primary</span>
+                  <span *ngIf="p.hospital?.hospitalKind === 'solo_practice'" class="badge bg-info ms-1">Solo</span>
+                  <div class="text-muted small">{{ p.hospital?.hospitalCity }}</div>
+                </td>
+                <td class="text-end">₹{{ p.consultationFee }}</td>
+                <td>
+                  <span class="badge" [ngClass]="p.commissionMode === 'single' ? 'bg-info' : 'bg-primary'">
+                    {{ p.commissionMode | titlecase }}
+                  </span>
+                  <i *ngIf="p.commissionOverridden" class="bi bi-shield-exclamation text-warning ms-1"
+                     title="Admin override"></i>
+                </td>
+                <td class="text-center small">
+                  {{ p.platformCommissionPercent }} / {{ p.hospitalPayoutPercent }} / {{ p.doctorPayoutPercent }}
+                </td>
+                <td>
+                  <span class="badge" [ngClass]="practiceStatusBadge(p.status)">{{ practiceStatusLabel(p.status) }}</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </section>
 
         <section class="profile-section">

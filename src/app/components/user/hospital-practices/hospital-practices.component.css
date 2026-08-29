@@ -1,0 +1,74 @@
+.practice-tabs .nav-link {
+  color: #475569;
+  background: transparent;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  padding: 0.5rem 1.25rem;
+  margin: 0 0.25rem;
+}
+.practice-tabs .nav-link.active {
+  color: #ffffff;
+  background: #2563eb;
+  border-color: #2563eb;
+}
+
+.practice-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+  background: #ffffff;
+  transition: box-shadow 0.15s ease-in-out;
+}
+.practice-card:hover { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06); }
+
+.practice-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.doctor-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.practice-card-body {
+  border-top: 1px solid #f1f5f9;
+  padding-top: 1rem;
+}
+
+.practice-card-actions {
+  border-top: 1px solid #f1f5f9;
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.reject-form { max-width: 480px; }
+
+.detail-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+  margin-bottom: 0.15rem;
+}
+
+.detail-value {
+  font-weight: 500;
+  color: #0f172a;
+}

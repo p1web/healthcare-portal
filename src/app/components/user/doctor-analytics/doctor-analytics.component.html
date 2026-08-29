@@ -57,9 +57,18 @@
       <div class="kpi-card kpi-warning">
         <div class="kpi-icon"><i class="bi bi-cash-coin"></i></div>
         <div class="kpi-body">
-          <span class="kpi-label">Total revenue</span>
+          <span class="kpi-label">Gross revenue</span>
           <span class="kpi-value">{{ formatCurrency(data.totals.totalRevenue) }}</span>
-          <span class="kpi-hint">Avg {{ formatCurrency(data.totals.averageRevenue) }} per visit</span>
+          <span class="kpi-hint">Fee patients paid (before commission)</span>
+        </div>
+      </div>
+
+      <div class="kpi-card kpi-primary">
+        <div class="kpi-icon"><i class="bi bi-wallet2"></i></div>
+        <div class="kpi-body">
+          <span class="kpi-label">Your net payout</span>
+          <span class="kpi-value">{{ formatCurrency(data.totals.totalDoctorPayout) }}</span>
+          <span class="kpi-hint">Avg {{ formatCurrency(data.totals.averageDoctorPayout) }} per visit</span>
         </div>
       </div>
 

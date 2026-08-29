@@ -49,7 +49,6 @@ module.exports = {
             as: "doctorProfile",
             include: [
               { model: Specialization, as: "specialization", attributes: ["id", "name"] },
-              { model: HospitalProfile, as: "hospital", attributes: ["id", "hospitalName", "hospitalCity", "hospitalState"] },
               { model: User, as: "reviewedBy", attributes: ["id", "name", "email"] },
               { model: DoctorAvailability, as: "availabilities" }
             ]

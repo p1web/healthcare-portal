@@ -38,7 +38,7 @@
                                 <th scope="col">Email</th>
                                 <th scope="col">Phone</th>
                                 <th scope="col">Specialization</th>
-                                <th scope="col">Hospital</th>
+                                <th scope="col">Practices</th>
                                 <th scope="col">Review Status</th>
                                 <th scope="col">Created At</th>
                                 <th scope="col">Actions</th>
@@ -53,7 +53,17 @@
                                 <td>{{ doc.user.email }}</td>
                                 <td>{{ doc.user.phone }}</td>
                                 <td>{{ doc.specialization?.name || '—' }}</td>
-                                <td>{{ doc.hospital?.hospitalName || '—' }}</td>
+                                <td>
+                                  <ng-container *ngIf="getPracticeCount(doc.id) as pc">
+                                    <span *ngIf="pc.total; else noPractices">
+                                      <span class="badge bg-success">{{ pc.active }} active</span>
+                                      <span *ngIf="pc.total > pc.active" class="badge bg-warning text-dark ms-1">
+                                        {{ pc.total - pc.active }} other
+                                      </span>
+                                    </span>
+                                    <ng-template #noPractices><span class="text-muted small">—</span></ng-template>
+                                  </ng-container>
+                                </td>
                                 <td><span [class]="getReviewBadgeClass(doc)">{{ getReviewStatusLabel(doc) }}</span></td>
                                 <td>{{ doc.user.created_at | date:'dd MMM yyyy' }}</td>
                                 <td>
@@ -91,163 +101,6 @@
                     <app-admin-doctor-profile-modal *ngIf="selectedDoctor" [profile]="selectedDoctor"
                         [manage]="!publicListing" (closed)="closeDoctorModal()" (changed)="refreshDoctorList()">
                     </app-admin-doctor-profile-modal>
-
-                    <div class="modal fade" id="createDoctorDetailsModal" tabindex="-1">
-                        <div class="modal-dialog modal-xl modal-dialog-scrollable">
-                            <div class="modal-content"> <!-- Modal Header -->
-                                <div class="modal-header">
-                                    <h5 class="modal-title">Create Doctor's Public Profile </h5> <button type="button" class="btn-close"
-                                        data-bs-dismiss="modal"></button>
-                                </div>
-                                <!-- Modal Body -->
-                                <div class="modal-body">
-                                    <form class="container mt-4">
-                                    
-                                        <!-- ================= Basic Info ================= -->
-                                        <div class="card mb-4">
-                                            <div class="card-header fw-bold">Basic Information</div>
-                                            <div class="card-body row g-3">
-                                    
-                                                <div class="col-md-6">
-                                                    <label class="form-label">Doctor Name</label>
-                                                    <input type="text" class="form-control" name="name" [value]="selectedDoctor?.user?.name || ''" placeholder="Dr. Amit Patel">
-                                                </div>
-                                    
-                                                <div class="col-md-3">
-                                                    <label class="form-label">Specialization</label>
-                                                    <select class="form-select" name="specialization_id">
-                                                        <option value="">Select Specialization</option>
-                                                        <option *ngFor="let spec of specializationList" [value]="spec.id">{{ spec.name }}</option>
-                                                    </select>
-                                                </div>
-                                    
-                                                <div class="col-md-3">
-                                                    <label class="form-label">Hospital</label>
-                                                    <select class="form-select" name="hospital_id">
-                                                        <option value="">Select Hospital</option>
-                                                        <option *ngFor="let hospital of hospitalsList" [value]="hospital.id">{{ hospital.name }}</option>
-                                                    </select>
-                                                </div>
-                                    
-                                            </div>
-                                        </div>
-                                    
-                                        <!-- ================= Professional Details ================= -->
-                                        <div class="card mb-4">
-                                            <div class="card-header fw-bold">Professional Details</div>
-                                            <div class="card-body row g-3">
-                                    
-                                                <div class="col-md-4">
-                                                    <label class="form-label">Qualification</label>
-                                                    <input type="text" class="form-control" name="qualification" [value]="selectedDoctor?.user?.qualification || ''" placeholder="MBBS, MS (Orthopedics)">
-                                                </div>
-                                    
-                                                <div class="col-md-4">
-                                                    <label class="form-label">Years of Experience</label>
-                                                    <input type="number" class="form-control" name="experience" [value]="selectedDoctor?.experience || 0" min="0">
-                                                </div>
-                                    
-                                                <div class="col-md-4">
-                                                    <label class="form-label">Registration Number</label>
-                                                    <input type="text" class="form-control" [value]="selectedDoctor?.registration_number || ''" name="registrationNumber">
-                                                </div>
-                                    
-                                            </div>
-                                        </div>
-                                    
-                                        <!-- ================= Contact Details ================= -->
-                                        <div class="card mb-4">
-                                            <div class="card-header fw-bold">Contact Details</div>
-                                            <div class="card-body row g-3">
-                                    
-                                                <div class="col-md-4">
-                                                    <label class="form-label">Email</label>
-                                                    <input type="email" class="form-control" name="email" [value]="selectedDoctor?.user?.email || ''">
-                                                </div>
-                                    
-                                                <div class="col-md-4">
-                                                    <label class="form-label">Phone</label>
-                                                    <input type="text" class="form-control" name="phone" [value]="selectedDoctor?.user?.phone || ''">
-                                                </div>
-                                    
-                                                <div class="col-md-4">
-                                                    <label class="form-label">Gender</label>
-                                                    <select class="form-select" name="gender">
-                                                        <option value="">Select</option>
-                                                        <option value="male" [selected]="selectedDoctor?.user?.gender === 'male'">Male</option>
-                                                        <option value="female" [selected]="selectedDoctor?.user?.gender === 'female'">Female</option>
-                                                    </select>
-                                                </div>
-                                    
-                                            </div>
-                                        </div>
-                                    
-                                        <!-- ================= Public Profile Content ================= -->
-                                        <div class="card mb-4">
-                                            <div class="card-header fw-bold">Public Profile</div>
-                                            <div class="card-body row g-3">
-                                    
-                                                <div class="col-md-12">
-                                                    <label class="form-label">Bio / About Doctor</label>
-                                                    <textarea class="form-control" rows="4" name="bio"
-                                                        placeholder="Specialist in joint replacement surgeries and sports medicine."></textarea>
-                                                </div>
-                                    
-                                                <div class="col-md-6">
-                                                    <label class="form-label">Profile Image</label>
-                                                    <input type="file" class="form-control" name="image">
-                                                </div>
-                                    
-                                                <div class="col-md-6">
-                                                    <label class="form-label">Rating</label>
-                                                    <input type="text" class="form-control" name="rating" readonly>
-                                                    <small class="text-muted">Auto-calculated</small>
-                                                </div>
-                                    
-                                            </div>
-                                        </div>
-                                    
-                                        <!-- ================= Consultation Settings ================= -->
-                                        <div class="card mb-4">
-                                            <div class="card-header fw-bold">Consultation Settings</div>
-                                            <div class="card-body row g-3">
-                                    
-                                                <div class="col-md-4">
-                                                    <label class="form-label">Consultation Fee (₹)</label>
-                                                    <input type="number" class="form-control" name="fee" [value]="selectedDoctor?.consultationFee|| 0">
-                                                </div>
-                                    
-                                                <div class="col-md-4">
-                                                    <label class="form-label">Consultation Duration (mins)</label>
-                                                    <input type="number" class="form-control" name="consultation_duration" [value]="selectedDoctor?.consultationDuration || 0">
-                                                </div>
-                                    
-                                                <div class="col-md-4">
-                                                    <label class="form-label">Profile Published</label>
-                                                    <select class="form-select" name="is_published">
-                                                        <option value="0">No</option>
-                                                        <option value="1">Yes</option>
-                                                    </select>
-                                                </div>
-                                    
-                                            </div>
-                                        </div>
-
-                                        <!-- ================= Actions ================= -->
-                                        <div class="text-end mb-5">
-                                            <button type="submit" class="btn btn-primary px-4">Save Profile</button>
-                                            <button type="reset" class="btn btn-outline-secondary ms-2">Reset</button>
-                                        </div>
-                                    
-                                    </form>                                    
-                                </div>
-                                <!-- Modal Footer -->
-                                <!-- <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"> Close </button>
-                                </div> -->
-                            </div>
-                        </div>
-                    </div>
 
                 </div>
 

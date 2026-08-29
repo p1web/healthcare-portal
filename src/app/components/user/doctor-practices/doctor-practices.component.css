@@ -1,0 +1,53 @@
+.practice-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+  background: #ffffff;
+  transition: box-shadow 0.15s ease-in-out;
+}
+
+.practice-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.practice-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.practice-card-body {
+  border-top: 1px solid #f1f5f9;
+  padding-top: 1rem;
+}
+
+.practice-card-actions {
+  border-top: 1px solid #f1f5f9;
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.detail-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+  margin-bottom: 0.15rem;
+}
+
+.detail-value {
+  font-weight: 500;
+  color: #0f172a;
+}
+
+
+.availability-panel { border-top: 1px solid #f1f5f9; margin-top: 1rem; padding-top: 0.75rem; }
+.availability-grid { display: flex; flex-direction: column; gap: 0.5rem; }
+.availability-row { display: grid; grid-template-columns: 1fr 100px 30px 100px; align-items: center; gap: 0.5rem; }
+.availability-row input[type=time] { min-width: 90px; }

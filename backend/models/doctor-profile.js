@@ -31,9 +31,9 @@ module.exports = (sequelize, DataTypes) => {
         as: 'specialization'
       });
 
-      DoctorProfile.belongsTo(models.HospitalProfile, {
-        foreignKey: 'hospital_id',
-        as: 'hospital'
+      DoctorProfile.hasMany(models.DoctorPractice, {
+        foreignKey: 'doctor_profile_id',
+        as: 'practices'
       });
     }
   }
@@ -65,20 +65,10 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true,
       field: 'specialization_id'
     },
-    hospitalId: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      field: 'hospital_id'
-    },
     yearsOfExperience: {
       type: DataTypes.INTEGER,
       allowNull: true,
       field: 'years_of_experience'
-    },
-    consultationFee: {
-      type: DataTypes.DECIMAL(10, 2),
-      allowNull: true,
-      field: 'consultation_fee'
     },
     verificationStatus: {
       type: DataTypes.ENUM(

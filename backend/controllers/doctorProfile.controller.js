@@ -1,5 +1,6 @@
 // controllers/doctorProfile.controller.js
-const { User, DoctorProfile, DoctorAvailability, sequelize } = require('../models');
+const { User, DoctorProfile, DoctorAvailability, DoctorPractice, sequelize } = require('../models');
+const { PRACTICE_STATUSES } = require('../models/doctor-practice');
 const { applyUserBasicUpdates } = require('../utils/userBasicUpdate');
 const {
   buildSubmittedReviewReset,
@@ -10,8 +11,9 @@ const {
 
 const DOCTOR_REQUIRED_FIELDS = [
   'registrationNumber', 'qualification', 'specializationId',
-  'yearsOfExperience', 'consultationFee', 'hospitalId'
+  'yearsOfExperience'
 ];
+// consultationFee + hospitalId now live on doctor_practices; enforced via primary-practice check.
 
 const doctorProfileIncludes = [
   { model: DoctorProfile, as: 'doctorProfile', required: false, include: [
@@ -134,9 +136,10 @@ exports.updateProfile = async (req, res) => {
 
     await applyUserBasicUpdates(dbUser, user, t);
 
+    // consultationFee + hospitalId are practice-scoped now; accept-and-ignore for back-compat.
     const doctorFields = [
       'registrationNumber', 'qualification', 'specializationId',
-      'yearsOfExperience', 'consultationFee', 'hospitalId'
+      'yearsOfExperience'
     ];
 
     const doctorUpdates = Object.fromEntries(
@@ -159,11 +162,21 @@ exports.updateProfile = async (req, res) => {
         throw new Error('Save the doctor profile before adding availability');
       }
 
+      // Availability rows are per-practice; use the doctor's primary practice.
+      const primaryPractice = await DoctorPractice.findOne({
+        where: { doctorProfileId: profile.id, isPrimary: true, isActive: true, status: PRACTICE_STATUSES.ACTIVE },
+        transaction: t
+      });
+      if (!primaryPractice) {
+        throw new Error('Add a primary hospital practice before setting availability');
+      }
+
       const slots = normalizeAvailability(availability);
-      await DoctorAvailability.destroy({ where: { doctor_profile_id: profile.id }, transaction: t });
+      await DoctorAvailability.destroy({ where: { practice_id: primaryPractice.id }, transaction: t });
       if (slots.length) {
         await DoctorAvailability.bulkCreate(slots.map(slot => ({
           doctor_profile_id: profile.id,
+          practice_id: primaryPractice.id,
           day_of_week: slot.dayOfWeek,
           start_time: slot.startTime,
           end_time: slot.endTime,
@@ -284,6 +297,19 @@ exports.submitForReview = async (req, res) => {
     }
 
     const missingFields = getMissingRequiredFields(profile, DOCTOR_REQUIRED_FIELDS);
+
+    const primaryPractice = await DoctorPractice.findOne({
+      where: {
+        doctorProfileId: profile.id,
+        isPrimary: true,
+        isActive: true,
+        status: PRACTICE_STATUSES.ACTIVE
+      }
+    });
+    if (!primaryPractice) {
+      missingFields.push('primaryPractice');
+    }
+
     const availabilityCount = await DoctorAvailability.count({
       where: { doctor_profile_id: profile.id, is_available: true }
     });

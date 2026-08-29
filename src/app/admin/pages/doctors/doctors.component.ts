@@ -18,8 +18,6 @@ import { PaginationComponent } from '../../../shared/pagination/pagination.compo
 export class DoctorsComponent implements OnInit{
 
   doctorList: any[] = [];
-  hospitalsList: any[] = [];
-  specializationList: any[] = [];
   statusFilter: string | null = null;
   pageTitle: string | null = null;
   selectedDoctor: any = null;
@@ -45,9 +43,31 @@ export class DoctorsComponent implements OnInit{
       this.statusFilter = filters['status'] || 'ALL';
       this.pageTitle = this.publicListing ? 'Public' : this.statusFilter;
       this.loadDoctorProfile(filters);
-      this.loadSpecializations();
-      this.loadHospitals();
+      this.loadPracticeCounts();
     });
+  }
+
+  practiceCounts: Record<number, { active: number; total: number }> = {};
+
+  loadPracticeCounts(): void {
+    this.AdminService.listPractices().subscribe({
+      next: (res: any) => {
+        const rows = res?.data || [];
+        const counts: Record<number, { active: number; total: number }> = {};
+        for (const p of rows) {
+          const id = p.doctorProfileId;
+          if (!counts[id]) counts[id] = { active: 0, total: 0 };
+          counts[id].total++;
+          if (p.status === 'active') counts[id].active++;
+        }
+        this.practiceCounts = counts;
+      },
+      error: () => { this.practiceCounts = {}; }
+    });
+  }
+
+  getPracticeCount(doctorProfileId: number): { active: number; total: number } {
+    return this.practiceCounts[doctorProfileId] || { active: 0, total: 0 };
   }
 
   getRoleClass(role: 'patient' | 'doctor' | 'hospital' | 'admin'): string {
@@ -99,11 +119,6 @@ export class DoctorsComponent implements OnInit{
 
   refreshDoctorList(): void {
     this.loadDoctorProfile(this.publicListing ? { status: 'ACTIVE' } : this.route.snapshot.queryParams);
-  }
-
-  openCreateModal(doctor: any): void {
-    this.selectedDoctor = doctor; 
-    console.log('Creating new doctor profile',this.selectedDoctor);
   }
 
   getReviewStatus(profile: any): ProfileReviewStatus | 'unknown' {
@@ -175,28 +190,6 @@ export class DoctorsComponent implements OnInit{
       },
       error: (err) => {
         console.error('Failed to update doctor review', err);
-      }
-    });
-  }
-
-  loadSpecializations(): void {
-    this.AdminService.getSpecializationList().subscribe({
-      next: (response) => {
-        this.specializationList = response;
-      },
-      error: (err) => {
-        console.error('Failed to load specializations', err);
-      }
-    });
-  }
-
-  loadHospitals(): void {
-    this.AdminService.getHospitals().subscribe({
-      next: (response) => {
-        this.hospitalsList = response;
-      },
-      error: (err) => {
-        console.error('Failed to load hospitals', err);
       }
     });
   }

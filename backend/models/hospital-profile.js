@@ -16,9 +16,9 @@ module.exports = (sequelize, DataTypes) => {
         as: 'reviewedBy'
       });
 
-      HospitalProfile.hasMany(models.DoctorProfile, {
-        foreignKey: 'hospital_id',
-        as: 'doctors'
+      HospitalProfile.hasMany(models.DoctorPractice, {
+        foreignKey: 'hospital_profile_id',
+        as: 'practices'
       });
 
       HospitalProfile.belongsToMany(models.Coupon, {
@@ -119,6 +119,12 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.ENUM('private', 'government', 'charity', 'clinic'),
       allowNull: true,
       field: 'hospital_type'
+    },
+    hospitalKind: {
+      type: DataTypes.ENUM('solo_practice', 'multi_doctor'),
+      allowNull: false,
+      defaultValue: 'multi_doctor',
+      field: 'hospital_kind'
     },
     operatingHours: {
       type: DataTypes.STRING(100),

@@ -3,7 +3,7 @@ export interface Doctor {
 
   //  IDs (used for filtering)
   specialization_id: number | null;
-  hospital_id: number | null;
+  hospital_id: number | null; // primary practice's hospital id, if any
 
   // Display fields
   name: string;

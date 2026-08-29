@@ -378,13 +378,15 @@ body {
   transform: scale(1.05);
 }
 
-.nav-link {
+.site-navbar .nav-link,
+.sidebar-nav .nav-link {
   font-weight: 500;
   transition: color 0.3s ease;
   position: relative;
 }
 
-.nav-link::after {
+.site-navbar .nav-link::after,
+.sidebar-nav .nav-link::after {
   content: '';
   position: absolute;
   bottom: 0;
@@ -395,8 +397,10 @@ body {
   transition: width 0.3s ease, left 0.3s ease;
 }
 
-.nav-link:hover::after,
-.nav-link.active::after {
+.site-navbar .nav-link:hover::after,
+.site-navbar .nav-link.active::after,
+.sidebar-nav .nav-link:hover::after,
+.sidebar-nav .nav-link.active::after {
   width: 100%;
   left: 0;
 }

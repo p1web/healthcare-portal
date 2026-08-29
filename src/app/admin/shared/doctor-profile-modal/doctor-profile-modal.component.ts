@@ -25,6 +25,9 @@ export class DoctorProfileModalComponent implements OnChanges {
   busy = false;
   errorMessage = '';
 
+  practices: any[] = [];
+  isLoadingPractices = false;
+
   constructor(private adminService: AdminService) {}
 
   ngOnChanges(): void {
@@ -32,6 +35,43 @@ export class DoctorProfileModalComponent implements OnChanges {
     this.reviewAction = '';
     this.reviewComments = '';
     this.errorMessage = '';
+    this.loadPractices();
+  }
+
+  private loadPractices(): void {
+    const doctorProfileId = this.doctorProfile?.id;
+    this.practices = [];
+    if (!doctorProfileId) return;
+    this.isLoadingPractices = true;
+    this.adminService.listPractices({ doctorProfileId }).subscribe({
+      next: (res: any) => {
+        this.practices = res?.data || [];
+        this.isLoadingPractices = false;
+      },
+      error: () => {
+        this.practices = [];
+        this.isLoadingPractices = false;
+      }
+    });
+  }
+
+  practiceStatusLabel(status: string): string {
+    const map: Record<string, string> = {
+      active: 'Active',
+      pending_hospital_approval: 'Pending hospital',
+      rejected: 'Rejected',
+      inactive: 'Inactive'
+    };
+    return map[status] || status;
+  }
+
+  practiceStatusBadge(status: string): string {
+    switch (status) {
+      case 'active': return 'bg-success';
+      case 'pending_hospital_approval': return 'bg-warning text-dark';
+      case 'rejected': return 'bg-danger';
+      default: return 'bg-secondary';
+    }
   }
 
   get doctorUser(): any {

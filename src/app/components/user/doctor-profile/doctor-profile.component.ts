@@ -7,8 +7,7 @@ import type { ProfileReviewStatus } from '../../../models/user.model';
 import { AuthService } from '../../../services/auth.service';
 import { DoctorProfileService } from '../../../services/doctor-profile.service';
 import { SpecializationService, Specializations } from '../../../services/specialization.service';
-import { HospitalService } from '../../../services/hospital.service';
-import { Hospital } from '../../../models/hospital.model';
+import { PracticeService, Practice } from '../../../services/practice.service';
 
 @Component({
   standalone: true,
@@ -21,7 +20,8 @@ export class DoctorProfileComponent implements OnInit {
   readonly weekDays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   doctorDocuments: File[] = [];
   specializations: Specializations[] = [];
-  hospitals: Partial<Hospital>[] = [];
+  practices: Practice[] = [];
+  isLoadingPractices = false;
   profileForm!: FormGroup;
   user: User | null = null;
   isSubmitting: boolean = false;
@@ -54,11 +54,11 @@ export class DoctorProfileComponent implements OnInit {
     },
     {
       title: 'Professional',
-      subtitle: 'Credentials & fee',
+      subtitle: 'Credentials',
       icon: 'bi-briefcase',
       controls: [
-        'doctor.hospitalId', 'doctor.registrationNumber', 'doctor.qualification',
-        'doctor.specializationId', 'doctor.yearsOfExperience', 'doctor.consultationFee'
+        'doctor.registrationNumber', 'doctor.qualification',
+        'doctor.specializationId', 'doctor.yearsOfExperience'
       ]
     },
     {
@@ -74,14 +74,14 @@ export class DoctorProfileComponent implements OnInit {
     private authService: AuthService,
     private doctorProfileService: DoctorProfileService,
     private specializationService: SpecializationService,
-    private hospitalService: HospitalService,
+    private practiceService: PracticeService,
   ) { }
 
   ngOnInit(): void {
     this.initializeForm();
     this.loadCurrentUser();
     this.loadSpecializations();
-    this.loadHospitals();
+    this.loadPractices();
   }
 
   initializeForm(): void {
@@ -100,12 +100,10 @@ export class DoctorProfileComponent implements OnInit {
         country: ['India']
       }),
       doctor: this.fb.group({
-        hospitalId: ['', Validators.required],
         registrationNumber: ['', Validators.required],
         qualification: ['', Validators.required],
         specializationId: ['', Validators.required],
         yearsOfExperience: ['', Validators.required],
-        consultationFee: ['', Validators.required],
         verificationDocuments: [[]],
       }),
       availability: this.fb.array(this.weekDays.map((_, dayOfWeek) => this.fb.group({
@@ -128,15 +126,22 @@ export class DoctorProfileComponent implements OnInit {
     });
   }
 
-  loadHospitals(): void {
-    this.hospitalService.getHospitalList().subscribe({
-      next: (data) => {
-        this.hospitals = data;
+  loadPractices(): void {
+    this.isLoadingPractices = true;
+    this.practiceService.listMine().subscribe({
+      next: (res) => {
+        this.practices = res.data || [];
+        this.isLoadingPractices = false;
       },
-      error: (err) => {
-        console.error('Failed to load hospitals', err);
+      error: () => {
+        this.practices = [];
+        this.isLoadingPractices = false;
       }
     });
+  }
+
+  get primaryPractice(): Practice | null {
+    return this.practices.find(p => p.isPrimary && p.isActive) || null;
   }
 
   loadCurrentUser(): void {
@@ -180,12 +185,10 @@ export class DoctorProfileComponent implements OnInit {
       const d = this.user.doctorProfile;
 
       this.profileForm.get('doctor')?.patchValue({
-        hospitalId: d.hospitalId || '',
         registrationNumber: d.registrationNumber || '',
         qualification: d.qualification || '',
         specializationId: d.specializationId || '',
         yearsOfExperience: d.yearsOfExperience ? Number(d.yearsOfExperience) : '',
-        consultationFee: d.consultationFee ? Number(d.consultationFee) : '',
         verificationDocuments: d.verificationDocuments || []
       });
 

@@ -8,6 +8,12 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'doctor_profile_id',
         as: 'doctorProfile'
       });
+      if (models.DoctorPractice) {
+        DoctorAvailability.belongsTo(models.DoctorPractice, {
+          foreignKey: 'practice_id',
+          as: 'practice'
+        });
+      }
     }
   }
 
@@ -19,6 +25,10 @@ module.exports = (sequelize, DataTypes) => {
         autoIncrement: true
       },
       doctor_profile_id: {
+        type: DataTypes.INTEGER,
+        allowNull: false
+      },
+      practice_id: {
         type: DataTypes.INTEGER,
         allowNull: false
       },

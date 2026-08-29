@@ -6,6 +6,7 @@ import { DoctorService } from '../../services/doctor.service';
 import { AppointmentService } from '../../services/appointment.service';
 import { AuthService } from '../../services/auth.service';
 import { CouponService } from '../../services/coupon.service';
+import { PracticeService, Practice } from '../../services/practice.service';
 import { Doctor, DoctorAvailabilitySlot } from '../../models/doctor.model';
 
 @Component({
@@ -23,6 +24,10 @@ export class DoctorDetailComponent implements OnInit {
   bookingSuccess = false;
   bookingResult: any = null;
 
+  practices: Practice[] = [];
+  selectedPractice: Practice | null = null;
+  isLoadingPractices = false;
+
   // Coupon state
   applicableCoupons: any[] = [];
   isLoadingCoupons = false;
@@ -39,6 +44,7 @@ export class DoctorDetailComponent implements OnInit {
     private appointmentService: AppointmentService,
     private authService: AuthService,
     private couponService: CouponService,
+    private practiceService: PracticeService,
     private fb: FormBuilder
   ) {
     this.appointmentForm = this.fb.group({
@@ -60,7 +66,7 @@ export class DoctorDetailComponent implements OnInit {
       next: (res: any) => {
         this.doctor = res.data;
         this.validateSelectedDate();
-        this.loadApplicableCoupons();
+        this.loadPractices(id);
       },
       error: (err) => {
         console.error('Failed to load doctor', err);
@@ -68,11 +74,50 @@ export class DoctorDetailComponent implements OnInit {
     });
   }
 
+  loadPractices(doctorId: number): void {
+    this.isLoadingPractices = true;
+    this.practiceService.listForDoctor(doctorId).subscribe({
+      next: (res) => {
+        this.practices = res.data || [];
+        const primary = this.practices.find(p => p.isPrimary) || this.practices[0] || null;
+        this.selectPractice(primary);
+        this.isLoadingPractices = false;
+      },
+      error: () => {
+        this.practices = [];
+        this.selectedPractice = null;
+        this.isLoadingPractices = false;
+        this.loadApplicableCoupons();
+      }
+    });
+  }
+
+  selectPractice(practice: Practice | null): void {
+    this.selectedPractice = practice;
+    this.removeCoupon();
+    this.loadApplicableCoupons();
+  }
+
+  onPracticeChange(practiceId: number | string): void {
+    const id = Number(practiceId);
+    const found = this.practices.find(p => p.id === id) || null;
+    this.selectPractice(found);
+  }
+
+  get activeHospitalId(): number | undefined {
+    return this.selectedPractice?.hospitalProfileId ?? this.doctor?.hospital_id ?? undefined;
+  }
+
+  get activeConsultationFee(): number {
+    if (this.selectedPractice) return this.selectedPractice.consultationFee || 0;
+    return this.parsedFee;
+  }
+
   loadApplicableCoupons(): void {
     if (!this.doctor) return;
     this.isLoadingCoupons = true;
-    const amount = this.parsedFee;
-    const hospitalId = this.doctor.hospital_id;
+    const amount = this.activeConsultationFee;
+    const hospitalId = this.activeHospitalId;
 
     this.couponService.getCoupons().subscribe({
       next: (res: any) => {
@@ -118,7 +163,7 @@ export class DoctorDetailComponent implements OnInit {
 
     this.isValidatingCoupon = true;
     this.couponService
-      .validateCouponRemote(code, this.parsedFee, this.doctor.hospital_id)
+      .validateCouponRemote(code, this.activeConsultationFee, this.activeHospitalId)
       .subscribe({
         next: (res: any) => {
           this.isValidatingCoupon = false;
@@ -171,6 +216,9 @@ export class DoctorDetailComponent implements OnInit {
         doctorId: this.doctor.id,
         ...this.appointmentForm.value
       };
+      if (this.selectedPractice) {
+        appointmentData.practiceId = this.selectedPractice.id;
+      }
       if (this.appliedCoupon?.code) {
         appointmentData.couponCode = this.appliedCoupon.code;
       }

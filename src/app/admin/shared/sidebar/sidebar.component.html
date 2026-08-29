@@ -132,6 +132,27 @@
       </a>
     </li> -->
 
+    <!-- Revenue / Commission Management -->
+    <li class="nav-heading">Revenue &amp; Commission</li>
+
+    <li class="nav-item">
+      <a class="nav-link" routerLink="/admin/practices" routerLinkActive="active"
+         [routerLinkActiveOptions]="{ exact: true }" #practicesLink="routerLinkActive"
+         [class.collapsed]="!practicesLink.isActive">
+        <i class="bi bi-hospital"></i>
+        <span>Doctor Practices</span>
+      </a>
+    </li>
+
+    <li class="nav-item">
+      <a class="nav-link" routerLink="/admin/commission-settings" routerLinkActive="active"
+         [routerLinkActiveOptions]="{ exact: true }" #commissionSettingsLink="routerLinkActive"
+         [class.collapsed]="!commissionSettingsLink.isActive">
+        <i class="bi bi-percent"></i>
+        <span>Commission Settings</span>
+      </a>
+    </li>
+
     <!-- Blank -->
     <li class="nav-item">
       <a class="nav-link" href="pages-blank.html">

@@ -1,0 +1,10 @@
+.edit-cell {
+  background: #f8fafc;
+  border-top: 2px solid #2563eb !important;
+}
+
+code {
+  background: transparent;
+  color: #0f172a;
+  font-weight: 600;
+}

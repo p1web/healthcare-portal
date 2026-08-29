@@ -2,6 +2,7 @@ const {
   Appointment,
   DoctorAvailability,
   DoctorProfile,
+  DoctorPractice,
   HospitalProfile,
   Specialization,
   User,
@@ -10,15 +11,22 @@ const {
 } = require('../models');
 const { Op } = require('sequelize');
 const { isApprovedStatus } = require('../utils/providerReview');
+const { computeCommissionSplit } = require('../utils/practiceCommission');
+const { PRACTICE_STATUSES } = require('../models/doctor-practice');
 
 const doctorInclude = {
   model: DoctorProfile,
   as: 'doctorProfile',
   include: [
     { model: User, as: 'user', attributes: ['id', 'name'] },
-    { model: Specialization, as: 'specialization', attributes: ['id', 'name'] },
-    { model: HospitalProfile, as: 'hospital', attributes: ['id', 'hospitalName'] }
+    { model: Specialization, as: 'specialization', attributes: ['id', 'name'] }
   ]
+};
+
+const hospitalInclude = {
+  model: HospitalProfile,
+  as: 'hospitalProfile',
+  attributes: ['id', 'hospitalName', 'hospitalKind', 'hospitalCity', 'hospitalState']
 };
 
 const patientInclude = {
@@ -29,12 +37,15 @@ const patientInclude = {
 
 function formatAppointment(appointment) {
   const value = appointment.toJSON();
+  const numeric = (v) => (v !== null && v !== undefined) ? parseFloat(v) : 0;
   return {
     id: value.id,
     doctorId: value.doctorProfileId,
     doctorName: value.doctorProfile?.user?.name || 'Doctor',
     specialization: value.doctorProfile?.specialization?.name || null,
-    hospital: value.doctorProfile?.hospital?.hospitalName || null,
+    hospital: value.hospitalProfile?.hospitalName || null,
+    hospitalProfileId: value.hospitalProfileId || null,
+    practiceId: value.practiceId || null,
     date: value.appointmentDate,
     time: value.appointmentTime,
     reason: value.reason,
@@ -48,12 +59,17 @@ function formatAppointment(appointment) {
       ? parseFloat(value.discountAmount) : 0,
     finalPrice: value.finalPrice !== null && value.finalPrice !== undefined
       ? parseFloat(value.finalPrice) : null,
+    commissionMode: value.commissionModeSnapshot || null,
+    platformRevenueAmount: numeric(value.platformRevenueAmount),
+    hospitalPayoutAmount: numeric(value.hospitalPayoutAmount),
+    doctorPayoutAmount: numeric(value.doctorPayoutAmount),
     createdAt: value.createdAt
   };
 }
 
 function formatDoctorAppointment(appointment) {
   const value = appointment.toJSON();
+  const numeric = (v) => (v !== null && v !== undefined) ? parseFloat(v) : 0;
   return {
     id: value.id,
     patientId: value.patientId,
@@ -65,6 +81,13 @@ function formatDoctorAppointment(appointment) {
     reason: value.reason,
     status: value.status,
     rejectionReason: value.rejectionReason || null,
+    hospital: value.hospitalProfile?.hospitalName || null,
+    originalPrice: value.originalPrice !== null && value.originalPrice !== undefined
+      ? parseFloat(value.originalPrice) : null,
+    finalPrice: value.finalPrice !== null && value.finalPrice !== undefined
+      ? parseFloat(value.finalPrice) : null,
+    doctorPayoutAmount: numeric(value.doctorPayoutAmount),
+    commissionMode: value.commissionModeSnapshot || null,
     createdAt: value.createdAt
   };
 }
@@ -82,7 +105,7 @@ async function getDoctorProfile(userId) {
 
 exports.createAppointment = async (req, res) => {
   try {
-    const { doctorId, date, time, reason, couponCode } = req.body;
+    const { doctorId, practiceId, date, time, reason, couponCode } = req.body;
     if (!doctorId || !date || !time) {
       return res.status(400).json({ success: false, message: 'Doctor, date and time are required' });
     }
@@ -106,28 +129,56 @@ exports.createAppointment = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Doctor is not available for booking' });
     }
 
+    // Resolve practice: explicit practiceId wins; otherwise fall back to the doctor's primary practice.
+    let practice = null;
+    if (practiceId) {
+      practice = await DoctorPractice.findOne({
+        where: {
+          id: parseInt(practiceId, 10),
+          doctorProfileId: doctorProfile.id,
+          isActive: true,
+          status: PRACTICE_STATUSES.ACTIVE
+        },
+        include: [{ model: HospitalProfile, as: 'hospital' }]
+      });
+      if (!practice) {
+        return res.status(400).json({ success: false, message: 'Selected hospital is not available for this doctor' });
+      }
+    } else {
+      practice = await DoctorPractice.findOne({
+        where: {
+          doctorProfileId: doctorProfile.id,
+          isPrimary: true,
+          isActive: true,
+          status: PRACTICE_STATUSES.ACTIVE
+        },
+        include: [{ model: HospitalProfile, as: 'hospital' }]
+      });
+      if (!practice) {
+        return res.status(400).json({ success: false, message: 'Doctor has no active practice available for booking' });
+      }
+    }
+
     const availability = await DoctorAvailability.findOne({
       where: {
-        doctor_profile_id: doctorId,
+        practice_id: practice.id,
         day_of_week: appointmentDate.getDay(),
         is_available: true
       }
     });
     if (!availability || time < availability.start_time.slice(0, 5) || time > availability.end_time.slice(0, 5)) {
-      return res.status(400).json({ success: false, message: 'Selected time is outside the doctor\'s availability' });
+      return res.status(400).json({ success: false, message: 'Selected time is outside the doctor\'s availability at this hospital' });
     }
 
-    // Pricing
-    const originalPrice = doctorProfile.consultationFee !== null && doctorProfile.consultationFee !== undefined
-      ? parseFloat(doctorProfile.consultationFee)
-      : 0;
+    // Fee is per practice, not per doctor.
+    const originalPrice = parseFloat(practice.consultationFee) || 0;
 
     let couponResult = { couponId: null, couponCode: null, discountAmount: 0, coupon: null };
     if (couponCode) {
       couponResult = await resolveCouponForBooking({
         couponCode,
         amount: originalPrice,
-        hospitalId: doctorProfile.hospitalId,
+        hospitalId: practice.hospitalProfileId,
         userId: req.user.id
       });
       if (couponResult.error) {
@@ -136,9 +187,10 @@ exports.createAppointment = async (req, res) => {
     }
 
     const finalPrice = Math.max(0, originalPrice - couponResult.discountAmount);
+    const commission = computeCommissionSplit({ basePrice: finalPrice, practice });
 
     const appointment = await Appointment.create({
-      doctorProfileId: doctorId,
+      doctorProfileId: doctorProfile.id,
       patientId: req.user.id,
       patientName: req.user.name,
       email: req.user.email,
@@ -151,7 +203,13 @@ exports.createAppointment = async (req, res) => {
       couponId: couponResult.couponId,
       originalPrice,
       discountAmount: couponResult.discountAmount,
-      finalPrice
+      finalPrice,
+      practiceId: practice.id,
+      hospitalProfileId: practice.hospitalProfileId,
+      platformRevenueAmount: commission.platformRevenue,
+      hospitalPayoutAmount: commission.hospitalPayout,
+      doctorPayoutAmount: commission.doctorPayout,
+      commissionModeSnapshot: commission.commissionMode
     });
 
     if (couponResult.coupon) {
@@ -166,7 +224,9 @@ exports.createAppointment = async (req, res) => {
       await couponResult.coupon.increment('usedCount');
     }
 
-    const createdAppointment = await Appointment.findByPk(appointment.id, { include: [doctorInclude] });
+    const createdAppointment = await Appointment.findByPk(appointment.id, {
+      include: [doctorInclude, hospitalInclude]
+    });
     return res.status(201).json({
       success: true,
       message: 'Appointment booked successfully',
@@ -232,7 +292,7 @@ exports.getPatientAppointments = async (req, res) => {
 
     const appointments = await Appointment.findAll({
       where,
-      include: [doctorInclude],
+      include: [doctorInclude, hospitalInclude],
       order: [
         ['appointmentDate', 'DESC'],
         ['appointmentTime', 'DESC']
@@ -266,7 +326,7 @@ exports.getDoctorAppointments = async (req, res) => {
 
     const appointments = await Appointment.findAll({
       where,
-      include: [patientInclude],
+      include: [patientInclude, hospitalInclude],
       order: [
         ['appointmentDate', 'DESC'],
         ['appointmentTime', 'DESC']
@@ -318,7 +378,7 @@ exports.cancelAppointment = async (req, res) => {
     appointment.status = 'cancelled';
     await appointment.save();
 
-    const refreshed = await Appointment.findByPk(appointment.id, { include: [doctorInclude] });
+    const refreshed = await Appointment.findByPk(appointment.id, { include: [doctorInclude, hospitalInclude] });
     return res.json({
       success: true,
       message: 'Appointment cancelled successfully',
@@ -342,7 +402,7 @@ exports.approveAppointment = async (req, res) => {
         id: req.params.id,
         doctorProfileId: doctorProfile.id
       },
-      include: [patientInclude]
+      include: [patientInclude, hospitalInclude]
     });
     if (!appointment) {
       return res.status(404).json({ success: false, message: 'Appointment not found' });
@@ -382,7 +442,7 @@ exports.rejectAppointment = async (req, res) => {
         id: req.params.id,
         doctorProfileId: doctorProfile.id
       },
-      include: [patientInclude]
+      include: [patientInclude, hospitalInclude]
     });
     if (!appointment) {
       return res.status(404).json({ success: false, message: 'Appointment not found' });
@@ -422,7 +482,7 @@ exports.getPatientAnalytics = async (req, res) => {
   try {
     const appointments = await Appointment.findAll({
       where: { patientId: req.user.id },
-      include: [doctorInclude],
+      include: [doctorInclude, hospitalInclude],
       order: [['appointmentDate', 'DESC'], ['appointmentTime', 'DESC']]
     });
 
@@ -559,10 +619,11 @@ exports.getDoctorAnalytics = async (req, res) => {
 
     const statusCounts = { pending: 0, confirmed: 0, cancelled: 0, completed: 0, rejected: 0 };
     let totalRevenue = 0;
+    let totalDoctorPayout = 0;
     let revenueAppointmentCount = 0;
     let upcomingCount = 0;
     const patientMap = new Map();
-    const weekdayCounts = [0, 0, 0, 0, 0, 0, 0]; // Sun..Sat
+    const weekdayCounts = [0, 0, 0, 0, 0, 0, 0];
     const hourBuckets = { morning: 0, afternoon: 0, evening: 0, night: 0 };
 
     // Init last 30-day buckets
@@ -595,6 +656,9 @@ exports.getDoctorAnalytics = async (req, res) => {
           totalRevenue += price;
           revenueAppointmentCount++;
         }
+        const payoutRaw = row.doctorPayoutAmount;
+        const payout = payoutRaw !== null && payoutRaw !== undefined ? parseFloat(payoutRaw) : 0;
+        if (!Number.isNaN(payout)) totalDoctorPayout += payout;
       }
 
       const dateStr = toDateStr(row.appointmentDate);
@@ -642,6 +706,7 @@ exports.getDoctorAnalytics = async (req, res) => {
 
     const total = rows.length;
     const avgRevenue = revenueAppointmentCount > 0 ? totalRevenue / revenueAppointmentCount : 0;
+    const avgDoctorPayout = revenueAppointmentCount > 0 ? totalDoctorPayout / revenueAppointmentCount : 0;
     const completionRate = total > 0 ? (statusCounts.completed / total) * 100 : 0;
 
     return res.json({
@@ -653,6 +718,8 @@ exports.getDoctorAnalytics = async (req, res) => {
           uniquePatients: patientMap.size,
           totalRevenue: Math.round(totalRevenue * 100) / 100,
           averageRevenue: Math.round(avgRevenue * 100) / 100,
+          totalDoctorPayout: Math.round(totalDoctorPayout * 100) / 100,
+          averageDoctorPayout: Math.round(avgDoctorPayout * 100) / 100,
           completionRate: Math.round(completionRate * 10) / 10
         },
         statusBreakdown: statusCounts,
@@ -686,7 +753,7 @@ exports.bulkApproveAppointments = async (req, res) => {
         doctorProfileId: doctorProfile.id,
         status: 'pending'
       },
-      include: [patientInclude]
+      include: [patientInclude, hospitalInclude]
     });
 
     const approved = [];

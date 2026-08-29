@@ -69,7 +69,15 @@ export class LoginComponent {
         },
         error: (error) => {
           this.isSubmitting = false;
-          this.errorMessage = 'Invalid email or password. Please try again.';
+          const status = error?.status;
+          const serverMessage = error?.error?.message;
+          if (status === 403 && serverMessage) {
+            this.errorMessage = serverMessage;
+          } else if (status === 401) {
+            this.errorMessage = 'Invalid email or password. Please try again.';
+          } else {
+            this.errorMessage = serverMessage || 'Login failed. Please try again.';
+          }
           console.error('Login error:', error);
         }
       });

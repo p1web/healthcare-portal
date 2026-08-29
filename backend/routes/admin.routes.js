@@ -10,6 +10,7 @@ const appointmentController = require("../controllers/appointment.controller");
 const profileController = require("../controllers/admin/profile.controller");
 const couponCategoryController = require("../controllers/admin/coupon-category.controller");
 const couponController = require("../controllers/admin/coupon.controller");
+const adminPracticeController = require("../controllers/admin/practice.controller");
 const { authenticate, authorize } = require("../middleware/auth.middleware");
 
 router.use(authenticate, authorize("admin"));
@@ -62,6 +63,12 @@ router.post("/coupons", couponController.createCoupon);
 router.put("/coupons/:id", couponController.updateCoupon);
 router.delete("/coupons/:id", couponController.deleteCoupon);
 router.patch("/coupons/:id/restore", couponController.restoreCoupon);
+
+// Doctor practices + platform commission defaults
+router.get("/practices", adminPracticeController.listPractices);
+router.put("/practices/:id", adminPracticeController.updatePractice);
+router.get("/commission-settings", adminPracticeController.getCommissionSettings);
+router.put("/commission-settings", adminPracticeController.updateCommissionSettings);
 
 
 // router.get("/filter", userController.getUsersByFilter);

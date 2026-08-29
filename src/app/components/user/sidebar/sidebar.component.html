@@ -41,6 +41,20 @@
       <span class="sidebar-item-icon"><i class="bi bi-calendar2-heart"></i></span>
       <span class="sidebar-item-text">Patient Bookings</span>
     </a>
+
+    <a *ngIf="isDoctor"
+       class="sidebar-item" routerLink="/doctor-practices"
+       routerLinkActive="active">
+      <span class="sidebar-item-icon"><i class="bi bi-hospital"></i></span>
+      <span class="sidebar-item-text">My Practices</span>
+    </a>
+
+    <a *ngIf="isHospital"
+       class="sidebar-item" routerLink="/hospital-practices"
+       routerLinkActive="active">
+      <span class="sidebar-item-icon"><i class="bi bi-people"></i></span>
+      <span class="sidebar-item-text">Doctor Affiliations</span>
+    </a>
   </div>
 
   <!-- Account group -->

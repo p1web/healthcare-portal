@@ -5,10 +5,16 @@
         <h2 class="mb-1"><i class="bi bi-hospital me-2"></i>My Practices</h2>
         <p class="mb-0 text-white-50">Hospitals where you consult. Each practice has its own fee, availability and revenue-share settings.</p>
       </div>
-      <button type="button" class="btn btn-light" (click)="toggleAdd()" [disabled]="isSaving">
-        <i class="bi" [class.bi-plus-lg]="!showAdd" [class.bi-x-lg]="showAdd"></i>
-        {{ showAdd ? 'Cancel' : 'Add practice' }}
-      </button>
+      <div class="d-flex flex-wrap gap-2">
+        <button type="button" class="btn btn-outline-light" (click)="toggleSolo()" [disabled]="isSaving">
+          <i class="bi" [class.bi-house-heart]="!showSolo" [class.bi-x-lg]="showSolo"></i>
+          {{ showSolo ? 'Cancel' : 'I own my clinic' }}
+        </button>
+        <button type="button" class="btn btn-light" (click)="toggleAdd()" [disabled]="isSaving">
+          <i class="bi" [class.bi-plus-lg]="!showAdd" [class.bi-x-lg]="showAdd"></i>
+          {{ showAdd ? 'Cancel' : 'Add practice' }}
+        </button>
+      </div>
     </div>
   </div>
 
@@ -18,6 +24,62 @@
   <div class="profile-section" *ngIf="success">
     <div class="alert alert-success mb-0"><i class="bi bi-check-circle me-2"></i>{{ success }}</div>
   </div>
+
+  <section class="profile-section" *ngIf="showSolo">
+    <h6 class="section-title"><i class="bi bi-house-heart"></i>Set up your own clinic</h6>
+    <p class="text-muted small mb-3">
+      Register a clinic you own. It's created as your primary practice at
+      <strong>single-commission mode</strong> — only the platform takes a small
+      cut, you keep the rest. No hospital-owner approval step and no separate
+      login required.
+    </p>
+    <form [formGroup]="soloForm" (ngSubmit)="submitSolo()">
+      <div class="row">
+        <div class="col-md-8 mb-3">
+          <label class="form-label">Clinic name <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" formControlName="hospitalName" placeholder="e.g. Dr. Sharma's Clinic" />
+        </div>
+        <div class="col-md-4 mb-3">
+          <label class="form-label">Consultation Fee (₹) <span class="text-danger">*</span></label>
+          <input type="number" class="form-control" formControlName="consultationFee" min="0" />
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Phone</label>
+          <input type="text" class="form-control" formControlName="hospitalPhone" placeholder="Defaults to your account phone" />
+        </div>
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Email</label>
+          <input type="email" class="form-control" formControlName="hospitalEmail" placeholder="Defaults to your account email" />
+        </div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Address</label>
+        <textarea class="form-control" rows="2" formControlName="hospitalAddress"></textarea>
+      </div>
+      <div class="row">
+        <div class="col-md-4 mb-3">
+          <label class="form-label">City</label>
+          <input type="text" class="form-control" formControlName="hospitalCity" />
+        </div>
+        <div class="col-md-4 mb-3">
+          <label class="form-label">State</label>
+          <input type="text" class="form-control" formControlName="hospitalState" />
+        </div>
+        <div class="col-md-4 mb-3">
+          <label class="form-label">Pincode</label>
+          <input type="text" class="form-control" formControlName="hospitalPincode" maxlength="10" />
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary" [disabled]="isSaving">
+          <span *ngIf="isSaving" class="spinner-border spinner-border-sm me-2"></span>
+          Create clinic
+        </button>
+      </div>
+    </form>
+  </section>
 
   <section class="profile-section" *ngIf="showAdd">
     <h6 class="section-title"><i class="bi bi-plus-circle"></i>Request affiliation</h6>
@@ -65,9 +127,17 @@
     <div class="text-center py-4">
       <i class="bi bi-hospital display-5 text-muted"></i>
       <p class="mt-3 mb-0 text-muted">You don't have any hospital affiliations yet.</p>
-      <button class="btn btn-primary mt-3" (click)="toggleAdd()" *ngIf="!showAdd">
-        <i class="bi bi-plus-lg me-1"></i>Add your first practice
-      </button>
+      <p class="text-muted small mb-3">
+        Add a practice at an existing hospital, or register your own clinic if you run one.
+      </p>
+      <div class="d-flex justify-content-center gap-2 flex-wrap">
+        <button class="btn btn-primary" (click)="toggleAdd()" *ngIf="!showAdd && !showSolo">
+          <i class="bi bi-plus-lg me-1"></i>Add practice at a hospital
+        </button>
+        <button class="btn btn-outline-primary" (click)="toggleSolo()" *ngIf="!showAdd && !showSolo">
+          <i class="bi bi-house-heart me-1"></i>Register my own clinic
+        </button>
+      </div>
     </div>
   </section>
 

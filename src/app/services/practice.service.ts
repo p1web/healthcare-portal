@@ -44,6 +44,17 @@ export interface CreatePracticeRequest {
   notes?: string;
 }
 
+export interface CreateSoloClinicRequest {
+  hospitalName: string;
+  consultationFee: number;
+  hospitalPhone?: string;
+  hospitalEmail?: string;
+  hospitalAddress?: string;
+  hospitalCity?: string;
+  hospitalState?: string;
+  hospitalPincode?: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class PracticeService {
   private apiBase = 'http://localhost:3000/api';
@@ -62,6 +73,10 @@ export class PracticeService {
 
   create(body: CreatePracticeRequest): Observable<{ success: boolean; data: Practice }> {
     return this.http.post<{ success: boolean; data: Practice }>(`${this.apiBase}/doctor/practices`, body);
+  }
+
+  createSoloClinic(body: CreateSoloClinicRequest): Observable<{ success: boolean; data: Practice }> {
+    return this.http.post<{ success: boolean; data: Practice }>(`${this.apiBase}/doctor/solo-clinic`, body);
   }
 
   update(id: number, body: Partial<CreatePracticeRequest & { isPrimary: boolean }>): Observable<{ success: boolean; data: Practice }> {

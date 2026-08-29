@@ -115,6 +115,105 @@ exports.listMyPractices = async (req, res) => {
   }
 };
 
+// Doctor self-service: onboard as a solo practitioner. Creates the doctor's
+// own solo_practice HospitalProfile (verified/approved so it's usable
+// immediately) and a primary active DoctorPractice at single-commission mode
+// in one transaction. Refuses if the doctor already owns a hospital.
+exports.createSoloClinic = async (req, res) => {
+  const t = await sequelize.transaction();
+  try {
+    const doctor = await DoctorProfile.findOne({ where: { userId: req.user.id }, transaction: t });
+    if (!doctor) {
+      await t.rollback();
+      return res.status(404).json({ success: false, message: 'Doctor profile not found' });
+    }
+
+    const existingOwned = await HospitalProfile.findOne({
+      where: { userId: req.user.id },
+      transaction: t
+    });
+    if (existingOwned) {
+      await t.rollback();
+      return res.status(409).json({
+        success: false,
+        message: 'You already own a hospital profile. Use the Add Practice flow to link it.'
+      });
+    }
+
+    const {
+      hospitalName,
+      consultationFee,
+      hospitalPhone,
+      hospitalEmail,
+      hospitalAddress,
+      hospitalCity,
+      hospitalState,
+      hospitalPincode
+    } = req.body || {};
+
+    const name = String(hospitalName || '').trim();
+    if (!name) {
+      await t.rollback();
+      return res.status(400).json({ success: false, message: 'hospitalName is required' });
+    }
+    const fee = toNumber(consultationFee, null);
+    if (fee === null || fee < 0) {
+      await t.rollback();
+      return res.status(400).json({ success: false, message: 'consultationFee must be >= 0' });
+    }
+
+    const user = await User.findByPk(req.user.id, { transaction: t });
+
+    const hospital = await HospitalProfile.create({
+      userId: req.user.id,
+      hospitalName: name,
+      hospitalEmail: (hospitalEmail && String(hospitalEmail).trim()) || user?.email || null,
+      hospitalPhone: (hospitalPhone && String(hospitalPhone).trim()) || user?.phone || null,
+      hospitalAddress: hospitalAddress ? String(hospitalAddress).trim() : null,
+      hospitalCity: hospitalCity ? String(hospitalCity).trim() : null,
+      hospitalState: hospitalState ? String(hospitalState).trim() : null,
+      hospitalPincode: hospitalPincode ? String(hospitalPincode).trim() : null,
+      hospitalKind: 'solo_practice',
+      verificationStatus: 'approved',
+      specialtyIds: []
+    }, { transaction: t });
+
+    const defaults = await getPlatformDefaults({ PlatformCommissionSettings });
+    const percents = defaultPercentsForMode(COMMISSION_MODES.SINGLE, defaults);
+
+    const anyPrimary = await DoctorPractice.count({
+      where: { doctorProfileId: doctor.id, isPrimary: true },
+      transaction: t
+    });
+
+    const practice = await DoctorPractice.create({
+      doctorProfileId: doctor.id,
+      hospitalProfileId: hospital.id,
+      consultationFee: fee,
+      isPrimary: anyPrimary === 0,
+      isActive: true,
+      status: PRACTICE_STATUSES.ACTIVE,
+      commissionMode: COMMISSION_MODES.SINGLE,
+      platformCommissionPercent: percents.platform,
+      hospitalPayoutPercent: percents.hospital,
+      doctorPayoutPercent: percents.doctor,
+      commissionOverridden: false,
+      notes: null
+    }, { transaction: t });
+
+    await t.commit();
+
+    const created = await DoctorPractice.findByPk(practice.id, {
+      include: [{ model: HospitalProfile, as: 'hospital' }]
+    });
+    return res.status(201).json({ success: true, data: formatPractice(created) });
+  } catch (error) {
+    if (!t.finished) await t.rollback();
+    console.error('Create solo clinic error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to create solo clinic' });
+  }
+};
+
 // Doctor self-service: request affiliation with a hospital.
 exports.createPracticeRequest = async (req, res) => {
   const t = await sequelize.transaction();

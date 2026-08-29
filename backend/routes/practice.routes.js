@@ -12,6 +12,7 @@ router.get('/practices/:practiceId/availability', practiceCtrl.getPublicPractice
 // Doctor self-service
 router.get('/doctor/practices', authenticate, authorize('doctor'), practiceCtrl.listMyPractices);
 router.post('/doctor/practices', authenticate, authorize('doctor'), practiceCtrl.createPracticeRequest);
+router.post('/doctor/solo-clinic', authenticate, authorize('doctor'), practiceCtrl.createSoloClinic);
 router.put('/doctor/practices/:id', authenticate, authorize('doctor'), practiceCtrl.updateMyPractice);
 router.delete('/doctor/practices/:id', authenticate, authorize('doctor'), practiceCtrl.deactivateMyPractice);
 router.get('/doctor/practices/:practiceId/availability', authenticate, authorize('doctor'), practiceCtrl.getMyPracticeAvailability);

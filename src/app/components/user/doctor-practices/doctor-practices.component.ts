@@ -18,12 +18,14 @@ export class DoctorPracticesComponent implements OnInit {
   practices: Practice[] = [];
   hospitals: Partial<Hospital>[] = [];
   addForm!: FormGroup;
+  soloForm!: FormGroup;
   editForm!: FormGroup;
   editingId: number | null = null;
   availabilityId: number | null = null;
   availabilityForm!: FormGroup;
   isLoadingAvailability = false;
   showAdd = false;
+  showSolo = false;
   isLoading = false;
   isSaving = false;
   error = '';
@@ -40,6 +42,16 @@ export class DoctorPracticesComponent implements OnInit {
       hospitalProfileId: ['', Validators.required],
       consultationFee: [0, [Validators.required, Validators.min(0)]],
       notes: ['']
+    });
+    this.soloForm = this.fb.group({
+      hospitalName: ['', [Validators.required, Validators.maxLength(255)]],
+      consultationFee: [0, [Validators.required, Validators.min(0)]],
+      hospitalPhone: [''],
+      hospitalEmail: [''],
+      hospitalAddress: [''],
+      hospitalCity: [''],
+      hospitalState: [''],
+      hospitalPincode: ['']
     });
     this.editForm = this.fb.group({
       consultationFee: [0, [Validators.required, Validators.min(0)]],
@@ -93,7 +105,61 @@ export class DoctorPracticesComponent implements OnInit {
     this.showAdd = !this.showAdd;
     this.error = '';
     this.success = '';
-    if (this.showAdd) this.addForm.reset({ hospitalProfileId: '', consultationFee: 0, notes: '' });
+    if (this.showAdd) {
+      this.showSolo = false;
+      this.addForm.reset({ hospitalProfileId: '', consultationFee: 0, notes: '' });
+    }
+  }
+
+  toggleSolo(): void {
+    this.showSolo = !this.showSolo;
+    this.error = '';
+    this.success = '';
+    if (this.showSolo) {
+      this.showAdd = false;
+      this.soloForm.reset({
+        hospitalName: '',
+        consultationFee: 0,
+        hospitalPhone: '',
+        hospitalEmail: '',
+        hospitalAddress: '',
+        hospitalCity: '',
+        hospitalState: '',
+        hospitalPincode: ''
+      });
+    }
+  }
+
+  submitSolo(): void {
+    if (this.soloForm.invalid) {
+      this.soloForm.markAllAsTouched();
+      return;
+    }
+    this.isSaving = true;
+    this.error = '';
+    const v = this.soloForm.value;
+    this.practiceService.createSoloClinic({
+      hospitalName: String(v.hospitalName).trim(),
+      consultationFee: Number(v.consultationFee),
+      hospitalPhone: v.hospitalPhone || undefined,
+      hospitalEmail: v.hospitalEmail || undefined,
+      hospitalAddress: v.hospitalAddress || undefined,
+      hospitalCity: v.hospitalCity || undefined,
+      hospitalState: v.hospitalState || undefined,
+      hospitalPincode: v.hospitalPincode || undefined
+    }).subscribe({
+      next: () => {
+        this.success = 'Your clinic is set up. You can now be booked at your own practice.';
+        this.showSolo = false;
+        this.isSaving = false;
+        this.loadPractices();
+        this.loadHospitals();
+      },
+      error: (err) => {
+        this.error = err?.error?.message || 'Failed to create solo clinic';
+        this.isSaving = false;
+      }
+    });
   }
 
   submitAdd(): void {

@@ -12,4 +12,9 @@ import { RouterModule } from '@angular/router';
 export class FooterComponent {
   readonly year = new Date().getFullYear();
   readonly appVersion = '1.0.0';
+
+  scrollTop(event: Event): void {
+    event.preventDefault();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 }

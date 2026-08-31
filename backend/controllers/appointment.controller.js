@@ -549,12 +549,12 @@ exports.getPatientAnalytics = async (req, res) => {
       if (statusCounts[row.status] !== undefined) statusCounts[row.status]++;
 
       if (['confirmed', 'completed'].includes(row.status)) {
-        if (typeof row.finalPrice === 'number' && !Number.isNaN(row.finalPrice)) {
-          totalSpent += row.finalPrice;
-        } else if (typeof row.originalPrice === 'number' && !Number.isNaN(row.originalPrice)) {
+        // Patient pays the full consultation fee (originalPrice); savings only
+        // land when cashback actually gets issued.
+        if (typeof row.originalPrice === 'number' && !Number.isNaN(row.originalPrice)) {
           totalSpent += row.originalPrice;
         }
-        if (typeof row.discountAmount === 'number' && !Number.isNaN(row.discountAmount)) {
+        if (row.cashbackStatus === 'issued' && typeof row.discountAmount === 'number' && !Number.isNaN(row.discountAmount)) {
           totalSaved += row.discountAmount;
         }
       }
@@ -683,9 +683,11 @@ exports.getDoctorAnalytics = async (req, res) => {
       if (statusCounts[row.status] !== undefined) statusCounts[row.status]++;
 
       if (['confirmed', 'completed'].includes(row.status)) {
-        const priceRaw = row.finalPrice !== null && row.finalPrice !== undefined
-          ? row.finalPrice
-          : row.originalPrice;
+        // Doctor's revenue is the fee actually charged to the patient
+        // (originalPrice), not the post-cashback net.
+        const priceRaw = row.originalPrice !== null && row.originalPrice !== undefined
+          ? row.originalPrice
+          : row.finalPrice;
         const price = priceRaw !== null && priceRaw !== undefined ? parseFloat(priceRaw) : null;
         if (price !== null && !Number.isNaN(price)) {
           totalRevenue += price;
@@ -885,11 +887,20 @@ exports.completeAppointment = async (req, res) => {
     if (appointment.status !== 'confirmed') {
       return res.status(409).json({ success: false, message: 'Only confirmed appointments can be marked complete' });
     }
+    // Online rows must be paid through the gateway before completion.
+    // Offline rows are settled at the hospital desk on the day — the doctor
+    // marking complete attests cash was collected.
     if (appointment.paymentStatus !== 'paid') {
-      return res.status(409).json({
-        success: false,
-        message: 'Appointment is not fully paid yet. Collect payment before marking complete.'
-      });
+      if (appointment.paymentMode === 'offline') {
+        appointment.paymentStatus = 'paid';
+        appointment.paidAt = new Date();
+        appointment.paymentTransactionId = 'COLLECTED-AT-DESK-' + require('crypto').randomBytes(6).toString('hex').toUpperCase();
+      } else {
+        return res.status(409).json({
+          success: false,
+          message: 'Appointment is not fully paid yet. Ask the patient to complete payment before marking complete.'
+        });
+      }
     }
 
     appointment.status = 'completed';

@@ -647,7 +647,8 @@ exports.getHospitalSummary = async (req, res) => {
       const isEarning = ['confirmed', 'completed'].includes(row.status);
       if (isEarning) {
         totals.completedAppointments += row.status === 'completed' ? 1 : 0;
-        totals.grossRevenue += num(row.finalPrice);
+        // Patient pays original_price; commission + payout already reflect that.
+        totals.grossRevenue += num(row.originalPrice);
         totals.platformCommissionCharged += num(row.platformRevenueAmount);
         totals.doctorPayout += num(row.doctorPayoutAmount);
       }

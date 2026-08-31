@@ -152,10 +152,10 @@
                 </div>
               </td>
               <td>
-                <ng-container *ngIf="appointment.finalPrice !== null && appointment.finalPrice !== undefined; else noEarning">
+                <ng-container *ngIf="appointment.originalPrice !== null && appointment.originalPrice !== undefined; else noEarning">
                   <div class="earning-cell">
                     <strong>₹{{ appointment.doctorPayoutAmount || 0 }}</strong>
-                    <small class="text-muted d-block">of ₹{{ appointment.finalPrice }} fee</small>
+                    <small class="text-muted d-block">of ₹{{ appointment.originalPrice }} fee</small>
                   </div>
                 </ng-container>
                 <ng-template #noEarning>

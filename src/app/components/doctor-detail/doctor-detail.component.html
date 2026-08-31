@@ -251,14 +251,16 @@
                   <span class="text-muted">Consultation Fee</span>
                   <span>₹{{ activeConsultationFee }}</span>
                 </div>
-                <div class="d-flex justify-content-between text-success" *ngIf="appliedCoupon">
-                  <span>Discount ({{ appliedCoupon.code }})</span>
-                  <span>−₹{{ appliedCoupon.discountAmount }}</span>
-                </div>
-                <hr class="my-2" *ngIf="appliedCoupon">
+                <hr class="my-2" />
                 <div class="d-flex justify-content-between fw-bold fs-6">
-                  <span>Total Payable</span>
-                  <span>₹{{ appliedCoupon ? appliedCoupon.finalAmount : activeConsultationFee }}</span>
+                  <span>Amount to pay</span>
+                  <span>₹{{ activeConsultationFee }}</span>
+                </div>
+                <div class="cashback-hint mt-2" *ngIf="appliedCoupon">
+                  <i class="bi bi-gift me-1"></i>
+                  <strong>Cashback ₹{{ appliedCoupon.discountAmount }}</strong>
+                  (coupon <code>{{ appliedCoupon.code }}</code>) will be credited within 24 hours
+                  after the doctor marks your appointment complete.
                 </div>
               </div>
             </div>

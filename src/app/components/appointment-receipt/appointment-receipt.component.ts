@@ -54,6 +54,24 @@ export class AppointmentReceiptComponent implements OnInit {
     }
   }
 
+  cashbackBadgeClass(status?: string): string {
+    switch (status) {
+      case 'issued': return 'bg-success';
+      case 'pending': return 'bg-warning text-dark';
+      case 'forfeited': return 'bg-danger';
+      default: return 'bg-secondary';
+    }
+  }
+
+  cashbackLabel(status?: string): string {
+    switch (status) {
+      case 'issued': return 'Credited';
+      case 'pending': return 'Pending';
+      case 'forfeited': return 'Forfeited';
+      default: return 'None';
+    }
+  }
+
   async downloadPdf(): Promise<void> {
     if (!this.receiptBody || this.isDownloading) return;
     this.isDownloading = true;

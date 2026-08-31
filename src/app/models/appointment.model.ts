@@ -26,6 +26,9 @@ export interface AppointmentHistory extends Appointment {
   paymentStatus?: 'paid' | 'pending' | 'failed' | 'refunded';
   paidAt?: string | null;
   paymentTransactionId?: string | null;
+  cashbackStatus?: 'none' | 'pending' | 'issued' | 'forfeited';
+  cashbackIssuedAt?: string | null;
+  cashbackTransactionId?: string | null;
 }
 
 export interface DoctorAppointment {
@@ -46,6 +49,7 @@ export interface DoctorAppointment {
   bookingNumber?: string | null;
   paymentMode?: 'online' | 'offline';
   paymentStatus?: 'paid' | 'pending' | 'failed' | 'refunded';
+  cashbackStatus?: 'none' | 'pending' | 'issued' | 'forfeited';
   createdAt: string;
 }
 
@@ -76,6 +80,7 @@ export interface AppointmentReceipt {
   paymentTransactionId: string | null;
   appointmentDate: string;
   appointmentTime: string | null;
+  appointmentStatus: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'rejected';
   patientName: string;
   patientEmail: string;
   patientPhone: string;
@@ -86,7 +91,12 @@ export interface AppointmentReceipt {
   originalPrice: number | null;
   discountAmount: number;
   finalPrice: number | null;
+  amountPayable: number | null;
   couponCode: string | null;
+  cashbackAmount: number;
+  cashbackStatus: 'none' | 'pending' | 'issued' | 'forfeited';
+  cashbackIssuedAt: string | null;
+  cashbackTransactionId: string | null;
   platformCommission: number;
   doctorPayout: number;
 }

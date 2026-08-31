@@ -67,6 +67,9 @@ function formatAppointment(appointment) {
     paymentStatus: value.paymentStatus || 'pending',
     paidAt: value.paidAt || null,
     paymentTransactionId: value.paymentTransactionId || null,
+    cashbackStatus: value.cashbackStatus || 'none',
+    cashbackIssuedAt: value.cashbackIssuedAt || null,
+    cashbackTransactionId: value.cashbackTransactionId || null,
     createdAt: value.createdAt
   };
 }
@@ -94,6 +97,7 @@ function formatDoctorAppointment(appointment) {
     bookingNumber: value.bookingNumber || null,
     paymentMode: value.paymentMode || 'offline',
     paymentStatus: value.paymentStatus || 'pending',
+    cashbackStatus: value.cashbackStatus || 'none',
     createdAt: value.createdAt
   };
 }
@@ -195,7 +199,10 @@ exports.createAppointment = async (req, res) => {
 
     const finalPrice = Math.max(0, originalPrice - couponResult.discountAmount);
     const hospitalCommissionPercent = parseFloat(practice.hospital?.hospitalCommissionPercent) || 0;
-    const commission = computeCommission({ basePrice: finalPrice, hospitalCommissionPercent });
+    // Commission is charged on the full consultation fee; cashback comes out of
+    // the platform's commission revenue after the doctor completes the appointment.
+    const commission = computeCommission({ basePrice: originalPrice, hospitalCommissionPercent });
+    const cashbackStatus = couponResult.discountAmount > 0 ? 'pending' : 'none';
 
     // One retry on booking-number collision (base32 6-char).
     let appointment;
@@ -223,7 +230,8 @@ exports.createAppointment = async (req, res) => {
           doctorPayoutAmount: commission.doctorPayout,
           paymentMode: mode,
           paymentStatus: 'pending',
-          bookingNumber: generateBookingNumber()
+          bookingNumber: generateBookingNumber(),
+          cashbackStatus
         });
         break;
       } catch (err) {
@@ -397,6 +405,9 @@ exports.cancelAppointment = async (req, res) => {
     }
 
     appointment.status = 'cancelled';
+    if (appointment.cashbackStatus === 'pending') {
+      appointment.cashbackStatus = 'forfeited';
+    }
     await appointment.save();
 
     const refreshed = await Appointment.findByPk(appointment.id, { include: [doctorInclude, hospitalInclude] });
@@ -486,6 +497,9 @@ exports.rejectAppointment = async (req, res) => {
 
     appointment.status = 'rejected';
     appointment.rejectionReason = String(reason).trim();
+    if (appointment.cashbackStatus === 'pending') {
+      appointment.cashbackStatus = 'forfeited';
+    }
     await appointment.save();
 
     return res.json({
@@ -813,6 +827,8 @@ exports.getAdminAppointments = async (req, res) => {
 };
 
 // Mock payment endpoint. Real gateway integration slots in here.
+// Patient always pays the full consultation fee (original_price); any coupon
+// discount is issued as cashback after the doctor marks the appointment complete.
 exports.payAppointment = async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10);
@@ -849,6 +865,54 @@ exports.payAppointment = async (req, res) => {
   }
 };
 
+// Doctor marks a confirmed appointment complete. If the patient used a coupon,
+// this issues the cashback (mock) in the same call — real system would queue
+// this for a 24h delay.
+exports.completeAppointment = async (req, res) => {
+  try {
+    const doctorProfile = await getDoctorProfile(req.user.id);
+    if (!doctorProfile) {
+      return res.status(404).json({ success: false, message: 'Doctor profile not found' });
+    }
+
+    const appointment = await Appointment.findOne({
+      where: { id: req.params.id, doctorProfileId: doctorProfile.id },
+      include: [patientInclude, hospitalInclude]
+    });
+    if (!appointment) {
+      return res.status(404).json({ success: false, message: 'Appointment not found' });
+    }
+    if (appointment.status !== 'confirmed') {
+      return res.status(409).json({ success: false, message: 'Only confirmed appointments can be marked complete' });
+    }
+    if (appointment.paymentStatus !== 'paid') {
+      return res.status(409).json({
+        success: false,
+        message: 'Appointment is not fully paid yet. Collect payment before marking complete.'
+      });
+    }
+
+    appointment.status = 'completed';
+    if (appointment.cashbackStatus === 'pending' && parseFloat(appointment.discountAmount) > 0) {
+      appointment.cashbackStatus = 'issued';
+      appointment.cashbackIssuedAt = new Date();
+      appointment.cashbackTransactionId = 'CB-MOCK-' + require('crypto').randomBytes(6).toString('hex').toUpperCase();
+    }
+    await appointment.save();
+
+    return res.json({
+      success: true,
+      message: appointment.cashbackStatus === 'issued'
+        ? `Appointment completed. Cashback of ₹${parseFloat(appointment.discountAmount).toFixed(2)} issued to the patient.`
+        : 'Appointment marked complete.',
+      data: formatDoctorAppointment(appointment)
+    });
+  } catch (error) {
+    console.error('Complete appointment error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to mark appointment complete' });
+  }
+};
+
 // Receipt payload — the PDF is rendered client-side.
 exports.getAppointmentReceipt = async (req, res) => {
   try {
@@ -871,6 +935,9 @@ exports.getAppointmentReceipt = async (req, res) => {
       return res.status(403).json({ success: false, message: 'Not allowed to view this receipt' });
     }
     const value = appointment.toJSON();
+    const originalPrice = value.originalPrice !== null ? parseFloat(value.originalPrice) : null;
+    const discountAmount = value.discountAmount !== null ? parseFloat(value.discountAmount) : 0;
+    const finalPrice = value.finalPrice !== null ? parseFloat(value.finalPrice) : null;
     return res.json({
       success: true,
       data: {
@@ -888,10 +955,17 @@ exports.getAppointmentReceipt = async (req, res) => {
         specialization: value.doctorProfile?.specialization?.name || null,
         hospitalName: value.hospitalProfile?.hospitalName || null,
         hospitalCity: value.hospitalProfile?.hospitalCity || null,
-        originalPrice: value.originalPrice !== null ? parseFloat(value.originalPrice) : null,
-        discountAmount: value.discountAmount !== null ? parseFloat(value.discountAmount) : 0,
-        finalPrice: value.finalPrice !== null ? parseFloat(value.finalPrice) : null,
+        appointmentStatus: value.status,
+        originalPrice,
+        discountAmount,
+        finalPrice,
+        // Patient always pays the full consultation fee upfront.
+        amountPayable: originalPrice,
         couponCode: value.couponCode || null,
+        cashbackAmount: discountAmount,
+        cashbackStatus: value.cashbackStatus || 'none',
+        cashbackIssuedAt: value.cashbackIssuedAt || null,
+        cashbackTransactionId: value.cashbackTransactionId || null,
         platformCommission: value.platformRevenueAmount !== null ? parseFloat(value.platformRevenueAmount) : 0,
         doctorPayout: value.doctorPayoutAmount !== null ? parseFloat(value.doctorPayoutAmount) : 0
       }

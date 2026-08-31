@@ -74,22 +74,51 @@
           <td>Consultation fee</td>
           <td class="text-end">₹{{ receipt.originalPrice | number:'1.2-2' }}</td>
         </tr>
-        <tr *ngIf="receipt.discountAmount">
-          <td class="text-success">Coupon discount ({{ receipt.couponCode }})</td>
-          <td class="text-end text-success">&minus;₹{{ receipt.discountAmount | number:'1.2-2' }}</td>
-        </tr>
         <tr class="grand-row">
-          <td>Total</td>
-          <td class="text-end">₹{{ receipt.finalPrice | number:'1.2-2' }}</td>
+          <td>Amount payable</td>
+          <td class="text-end">₹{{ receipt.amountPayable | number:'1.2-2' }}</td>
         </tr>
       </tbody>
     </table>
 
+    <div class="cashback-section" *ngIf="receipt.cashbackAmount && receipt.cashbackAmount > 0">
+      <div class="cashback-head">
+        <div>
+          <i class="bi bi-gift me-2"></i>
+          <strong>Cashback</strong>
+          <span *ngIf="receipt.couponCode" class="ms-2 text-muted">
+            (coupon <code>{{ receipt.couponCode }}</code>)
+          </span>
+        </div>
+        <span class="badge fs-6" [ngClass]="cashbackBadgeClass(receipt.cashbackStatus)">
+          {{ cashbackLabel(receipt.cashbackStatus) }}
+        </span>
+      </div>
+      <div class="cashback-body">
+        <div class="cashback-amount">₹{{ receipt.cashbackAmount | number:'1.2-2' }}</div>
+        <div class="cashback-hint">
+          <ng-container [ngSwitch]="receipt.cashbackStatus">
+            <span *ngSwitchCase="'pending'">
+              Will be credited within 24 hours after the doctor marks the appointment complete.
+            </span>
+            <span *ngSwitchCase="'issued'">
+              Credited on {{ receipt.cashbackIssuedAt | date:'medium' }}
+              <span *ngIf="receipt.cashbackTransactionId"> · Txn <code>{{ receipt.cashbackTransactionId }}</code></span>
+            </span>
+            <span *ngSwitchCase="'forfeited'">
+              Cashback was forfeited because the appointment was cancelled or rejected.
+            </span>
+            <span *ngSwitchDefault>Cashback status: {{ receipt.cashbackStatus }}</span>
+          </ng-container>
+        </div>
+      </div>
+    </div>
+
     <div class="pending-note" *ngIf="receipt.paymentStatus === 'pending'">
       <i class="bi bi-info-circle me-1"></i>
-      Payment is <strong>pending</strong>. Please pay ₹{{ receipt.finalPrice | number:'1.2-2' }} at
-      the hospital reception desk and quote your booking number
-      <strong>{{ receipt.bookingNumber }}</strong>.
+      Payment is <strong>pending</strong>. Please pay
+      ₹{{ receipt.amountPayable | number:'1.2-2' }} at the hospital reception desk and quote
+      your booking number <strong>{{ receipt.bookingNumber }}</strong>.
     </div>
 
     <div class="footer">

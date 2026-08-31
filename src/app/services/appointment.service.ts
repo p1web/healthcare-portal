@@ -104,6 +104,10 @@ export class AppointmentService {
     return this.http.post<{ success: boolean; message: string; data: any }>(`${this.apiUrl}/doctor/bulk-approve`, { ids });
   }
 
+  completeAppointment(id: number): Observable<{ success: boolean; message: string; data: DoctorAppointment }> {
+    return this.http.patch<{ success: boolean; message: string; data: DoctorAppointment }>(`${this.apiUrl}/${id}/complete`, {});
+  }
+
   cancelAppointment(id: number): Observable<{ success: boolean; message: string; data: any }> {
     return this.http.patch<{ success: boolean; message: string; data: any }>(`${this.apiUrl}/${id}/cancel`, {});
   }

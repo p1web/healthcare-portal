@@ -160,6 +160,22 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING(64),
       allowNull: true,
       field: 'payment_transaction_id'
+    },
+    cashbackStatus: {
+      type: DataTypes.ENUM('none', 'pending', 'issued', 'forfeited'),
+      allowNull: false,
+      defaultValue: 'none',
+      field: 'cashback_status'
+    },
+    cashbackIssuedAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      field: 'cashback_issued_at'
+    },
+    cashbackTransactionId: {
+      type: DataTypes.STRING(64),
+      allowNull: true,
+      field: 'cashback_transaction_id'
     }
   }, {
     sequelize,

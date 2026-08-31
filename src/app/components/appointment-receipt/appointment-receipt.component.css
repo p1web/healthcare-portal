@@ -131,3 +131,39 @@
   .receipt-page { margin: 0; padding: 0; }
   .receipt-card { border: none; box-shadow: none; }
 }
+
+.cashback-section {
+  margin-top: 1.25rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid #d1fae5;
+  background: #ecfdf5;
+  border-radius: 10px;
+}
+
+.cashback-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.cashback-body {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1rem;
+}
+
+.cashback-amount {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #065f46;
+}
+
+.cashback-hint {
+  color: #065f46;
+  font-size: 0.88rem;
+  max-width: 380px;
+  text-align: right;
+}

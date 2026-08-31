@@ -133,6 +133,11 @@
                 <div class="small mt-1" *ngIf="appointment.paymentMode === 'online' && appointment.paymentStatus === 'pending'">
                   <a [routerLink]="['/appointments', appointment.id, 'pay']" class="text-primary">Pay now</a>
                 </div>
+                <div class="small mt-1" *ngIf="appointment.cashbackStatus && appointment.cashbackStatus !== 'none'">
+                  <span class="status-badge" [ngClass]="cashbackBadgeClass(appointment.cashbackStatus)">
+                    <i class="bi bi-gift me-1"></i>Cashback {{ cashbackLabel(appointment.cashbackStatus) }}
+                  </span>
+                </div>
               </td>
               <td>
                 <span class="status-badge" [ngClass]="getStatusClass(appointment.status)">

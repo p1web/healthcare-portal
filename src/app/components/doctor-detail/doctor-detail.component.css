@@ -138,3 +138,11 @@
   border-color: #dfe3e8;
   opacity: 1;
 }
+.pricing-summary .cashback-hint {
+  padding: 0.5rem 0.75rem;
+  background: #ecfdf5;
+  border-left: 3px solid #10b981;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  color: #065f46;
+}

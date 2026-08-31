@@ -28,23 +28,26 @@
         </div>
         <div class="row-line">
           <span class="label">Consultation fee</span>
-          <span>₹{{ receipt.originalPrice }}</span>
-        </div>
-        <div class="row-line text-success" *ngIf="receipt.discountAmount">
-          <span class="label">Discount ({{ receipt.couponCode }})</span>
-          <span>&minus;₹{{ receipt.discountAmount }}</span>
+          <span>₹{{ receipt.originalPrice | number:'1.2-2' }}</span>
         </div>
         <hr />
         <div class="row-line total">
           <span class="label">Amount to pay</span>
-          <span>₹{{ receipt.finalPrice }}</span>
+          <span>₹{{ receipt.amountPayable | number:'1.2-2' }}</span>
+        </div>
+
+        <div class="cashback-note" *ngIf="receipt.cashbackAmount && receipt.cashbackAmount > 0">
+          <i class="bi bi-gift me-1"></i>
+          <strong>Cashback ₹{{ receipt.cashbackAmount | number:'1.2-2' }}</strong>
+          <span *ngIf="receipt.couponCode"> (coupon <code>{{ receipt.couponCode }}</code>)</span>
+          will be credited within 24 hours after your doctor marks the appointment complete.
         </div>
       </div>
 
       <div class="pay-actions">
         <button class="btn btn-primary btn-lg w-100" (click)="pay()" [disabled]="isPaying">
           <span *ngIf="!isPaying">
-            <i class="bi bi-shield-lock me-2"></i>Pay ₹{{ receipt.finalPrice }} (Mock)
+            <i class="bi bi-shield-lock me-2"></i>Pay ₹{{ receipt.amountPayable | number:'1.2-2' }} (Mock)
           </span>
           <span *ngIf="isPaying">
             <span class="spinner-border spinner-border-sm me-2"></span>Processing...

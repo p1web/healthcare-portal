@@ -15,6 +15,7 @@ import { AppointmentService } from '../../../services/appointment.service';
 export class DoctorAppointmentsComponent implements OnInit {
   appointments: DoctorAppointment[] = [];
   approvingId: number | null = null;
+  completingId: number | null = null;
   isLoading = true;
   error = '';
   success = '';
@@ -101,6 +102,25 @@ export class DoctorAppointmentsComponent implements OnInit {
       error: error => {
         this.error = error?.error?.message || 'Failed to approve appointment.';
         this.approvingId = null;
+      }
+    });
+  }
+
+  completeAppointment(appointment: DoctorAppointment): void {
+    if (!confirm(`Mark this appointment as completed?\n\nIf the patient used a coupon, the cashback will be credited to them.`)) return;
+    this.completingId = appointment.id;
+    this.error = '';
+    this.success = '';
+    this.appointmentService.completeAppointment(appointment.id).subscribe({
+      next: response => {
+        const index = this.appointments.findIndex(item => item.id === appointment.id);
+        if (index >= 0) this.appointments[index] = response.data;
+        this.success = response.message || 'Appointment marked complete.';
+        this.completingId = null;
+      },
+      error: error => {
+        this.error = error?.error?.message || 'Failed to mark appointment complete.';
+        this.completingId = null;
       }
     });
   }

@@ -99,6 +99,24 @@ export class AppointmentHistoryComponent implements OnInit {
     }
   }
 
+  cashbackBadgeClass(status?: string): string {
+    switch (status) {
+      case 'issued': return 'status-completed';
+      case 'pending': return 'status-pending';
+      case 'forfeited': return 'status-rejected';
+      default: return 'status-pending';
+    }
+  }
+
+  cashbackLabel(status?: string): string {
+    switch (status) {
+      case 'issued': return 'credited';
+      case 'pending': return 'pending';
+      case 'forfeited': return 'forfeited';
+      default: return status || '';
+    }
+  }
+
   formatTime(time: string): string {
     const [hourValue, minute] = time.split(':').map(Number);
     const suffix = hourValue >= 12 ? 'PM' : 'AM';

@@ -77,6 +77,11 @@ export class DoctorPracticesComponent implements OnInit {
     });
   }
 
+  get hasSoloClinic(): boolean {
+    return this.practices.some(p =>
+      p.hospital?.hospitalKind === 'solo_practice' && p.isActive);
+  }
+
   toggleSolo(): void {
     this.showSolo = !this.showSolo;
     this.error = '';

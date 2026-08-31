@@ -67,29 +67,29 @@
       <div class="tile tile-success">
         <div class="tile-icon"><i class="bi bi-wallet2"></i></div>
         <div class="tile-body">
-          <div class="tile-value">₹{{ summary.totals.hospitalPayout }}</div>
-          <div class="tile-label">Hospital payout</div>
+          <div class="tile-value">₹{{ summary.totals.platformCommissionCharged }}</div>
+          <div class="tile-label">Commission owed to platform</div>
         </div>
-        <div class="tile-cta"><small class="text-muted">Doctors ₹{{ summary.totals.doctorPayout }} · Platform ₹{{ summary.totals.platformCommission }}</small></div>
+        <div class="tile-cta"><small class="text-muted">Doctors received ₹{{ summary.totals.doctorPayout }}</small></div>
       </div>
     </div>
   </div>
 
   <section class="doctor-earnings" *ngIf="topDoctors.length">
-    <h6 class="section-title mb-3"><i class="bi bi-graph-up-arrow me-2"></i>Top earning doctors</h6>
+    <h6 class="section-title mb-3"><i class="bi bi-graph-up-arrow me-2"></i>Top billed doctors</h6>
     <table class="table table-sm doctors-table">
       <thead>
         <tr>
           <th>Doctor</th>
           <th class="text-end">Appointments</th>
-          <th class="text-end">Hospital payout</th>
+          <th class="text-end">Commission charged</th>
         </tr>
       </thead>
       <tbody>
         <tr *ngFor="let d of topDoctors">
           <td>{{ d.doctorName }}</td>
           <td class="text-end">{{ d.appointmentCount }}</td>
-          <td class="text-end"><strong>₹{{ d.hospitalPayout }}</strong></td>
+          <td class="text-end"><strong>₹{{ d.commissionCharged }}</strong></td>
         </tr>
       </tbody>
     </table>

@@ -168,19 +168,14 @@
             <div class="detail-value">₹{{ p.consultationFee }}</div>
           </div>
           <div class="col-md-4">
-            <div class="detail-label">Commission mode</div>
-            <div class="detail-value text-capitalize">{{ p.commissionMode }}</div>
+            <div class="detail-label">Platform commission</div>
+            <div class="detail-value">{{ p.hospital?.hospitalCommissionPercent || p.platformCommissionPercent }}%</div>
           </div>
           <div class="col-md-4">
-            <div class="detail-label">Your payout</div>
+            <div class="detail-label">Your payout per booking</div>
             <div class="detail-value">
-              <ng-container *ngIf="p.commissionMode === 'single'; else splitBreakdown">
-                {{ 100 - p.platformCommissionPercent }}% (platform keeps {{ p.platformCommissionPercent }}%)
-              </ng-container>
-              <ng-template #splitBreakdown>
-                {{ p.doctorPayoutPercent }}%
-                <small class="text-muted d-block">Hospital {{ p.hospitalPayoutPercent }}% · Platform {{ p.platformCommissionPercent }}%</small>
-              </ng-template>
+              ₹{{ (p.consultationFee - (p.consultationFee * (p.hospital?.hospitalCommissionPercent || p.platformCommissionPercent) / 100)) | number:'1.0-2' }}
+              <small class="text-muted d-block">(after commission)</small>
             </div>
           </div>
           <div class="col-12 mt-2" *ngIf="p.notes">

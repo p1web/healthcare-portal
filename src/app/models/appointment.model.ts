@@ -36,7 +36,6 @@ export interface DoctorAppointment {
   originalPrice?: number | null;
   finalPrice?: number | null;
   doctorPayoutAmount?: number;
-  commissionMode?: 'single' | 'split' | null;
   createdAt: string;
 }
 

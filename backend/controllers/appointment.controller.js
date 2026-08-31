@@ -11,7 +11,7 @@ const {
 } = require('../models');
 const { Op } = require('sequelize');
 const { isApprovedStatus } = require('../utils/providerReview');
-const { computeCommissionSplit } = require('../utils/practiceCommission');
+const { computeCommission } = require('../utils/practiceCommission');
 const { PRACTICE_STATUSES } = require('../models/doctor-practice');
 
 const doctorInclude = {
@@ -59,9 +59,7 @@ function formatAppointment(appointment) {
       ? parseFloat(value.discountAmount) : 0,
     finalPrice: value.finalPrice !== null && value.finalPrice !== undefined
       ? parseFloat(value.finalPrice) : null,
-    commissionMode: value.commissionModeSnapshot || null,
     platformRevenueAmount: numeric(value.platformRevenueAmount),
-    hospitalPayoutAmount: numeric(value.hospitalPayoutAmount),
     doctorPayoutAmount: numeric(value.doctorPayoutAmount),
     createdAt: value.createdAt
   };
@@ -87,7 +85,6 @@ function formatDoctorAppointment(appointment) {
     finalPrice: value.finalPrice !== null && value.finalPrice !== undefined
       ? parseFloat(value.finalPrice) : null,
     doctorPayoutAmount: numeric(value.doctorPayoutAmount),
-    commissionMode: value.commissionModeSnapshot || null,
     createdAt: value.createdAt
   };
 }
@@ -187,7 +184,8 @@ exports.createAppointment = async (req, res) => {
     }
 
     const finalPrice = Math.max(0, originalPrice - couponResult.discountAmount);
-    const commission = computeCommissionSplit({ basePrice: finalPrice, practice });
+    const hospitalCommissionPercent = parseFloat(practice.hospital?.hospitalCommissionPercent) || 0;
+    const commission = computeCommission({ basePrice: finalPrice, hospitalCommissionPercent });
 
     const appointment = await Appointment.create({
       doctorProfileId: doctorProfile.id,
@@ -207,9 +205,7 @@ exports.createAppointment = async (req, res) => {
       practiceId: practice.id,
       hospitalProfileId: practice.hospitalProfileId,
       platformRevenueAmount: commission.platformRevenue,
-      hospitalPayoutAmount: commission.hospitalPayout,
-      doctorPayoutAmount: commission.doctorPayout,
-      commissionModeSnapshot: commission.commissionMode
+      doctorPayoutAmount: commission.doctorPayout
     });
 
     if (couponResult.coupon) {

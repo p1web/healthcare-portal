@@ -11,11 +11,7 @@ interface AdminPractice {
   isPrimary: boolean;
   isActive: boolean;
   status: 'pending_hospital_approval' | 'active' | 'rejected' | 'inactive';
-  commissionMode: 'single' | 'split';
   platformCommissionPercent: number;
-  hospitalPayoutPercent: number;
-  doctorPayoutPercent: number;
-  commissionOverridden: boolean;
   notes: string | null;
   hospital: {
     id: number;
@@ -23,6 +19,7 @@ interface AdminPractice {
     hospitalKind: 'solo_practice' | 'multi_doctor';
     hospitalCity: string | null;
     ownerUserId: number;
+    hospitalCommissionPercent: number;
   } | null;
   doctor: {
     id: number;
@@ -50,7 +47,6 @@ export class AdminPracticesComponent implements OnInit {
   success = '';
 
   statusFilter = '';
-  modeFilter = '';
   search = '';
 
   editingId: number | null = null;
@@ -60,10 +56,7 @@ export class AdminPracticesComponent implements OnInit {
 
   ngOnInit(): void {
     this.editForm = this.fb.group({
-      commissionMode: ['split', Validators.required],
-      platformCommissionPercent: [0, [Validators.required, Validators.min(0), Validators.max(100)]],
-      hospitalPayoutPercent: [0, [Validators.required, Validators.min(0), Validators.max(100)]],
-      doctorPayoutPercent: [0, [Validators.required, Validators.min(0), Validators.max(100)]],
+      consultationFee: [0, [Validators.required, Validators.min(0)]],
       status: ['active'],
       notes: ['']
     });
@@ -74,8 +67,7 @@ export class AdminPracticesComponent implements OnInit {
     this.isLoading = true;
     this.error = '';
     this.admin.listPractices({
-      status: this.statusFilter || undefined,
-      commissionMode: this.modeFilter || undefined
+      status: this.statusFilter || undefined
     }).subscribe({
       next: (res: any) => {
         this.practices = res.data || [];
@@ -98,20 +90,10 @@ export class AdminPracticesComponent implements OnInit {
     );
   }
 
-  get percentSum(): number {
-    const v = this.editForm.value;
-    return Number(v.platformCommissionPercent || 0)
-      + Number(v.hospitalPayoutPercent || 0)
-      + Number(v.doctorPayoutPercent || 0);
-  }
-
   startEdit(p: AdminPractice): void {
     this.editingId = p.id;
     this.editForm.reset({
-      commissionMode: p.commissionMode,
-      platformCommissionPercent: p.platformCommissionPercent,
-      hospitalPayoutPercent: p.hospitalPayoutPercent,
-      doctorPayoutPercent: p.doctorPayoutPercent,
+      consultationFee: p.consultationFee,
       status: p.status,
       notes: p.notes || ''
     });
@@ -123,19 +105,9 @@ export class AdminPracticesComponent implements OnInit {
     this.editingId = null;
   }
 
-  onModeChange(): void {
-    if (this.editForm.value.commissionMode === 'single') {
-      this.editForm.patchValue({ hospitalPayoutPercent: 0, doctorPayoutPercent: 0 });
-    }
-  }
-
   save(p: AdminPractice): void {
     if (this.editForm.invalid) {
       this.editForm.markAllAsTouched();
-      return;
-    }
-    if (this.percentSum > 100) {
-      this.error = 'Percents sum must not exceed 100.';
       return;
     }
     this.isSaving = true;
@@ -150,23 +122,6 @@ export class AdminPracticesComponent implements OnInit {
       error: (err) => {
         this.isSaving = false;
         this.error = err?.error?.message || 'Failed to update practice';
-      }
-    });
-  }
-
-  resetToDefaults(p: AdminPractice): void {
-    if (!confirm(`Reset practice for ${p.doctor?.user?.name} at ${p.hospital?.hospitalName} to platform defaults?`)) return;
-    this.isSaving = true;
-    this.admin.updatePractice(p.id, { resetToDefaults: true }).subscribe({
-      next: () => {
-        this.isSaving = false;
-        this.success = 'Practice reset to platform defaults.';
-        this.editingId = null;
-        this.load();
-      },
-      error: (err) => {
-        this.isSaving = false;
-        this.error = err?.error?.message || 'Failed to reset';
       }
     });
   }
@@ -187,10 +142,5 @@ export class AdminPracticesComponent implements OnInit {
       case 'rejected': return 'Rejected';
       case 'inactive': return 'Inactive';
     }
-  }
-
-  soloDetected(p: AdminPractice): boolean {
-    return (p.hospital?.hospitalKind === 'solo_practice')
-      || (p.hospital?.ownerUserId === p.doctor?.ownerUserId);
   }
 }

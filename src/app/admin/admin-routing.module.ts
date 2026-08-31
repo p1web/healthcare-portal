@@ -16,6 +16,7 @@ import { CouponFormComponent } from './pages/coupons/coupon-form/coupon-form.com
 import { CouponAnalyticsComponent } from './pages/coupon-analytics/coupon-analytics.component';
 import { AdminPracticesComponent } from './pages/practices/practices.component';
 import { AdminCommissionSettingsComponent } from './pages/commission-settings/commission-settings.component';
+import { AdminHospitalCommissionsComponent } from './pages/hospital-commissions/hospital-commissions.component';
 
 const routes: Routes = [
   {
@@ -41,6 +42,7 @@ const routes: Routes = [
       { path: 'coupons/:id/edit', component: CouponFormComponent },
       { path: 'coupon-analytics', component: CouponAnalyticsComponent },
       { path: 'practices', component: AdminPracticesComponent },
+      { path: 'hospital-commissions', component: AdminHospitalCommissionsComponent },
       { path: 'commission-settings', component: AdminCommissionSettingsComponent },
     ]
   }

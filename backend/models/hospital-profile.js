@@ -126,6 +126,12 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: 'multi_doctor',
       field: 'hospital_kind'
     },
+    hospitalCommissionPercent: {
+      type: DataTypes.DECIMAL(5, 2),
+      allowNull: false,
+      defaultValue: 20.00,
+      field: 'hospital_commission_percent'
+    },
     operatingHours: {
       type: DataTypes.STRING(100),
       allowNull: true,

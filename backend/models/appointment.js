@@ -127,22 +127,11 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: 0,
       field: 'platform_revenue_amount'
     },
-    hospitalPayoutAmount: {
-      type: DataTypes.DECIMAL(10, 2),
-      allowNull: false,
-      defaultValue: 0,
-      field: 'hospital_payout_amount'
-    },
     doctorPayoutAmount: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: false,
       defaultValue: 0,
       field: 'doctor_payout_amount'
-    },
-    commissionModeSnapshot: {
-      type: DataTypes.ENUM('single', 'split'),
-      allowNull: true,
-      field: 'commission_mode_snapshot'
     }
   }, {
     sequelize,

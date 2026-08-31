@@ -10,12 +10,8 @@ const {
   DoctorAvailability,
   sequelize
 } = require('../models');
-const { PRACTICE_STATUSES, COMMISSION_MODES } = require('../models/doctor-practice');
-const {
-  resolveCommissionMode,
-  defaultPercentsForMode,
-  getPlatformDefaults
-} = require('../utils/practiceCommission');
+const { PRACTICE_STATUSES } = require('../models/doctor-practice');
+const { getPlatformDefaults } = require('../utils/practiceCommission');
 const { isApprovedStatus } = require('../utils/providerReview');
 const { PlatformCommissionSettings } = require('../models');
 
@@ -35,18 +31,15 @@ function formatPractice(practice) {
     isPrimary: !!value.isPrimary,
     isActive: !!value.isActive,
     status: value.status,
-    commissionMode: value.commissionMode,
     platformCommissionPercent: toNumber(value.platformCommissionPercent, 0),
-    hospitalPayoutPercent: toNumber(value.hospitalPayoutPercent, 0),
-    doctorPayoutPercent: toNumber(value.doctorPayoutPercent, 0),
-    commissionOverridden: !!value.commissionOverridden,
     notes: value.notes || null,
     hospital: value.hospital ? {
       id: value.hospital.id,
       hospitalName: value.hospital.hospitalName,
       hospitalKind: value.hospital.hospitalKind,
       hospitalCity: value.hospital.hospitalCity,
-      hospitalState: value.hospital.hospitalState
+      hospitalState: value.hospital.hospitalState,
+      hospitalCommissionPercent: toNumber(value.hospital.hospitalCommissionPercent, 0)
     } : null,
     doctor: value.doctor ? {
       id: value.doctor.id,
@@ -175,11 +168,9 @@ exports.createSoloClinic = async (req, res) => {
       hospitalPincode: hospitalPincode ? String(hospitalPincode).trim() : null,
       hospitalKind: 'solo_practice',
       verificationStatus: 'approved',
-      specialtyIds: []
+      specialtyIds: [],
+      hospitalCommissionPercent: (await getPlatformDefaults({ PlatformCommissionSettings })).defaultCommissionPercent
     }, { transaction: t });
-
-    const defaults = await getPlatformDefaults({ PlatformCommissionSettings });
-    const percents = defaultPercentsForMode(COMMISSION_MODES.SINGLE, defaults);
 
     const anyPrimary = await DoctorPractice.count({
       where: { doctorProfileId: doctor.id, isPrimary: true },
@@ -193,11 +184,7 @@ exports.createSoloClinic = async (req, res) => {
       isPrimary: anyPrimary === 0,
       isActive: true,
       status: PRACTICE_STATUSES.ACTIVE,
-      commissionMode: COMMISSION_MODES.SINGLE,
-      platformCommissionPercent: percents.platform,
-      hospitalPayoutPercent: percents.hospital,
-      doctorPayoutPercent: percents.doctor,
-      commissionOverridden: false,
+      platformCommissionPercent: parseFloat(hospital.hospitalCommissionPercent) || 0,
       notes: null
     }, { transaction: t });
 
@@ -251,17 +238,14 @@ exports.createPracticeRequest = async (req, res) => {
       return res.status(409).json({ success: false, message: 'Practice already exists for this doctor + hospital' });
     }
 
-    const mode = resolveCommissionMode({ hospitalProfile: hospital, doctorProfile: doctor });
-    const defaults = await getPlatformDefaults({ PlatformCommissionSettings });
-    const percents = defaultPercentsForMode(mode, defaults);
-
     const anyPrimary = await DoctorPractice.count({
       where: { doctorProfileId: doctor.id, isPrimary: true },
       transaction: t
     });
 
     // Self-owned hospital → auto-approve; otherwise, hospital owner must approve.
-    const selfOwned = mode === COMMISSION_MODES.SINGLE;
+    const selfOwned = (hospital.userId != null && hospital.userId === req.user.id)
+      || hospital.hospitalKind === 'solo_practice';
     const status = selfOwned ? PRACTICE_STATUSES.ACTIVE : PRACTICE_STATUSES.PENDING_HOSPITAL_APPROVAL;
 
     const practice = await DoctorPractice.create({
@@ -271,11 +255,7 @@ exports.createPracticeRequest = async (req, res) => {
       isPrimary: anyPrimary === 0,
       isActive: selfOwned,
       status,
-      commissionMode: mode,
-      platformCommissionPercent: percents.platform,
-      hospitalPayoutPercent: percents.hospital,
-      doctorPayoutPercent: percents.doctor,
-      commissionOverridden: false,
+      platformCommissionPercent: parseFloat(hospital.hospitalCommissionPercent) || 0,
       notes: notes ? String(notes).trim() : null
     }, { transaction: t });
 
@@ -565,9 +545,8 @@ exports.getHospitalSummary = async (req, res) => {
       completedAppointments: 0,
       upcomingAppointments: 0,
       grossRevenue: 0,
-      hospitalPayout: 0,
-      doctorPayout: 0,
-      platformCommission: 0
+      platformCommissionCharged: 0,
+      doctorPayout: 0
     };
     const perDoctor = new Map();
     const todayStr = new Date().toISOString().slice(0, 10);
@@ -581,9 +560,8 @@ exports.getHospitalSummary = async (req, res) => {
       if (isEarning) {
         totals.completedAppointments += row.status === 'completed' ? 1 : 0;
         totals.grossRevenue += num(row.finalPrice);
-        totals.hospitalPayout += num(row.hospitalPayoutAmount);
+        totals.platformCommissionCharged += num(row.platformRevenueAmount);
         totals.doctorPayout += num(row.doctorPayoutAmount);
-        totals.platformCommission += num(row.platformRevenueAmount);
       }
 
       const dateStr = typeof row.appointmentDate === 'string'
@@ -599,19 +577,19 @@ exports.getHospitalSummary = async (req, res) => {
           doctorProfileId: docKey,
           doctorName: row.doctorProfile?.user?.name || `Doctor #${docKey}`,
           appointmentCount: 0,
-          hospitalPayout: 0
+          commissionCharged: 0
         });
       }
       const bucket = perDoctor.get(docKey);
       bucket.appointmentCount++;
-      if (isEarning) bucket.hospitalPayout += num(row.hospitalPayoutAmount);
+      if (isEarning) bucket.commissionCharged += num(row.platformRevenueAmount);
     }
 
     const round2 = (n) => Math.round(n * 100) / 100;
     Object.keys(totals).forEach(k => { if (typeof totals[k] === 'number') totals[k] = round2(totals[k]); });
     const perDoctorArr = Array.from(perDoctor.values())
-      .map(d => ({ ...d, hospitalPayout: round2(d.hospitalPayout) }))
-      .sort((a, b) => b.hospitalPayout - a.hospitalPayout);
+      .map(d => ({ ...d, commissionCharged: round2(d.commissionCharged) }))
+      .sort((a, b) => b.commissionCharged - a.commissionCharged);
 
     return res.json({ success: true, data: { totals, perDoctor: perDoctorArr } });
   } catch (error) {

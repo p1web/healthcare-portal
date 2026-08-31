@@ -64,9 +64,11 @@ router.put("/coupons/:id", couponController.updateCoupon);
 router.delete("/coupons/:id", couponController.deleteCoupon);
 router.patch("/coupons/:id/restore", couponController.restoreCoupon);
 
-// Doctor practices + platform commission defaults
+// Doctor practices + per-hospital commission rate + platform default
 router.get("/practices", adminPracticeController.listPractices);
 router.put("/practices/:id", adminPracticeController.updatePractice);
+router.get("/hospital-commissions", adminPracticeController.listHospitalCommissions);
+router.put("/hospital-commissions/:hospitalProfileId", adminPracticeController.updateHospitalCommission);
 router.get("/commission-settings", adminPracticeController.getCommissionSettings);
 router.put("/commission-settings", adminPracticeController.updateCommissionSettings);
 

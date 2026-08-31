@@ -145,11 +145,20 @@
     </li>
 
     <li class="nav-item">
+      <a class="nav-link" routerLink="/admin/hospital-commissions" routerLinkActive="active"
+         [routerLinkActiveOptions]="{ exact: true }" #hospitalCommissionsLink="routerLinkActive"
+         [class.collapsed]="!hospitalCommissionsLink.isActive">
+        <i class="bi bi-cash-coin"></i>
+        <span>Hospital Commissions</span>
+      </a>
+    </li>
+
+    <li class="nav-item">
       <a class="nav-link" routerLink="/admin/commission-settings" routerLinkActive="active"
          [routerLinkActiveOptions]="{ exact: true }" #commissionSettingsLink="routerLinkActive"
          [class.collapsed]="!commissionSettingsLink.isActive">
         <i class="bi bi-percent"></i>
-        <span>Commission Settings</span>
+        <span>Default Commission</span>
       </a>
     </li>
 

@@ -55,8 +55,7 @@
               <tr>
                 <th>Hospital</th>
                 <th class="text-end">Fee</th>
-                <th>Mode</th>
-                <th class="text-center">P / H / D %</th>
+                <th class="text-end">Commission %</th>
                 <th>Status</th>
               </tr>
             </thead>
@@ -69,15 +68,8 @@
                   <div class="text-muted small">{{ p.hospital?.hospitalCity }}</div>
                 </td>
                 <td class="text-end">₹{{ p.consultationFee }}</td>
-                <td>
-                  <span class="badge" [ngClass]="p.commissionMode === 'single' ? 'bg-info' : 'bg-primary'">
-                    {{ p.commissionMode | titlecase }}
-                  </span>
-                  <i *ngIf="p.commissionOverridden" class="bi bi-shield-exclamation text-warning ms-1"
-                     title="Admin override"></i>
-                </td>
-                <td class="text-center small">
-                  {{ p.platformCommissionPercent }} / {{ p.hospitalPayoutPercent }} / {{ p.doctorPayoutPercent }}
+                <td class="text-end small">
+                  {{ p.hospital?.hospitalCommissionPercent || p.platformCommissionPercent }}%
                 </td>
                 <td>
                   <span class="badge" [ngClass]="practiceStatusBadge(p.status)">{{ practiceStatusLabel(p.status) }}</span>

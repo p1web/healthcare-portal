@@ -8,6 +8,7 @@ export interface PracticeHospital {
   hospitalKind: 'solo_practice' | 'multi_doctor';
   hospitalCity: string | null;
   hospitalState: string | null;
+  hospitalCommissionPercent?: number;
 }
 
 export interface PracticeDoctor {
@@ -26,11 +27,7 @@ export interface Practice {
   isPrimary: boolean;
   isActive: boolean;
   status: 'pending_hospital_approval' | 'active' | 'rejected' | 'inactive';
-  commissionMode: 'single' | 'split';
   platformCommissionPercent: number;
-  hospitalPayoutPercent: number;
-  doctorPayoutPercent: number;
-  commissionOverridden: boolean;
   notes: string | null;
   hospital: PracticeHospital | null;
   doctor?: PracticeDoctor | null;
@@ -141,14 +138,13 @@ export interface HospitalSummary {
     completedAppointments: number;
     upcomingAppointments: number;
     grossRevenue: number;
-    hospitalPayout: number;
+    platformCommissionCharged: number;
     doctorPayout: number;
-    platformCommission: number;
   };
   perDoctor: {
     doctorProfileId: number;
     doctorName: string;
     appointmentCount: number;
-    hospitalPayout: number;
+    commissionCharged: number;
   }[];
 }

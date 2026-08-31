@@ -8,13 +8,8 @@ const {
   Specialization,
   PlatformCommissionSettings
 } = require('../../models');
-const { PRACTICE_STATUSES, COMMISSION_MODES } = require('../../models/doctor-practice');
-const {
-  resolveCommissionMode,
-  defaultPercentsForMode,
-  getPlatformDefaults,
-  invalidatePlatformDefaultsCache
-} = require('../../utils/practiceCommission');
+const { PRACTICE_STATUSES } = require('../../models/doctor-practice');
+const { invalidatePlatformDefaultsCache } = require('../../utils/practiceCommission');
 
 const num = (v) => (v !== null && v !== undefined) ? parseFloat(v) : 0;
 
@@ -28,11 +23,7 @@ function formatAdminPractice(practice) {
     isPrimary: !!value.isPrimary,
     isActive: !!value.isActive,
     status: value.status,
-    commissionMode: value.commissionMode,
     platformCommissionPercent: num(value.platformCommissionPercent),
-    hospitalPayoutPercent: num(value.hospitalPayoutPercent),
-    doctorPayoutPercent: num(value.doctorPayoutPercent),
-    commissionOverridden: !!value.commissionOverridden,
     notes: value.notes || null,
     createdAt: value.createdAt,
     updatedAt: value.updatedAt,
@@ -42,7 +33,8 @@ function formatAdminPractice(practice) {
       hospitalKind: value.hospital.hospitalKind,
       hospitalCity: value.hospital.hospitalCity,
       hospitalState: value.hospital.hospitalState,
-      ownerUserId: value.hospital.userId
+      ownerUserId: value.hospital.userId,
+      hospitalCommissionPercent: num(value.hospital.hospitalCommissionPercent)
     } : null,
     doctor: value.doctor ? {
       id: value.doctor.id,
@@ -57,12 +49,11 @@ function formatAdminPractice(practice) {
 
 exports.listPractices = async (req, res) => {
   try {
-    const { status, hospitalProfileId, doctorProfileId, commissionMode } = req.query;
+    const { status, hospitalProfileId, doctorProfileId } = req.query;
     const where = {};
     if (status && Object.values(PRACTICE_STATUSES).includes(status)) where.status = status;
     if (hospitalProfileId) where.hospitalProfileId = parseInt(hospitalProfileId, 10);
     if (doctorProfileId) where.doctorProfileId = parseInt(doctorProfileId, 10);
-    if (commissionMode && Object.values(COMMISSION_MODES).includes(commissionMode)) where.commissionMode = commissionMode;
 
     const practices = await DoctorPractice.findAll({
       where,
@@ -70,7 +61,7 @@ exports.listPractices = async (req, res) => {
         {
           model: HospitalProfile,
           as: 'hospital',
-          attributes: ['id', 'hospitalName', 'hospitalKind', 'hospitalCity', 'hospitalState', 'userId']
+          attributes: ['id', 'hospitalName', 'hospitalKind', 'hospitalCity', 'hospitalState', 'userId', 'hospitalCommissionPercent']
         },
         {
           model: DoctorProfile,
@@ -92,6 +83,7 @@ exports.listPractices = async (req, res) => {
   }
 };
 
+// Admin update: fee/notes/status only (commission percent is now per-hospital).
 exports.updatePractice = async (req, res) => {
   try {
     const practice = await DoctorPractice.findByPk(req.params.id, {
@@ -109,46 +101,15 @@ exports.updatePractice = async (req, res) => {
     });
     if (!practice) return res.status(404).json({ success: false, message: 'Practice not found' });
 
-    const {
-      commissionMode,
-      platformCommissionPercent,
-      hospitalPayoutPercent,
-      doctorPayoutPercent,
-      resetToDefaults,
-      status,
-      notes
-    } = req.body || {};
+    const { consultationFee, status, notes } = req.body || {};
 
-    if (resetToDefaults === true) {
-      const mode = resolveCommissionMode({ hospitalProfile: practice.hospital, doctorProfile: practice.doctor });
-      const defaults = await getPlatformDefaults({ PlatformCommissionSettings, force: true });
-      const percents = defaultPercentsForMode(mode, defaults);
-      practice.commissionMode = mode;
-      practice.platformCommissionPercent = percents.platform;
-      practice.hospitalPayoutPercent = percents.hospital;
-      practice.doctorPayoutPercent = percents.doctor;
-      practice.commissionOverridden = false;
-    } else {
-      if (commissionMode && !Object.values(COMMISSION_MODES).includes(commissionMode)) {
-        return res.status(400).json({ success: false, message: 'commissionMode must be single or split' });
+    if (consultationFee !== undefined) {
+      const fee = Number(consultationFee);
+      if (!Number.isFinite(fee) || fee < 0) {
+        return res.status(400).json({ success: false, message: 'consultationFee must be >= 0' });
       }
-      const newMode = commissionMode || practice.commissionMode;
-      const plat = platformCommissionPercent !== undefined ? Number(platformCommissionPercent) : num(practice.platformCommissionPercent);
-      const hospPct = newMode === COMMISSION_MODES.SINGLE ? 0 : (hospitalPayoutPercent !== undefined ? Number(hospitalPayoutPercent) : num(practice.hospitalPayoutPercent));
-      const docPct = newMode === COMMISSION_MODES.SINGLE ? 0 : (doctorPayoutPercent !== undefined ? Number(doctorPayoutPercent) : num(practice.doctorPayoutPercent));
-      if ([plat, hospPct, docPct].some(v => !Number.isFinite(v) || v < 0 || v > 100)) {
-        return res.status(400).json({ success: false, message: 'Percents must be between 0 and 100' });
-      }
-      if (plat + hospPct + docPct > 100) {
-        return res.status(400).json({ success: false, message: 'Percents sum must not exceed 100' });
-      }
-      practice.commissionMode = newMode;
-      practice.platformCommissionPercent = plat;
-      practice.hospitalPayoutPercent = hospPct;
-      practice.doctorPayoutPercent = docPct;
-      practice.commissionOverridden = true;
+      practice.consultationFee = fee;
     }
-
     if (status && Object.values(PRACTICE_STATUSES).includes(status)) {
       practice.status = status;
       practice.isActive = status === PRACTICE_STATUSES.ACTIVE;
@@ -163,6 +124,67 @@ exports.updatePractice = async (req, res) => {
   }
 };
 
+// Admin: list all hospitals with their MOU commission rate.
+exports.listHospitalCommissions = async (req, res) => {
+  try {
+    const hospitals = await HospitalProfile.findAll({
+      attributes: ['id', 'hospitalName', 'hospitalKind', 'hospitalCity', 'hospitalState', 'hospitalCommissionPercent', 'verificationStatus'],
+      order: [['hospitalName', 'ASC']]
+    });
+    return res.json({
+      success: true,
+      data: hospitals.map(h => ({
+        id: h.id,
+        hospitalName: h.hospitalName,
+        hospitalKind: h.hospitalKind,
+        hospitalCity: h.hospitalCity,
+        hospitalState: h.hospitalState,
+        verificationStatus: h.verificationStatus,
+        hospitalCommissionPercent: num(h.hospitalCommissionPercent)
+      }))
+    });
+  } catch (error) {
+    console.error('List hospital commissions error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to load hospital commissions' });
+  }
+};
+
+exports.updateHospitalCommission = async (req, res) => {
+  try {
+    const id = parseInt(req.params.hospitalProfileId, 10);
+    if (!Number.isInteger(id)) {
+      return res.status(400).json({ success: false, message: 'Invalid hospital id' });
+    }
+    const rate = Number(req.body?.hospitalCommissionPercent);
+    if (!Number.isFinite(rate) || rate < 0 || rate > 100) {
+      return res.status(400).json({ success: false, message: 'hospitalCommissionPercent must be between 0 and 100' });
+    }
+    const hospital = await HospitalProfile.findByPk(id);
+    if (!hospital) return res.status(404).json({ success: false, message: 'Hospital not found' });
+
+    hospital.hospitalCommissionPercent = rate;
+    await hospital.save();
+
+    // Keep the practice-row snapshot aligned so booking amounts stay in sync.
+    await DoctorPractice.update(
+      { platformCommissionPercent: rate },
+      { where: { hospitalProfileId: id } }
+    );
+
+    return res.json({
+      success: true,
+      data: {
+        id: hospital.id,
+        hospitalName: hospital.hospitalName,
+        hospitalCommissionPercent: num(hospital.hospitalCommissionPercent)
+      }
+    });
+  } catch (error) {
+    console.error('Update hospital commission error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to update commission rate' });
+  }
+};
+
 exports.getCommissionSettings = async (req, res) => {
   try {
     const row = await PlatformCommissionSettings.findOne({ order: [['id', 'ASC']] });
@@ -171,10 +193,7 @@ exports.getCommissionSettings = async (req, res) => {
       success: true,
       data: {
         id: row.id,
-        defaultSoloCommissionPercent: num(row.defaultSoloCommissionPercent),
-        defaultSplitPlatformCommissionPercent: num(row.defaultSplitPlatformCommissionPercent),
-        defaultSplitHospitalPayoutPercent: num(row.defaultSplitHospitalPayoutPercent),
-        defaultSplitDoctorPayoutPercent: num(row.defaultSplitDoctorPayoutPercent),
+        defaultCommissionPercent: num(row.defaultCommissionPercent),
         updatedByUserId: row.updatedByUserId,
         updatedAt: row.updatedAt
       }
@@ -190,36 +209,18 @@ exports.updateCommissionSettings = async (req, res) => {
     const row = await PlatformCommissionSettings.findOne({ order: [['id', 'ASC']] });
     if (!row) return res.status(404).json({ success: false, message: 'Commission settings not configured' });
 
-    const {
-      defaultSoloCommissionPercent,
-      defaultSplitPlatformCommissionPercent,
-      defaultSplitHospitalPayoutPercent,
-      defaultSplitDoctorPayoutPercent
-    } = req.body || {};
-
-    const solo = Number(defaultSoloCommissionPercent);
-    const splitPlat = Number(defaultSplitPlatformCommissionPercent);
-    const splitHosp = Number(defaultSplitHospitalPayoutPercent);
-    const splitDoc = Number(defaultSplitDoctorPayoutPercent);
-
-    if ([solo, splitPlat, splitHosp, splitDoc].some(v => !Number.isFinite(v) || v < 0 || v > 100)) {
-      return res.status(400).json({ success: false, message: 'All percents must be between 0 and 100' });
-    }
-    if (solo > 100) return res.status(400).json({ success: false, message: 'Solo commission cannot exceed 100%' });
-    if (splitPlat + splitHosp + splitDoc > 100) {
-      return res.status(400).json({ success: false, message: 'Split percents sum must not exceed 100' });
+    const rate = Number(req.body?.defaultCommissionPercent);
+    if (!Number.isFinite(rate) || rate < 0 || rate > 100) {
+      return res.status(400).json({ success: false, message: 'defaultCommissionPercent must be between 0 and 100' });
     }
 
-    row.defaultSoloCommissionPercent = solo;
-    row.defaultSplitPlatformCommissionPercent = splitPlat;
-    row.defaultSplitHospitalPayoutPercent = splitHosp;
-    row.defaultSplitDoctorPayoutPercent = splitDoc;
+    row.defaultCommissionPercent = rate;
     row.updatedByUserId = req.user.id;
     await row.save();
 
     invalidatePlatformDefaultsCache();
 
-    return res.json({ success: true, data: { id: row.id } });
+    return res.json({ success: true, data: { id: row.id, defaultCommissionPercent: num(row.defaultCommissionPercent) } });
   } catch (error) {
     console.error('Update commission settings error:', error);
     return res.status(500).json({ success: false, message: 'Failed to update commission settings' });

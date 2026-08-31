@@ -22,10 +22,7 @@ export class AdminCommissionSettingsComponent implements OnInit {
 
   ngOnInit(): void {
     this.form = this.fb.group({
-      defaultSoloCommissionPercent: [15, [Validators.required, Validators.min(0), Validators.max(100)]],
-      defaultSplitPlatformCommissionPercent: [10, [Validators.required, Validators.min(0), Validators.max(100)]],
-      defaultSplitHospitalPayoutPercent: [15, [Validators.required, Validators.min(0), Validators.max(100)]],
-      defaultSplitDoctorPayoutPercent: [75, [Validators.required, Validators.min(0), Validators.max(100)]]
+      defaultCommissionPercent: [20, [Validators.required, Validators.min(0), Validators.max(100)]]
     });
     this.load();
   }
@@ -35,10 +32,7 @@ export class AdminCommissionSettingsComponent implements OnInit {
     this.admin.getCommissionSettings().subscribe({
       next: (res: any) => {
         this.form.patchValue({
-          defaultSoloCommissionPercent: res.data.defaultSoloCommissionPercent,
-          defaultSplitPlatformCommissionPercent: res.data.defaultSplitPlatformCommissionPercent,
-          defaultSplitHospitalPayoutPercent: res.data.defaultSplitHospitalPayoutPercent,
-          defaultSplitDoctorPayoutPercent: res.data.defaultSplitDoctorPayoutPercent
+          defaultCommissionPercent: res.data.defaultCommissionPercent
         });
         this.updatedAt = res.data.updatedAt || null;
         this.isLoading = false;
@@ -50,13 +44,6 @@ export class AdminCommissionSettingsComponent implements OnInit {
     });
   }
 
-  get splitSum(): number {
-    const v = this.form.value;
-    return Number(v.defaultSplitPlatformCommissionPercent || 0)
-      + Number(v.defaultSplitHospitalPayoutPercent || 0)
-      + Number(v.defaultSplitDoctorPayoutPercent || 0);
-  }
-
   submit(): void {
     this.error = '';
     this.success = '';
@@ -64,15 +51,11 @@ export class AdminCommissionSettingsComponent implements OnInit {
       this.form.markAllAsTouched();
       return;
     }
-    if (this.splitSum > 100) {
-      this.error = 'Split percents must sum to 100 or less.';
-      return;
-    }
     this.isSaving = true;
     this.admin.updateCommissionSettings(this.form.value).subscribe({
       next: () => {
         this.isSaving = false;
-        this.success = 'Commission defaults updated. New practices (and admin resets) will use these values.';
+        this.success = 'Default commission updated. New hospitals will inherit this rate.';
         this.load();
       },
       error: (err) => {

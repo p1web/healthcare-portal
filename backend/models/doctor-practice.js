@@ -1,7 +1,6 @@
 'use strict';
 const { Model } = require('sequelize');
 
-const COMMISSION_MODES = Object.freeze({ SINGLE: 'single', SPLIT: 'split' });
 const PRACTICE_STATUSES = Object.freeze({
   PENDING_HOSPITAL_APPROVAL: 'pending_hospital_approval',
   ACTIVE: 'active',
@@ -75,35 +74,12 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       defaultValue: PRACTICE_STATUSES.ACTIVE
     },
-    commissionMode: {
-      type: DataTypes.ENUM(COMMISSION_MODES.SINGLE, COMMISSION_MODES.SPLIT),
-      allowNull: false,
-      defaultValue: COMMISSION_MODES.SPLIT,
-      field: 'commission_mode'
-    },
+    // Snapshot of the hospital's commission rate at the time the row was written.
     platformCommissionPercent: {
       type: DataTypes.DECIMAL(5, 2),
       allowNull: false,
       defaultValue: 0,
       field: 'platform_commission_percent'
-    },
-    hospitalPayoutPercent: {
-      type: DataTypes.DECIMAL(5, 2),
-      allowNull: false,
-      defaultValue: 0,
-      field: 'hospital_payout_percent'
-    },
-    doctorPayoutPercent: {
-      type: DataTypes.DECIMAL(5, 2),
-      allowNull: false,
-      defaultValue: 0,
-      field: 'doctor_payout_percent'
-    },
-    commissionOverridden: {
-      type: DataTypes.BOOLEAN,
-      allowNull: false,
-      defaultValue: false,
-      field: 'commission_overridden'
     },
     notes: {
       type: DataTypes.TEXT,
@@ -117,11 +93,9 @@ module.exports = (sequelize, DataTypes) => {
     timestamps: true
   });
 
-  DoctorPractice.COMMISSION_MODES = COMMISSION_MODES;
   DoctorPractice.STATUSES = PRACTICE_STATUSES;
 
   return DoctorPractice;
 };
 
-module.exports.COMMISSION_MODES = COMMISSION_MODES;
 module.exports.PRACTICE_STATUSES = PRACTICE_STATUSES;

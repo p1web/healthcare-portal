@@ -167,10 +167,9 @@
                     <span class="text-success ms-1">−₹{{ appointment.discountAmount | number:'1.0-2' }}</span>
                   </div>
                   <div class="payout-breakdown small text-muted mt-1"
-                       *ngIf="$any(appointment).platformRevenueAmount || $any(appointment).hospitalPayoutAmount || $any(appointment).doctorPayoutAmount">
-                    <div>P: ₹{{ $any(appointment).platformRevenueAmount || 0 | number:'1.0-2' }}</div>
-                    <div>H: ₹{{ $any(appointment).hospitalPayoutAmount || 0 | number:'1.0-2' }}</div>
-                    <div>D: ₹{{ $any(appointment).doctorPayoutAmount || 0 | number:'1.0-2' }}</div>
+                       *ngIf="$any(appointment).platformRevenueAmount || $any(appointment).doctorPayoutAmount">
+                    <div>Commission: ₹{{ $any(appointment).platformRevenueAmount || 0 | number:'1.0-2' }}</div>
+                    <div>Doctor: ₹{{ $any(appointment).doctorPayoutAmount || 0 | number:'1.0-2' }}</div>
                   </div>
                   <span *ngIf="appointment.paymentStatus" class="payment-pill mt-1"
                         [ngClass]="getPaymentClass(appointment.paymentStatus)">

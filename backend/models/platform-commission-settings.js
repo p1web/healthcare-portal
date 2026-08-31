@@ -17,29 +17,11 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
       autoIncrement: true
     },
-    defaultSoloCommissionPercent: {
+    defaultCommissionPercent: {
       type: DataTypes.DECIMAL(5, 2),
       allowNull: false,
-      defaultValue: 15.00,
-      field: 'default_solo_commission_percent'
-    },
-    defaultSplitPlatformCommissionPercent: {
-      type: DataTypes.DECIMAL(5, 2),
-      allowNull: false,
-      defaultValue: 10.00,
-      field: 'default_split_platform_commission_percent'
-    },
-    defaultSplitHospitalPayoutPercent: {
-      type: DataTypes.DECIMAL(5, 2),
-      allowNull: false,
-      defaultValue: 15.00,
-      field: 'default_split_hospital_payout_percent'
-    },
-    defaultSplitDoctorPayoutPercent: {
-      type: DataTypes.DECIMAL(5, 2),
-      allowNull: false,
-      defaultValue: 75.00,
-      field: 'default_split_doctor_payout_percent'
+      defaultValue: 20.00,
+      field: 'default_commission_percent'
     },
     updatedByUserId: {
       type: DataTypes.INTEGER,

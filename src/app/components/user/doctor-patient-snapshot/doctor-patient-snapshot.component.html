@@ -1,0 +1,120 @@
+<div class="snapshot-page">
+  <div class="page-head">
+    <div>
+      <h2 class="mb-1"><i class="bi bi-file-medical me-2"></i>Patient Medical Snapshot</h2>
+      <p class="text-muted mb-0 small">Doctor's view of the patient's health history.</p>
+    </div>
+    <a routerLink="/doctor-appointments" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i>Back to appointments
+    </a>
+  </div>
+
+  <div *ngIf="isLoading" class="text-center py-5 text-muted">
+    <span class="spinner-border spinner-border-sm me-2"></span>Loading snapshot...
+  </div>
+
+  <div *ngIf="!isLoading && error" class="alert alert-danger">
+    <i class="bi bi-shield-exclamation me-1"></i>{{ error }}
+  </div>
+
+  <ng-container *ngIf="!isLoading && snapshot">
+    <!-- Patient basics -->
+    <div class="snapshot-card">
+      <div class="patient-head">
+        <div class="patient-avatar">{{ snapshot.patient.name?.charAt(0) || 'P' }}</div>
+        <div>
+          <h3 class="mb-1">{{ snapshot.patient.name }}</h3>
+          <div class="text-muted small">
+            <span *ngIf="snapshot.patient.age !== null">{{ snapshot.patient.age }} yrs</span>
+            <span *ngIf="snapshot.patient.gender"> · {{ snapshot.patient.gender | titlecase }}</span>
+            <span *ngIf="snapshot.patient.bloodGroup"> · Blood {{ snapshot.patient.bloodGroup }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="basics-grid">
+        <div><span class="label">Email</span><span>{{ snapshot.patient.email || '—' }}</span></div>
+        <div><span class="label">Phone</span><span>{{ snapshot.patient.phone || '—' }}</span></div>
+        <div><span class="label">Date of birth</span><span>{{ snapshot.patient.dateOfBirth || '—' }}</span></div>
+        <div><span class="label">Height</span><span>{{ snapshot.patient.height ? snapshot.patient.height + ' cm' : '—' }}</span></div>
+        <div><span class="label">Weight</span><span>{{ snapshot.patient.weight ? snapshot.patient.weight + ' kg' : '—' }}</span></div>
+        <div *ngIf="snapshot.patient.emergencyContact">
+          <span class="label">Emergency contact</span>
+          <span>
+            {{ snapshot.patient.emergencyContact.name }}
+            <span class="text-muted small">({{ snapshot.patient.emergencyContact.relation || '—' }})</span>
+            <span *ngIf="snapshot.patient.emergencyContact.phone"> · {{ snapshot.patient.emergencyContact.phone }}</span>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Allergies -->
+    <div class="snapshot-card">
+      <h4 class="section-title"><i class="bi bi-exclamation-triangle text-warning me-2"></i>Allergies</h4>
+      <p *ngIf="!snapshot.allergies.length" class="text-muted mb-0">No allergies recorded.</p>
+
+      <div *ngFor="let a of snapshot.allergies" class="record-row">
+        <div class="record-main">
+          <strong>{{ a.name }}</strong>
+          <span class="badge ms-2" [ngClass]="severityBadgeClass(a.severity)">{{ a.severity || 'Unknown' }}</span>
+          <span class="badge ms-2" [ngClass]="statusBadgeClass(a.status)">{{ a.status | titlecase }}</span>
+        </div>
+        <div class="record-meta small text-muted">
+          <span *ngIf="a.reaction"><strong>Reaction:</strong> {{ a.reaction }}</span>
+          <span *ngIf="a.diagnosedDate"> · Diagnosed {{ a.diagnosedDate }}</span>
+          <span *ngIf="a.resolvedDate"> · Resolved {{ a.resolvedDate }}</span>
+        </div>
+        <div *ngIf="a.notes" class="record-notes small">{{ a.notes }}</div>
+      </div>
+    </div>
+
+    <!-- Medical conditions -->
+    <div class="snapshot-card">
+      <h4 class="section-title"><i class="bi bi-clipboard2-pulse text-primary me-2"></i>Medical Conditions</h4>
+      <p *ngIf="!snapshot.medicalConditions.length" class="text-muted mb-0">No medical conditions recorded.</p>
+
+      <div *ngFor="let c of snapshot.medicalConditions" class="record-row">
+        <div class="record-main">
+          <strong>{{ c.name }}</strong>
+          <span class="badge ms-2" [ngClass]="severityBadgeClass(c.severity)">{{ c.severity || 'Unknown' }}</span>
+          <span class="badge ms-2" [ngClass]="statusBadgeClass(c.status)">{{ c.status | titlecase }}</span>
+        </div>
+        <div class="record-meta small text-muted">
+          <span *ngIf="c.diagnosedDate"><strong>Diagnosed:</strong> {{ c.diagnosedDate }}</span>
+          <span *ngIf="c.resolvedDate"> · Resolved {{ c.resolvedDate }}</span>
+        </div>
+        <div *ngIf="c.notes" class="record-notes small">{{ c.notes }}</div>
+      </div>
+    </div>
+
+    <!-- Prior visits with this doctor -->
+    <div class="snapshot-card">
+      <h4 class="section-title"><i class="bi bi-calendar-check text-success me-2"></i>Your Prior Visits</h4>
+      <p *ngIf="!snapshot.appointmentHistory.length" class="text-muted mb-0">No prior appointments with this patient.</p>
+
+      <table class="table table-sm mb-0" *ngIf="snapshot.appointmentHistory.length">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Reason</th>
+            <th>Status</th>
+            <th>Payment</th>
+            <th>Booking #</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let v of snapshot.appointmentHistory">
+            <td>{{ v.date }}</td>
+            <td>{{ v.time || '—' }}</td>
+            <td>{{ v.reason || '—' }}</td>
+            <td><span class="badge bg-secondary text-uppercase">{{ v.status }}</span></td>
+            <td><span class="badge bg-secondary text-uppercase">{{ v.paymentStatus || 'pending' }}</span></td>
+            <td><code>{{ v.bookingNumber || '—' }}</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </ng-container>
+</div>

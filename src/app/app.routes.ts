@@ -89,6 +89,12 @@ export const routes: Routes = [
         loadComponent: () => import('./components/appointment-receipt/appointment-receipt.component').then(m => m.AppointmentReceiptComponent)
       },
       { path: 'doctor-appointments', component: DoctorAppointmentsComponent, canActivate: [RoleGuard], data: { title: 'Patient Bookings', roles: ['doctor'] } },
+      {
+        path: 'doctor/patients/:userId/snapshot',
+        canActivate: [RoleGuard],
+        data: { title: 'Patient Medical Snapshot', roles: ['doctor'] },
+        loadComponent: () => import('./components/user/doctor-patient-snapshot/doctor-patient-snapshot.component').then(m => m.DoctorPatientSnapshotComponent)
+      },
       { path: 'doctor-analytics', component: DoctorAnalyticsComponent, canActivate: [RoleGuard], data: { title: 'Practice Analytics', roles: ['doctor'] } },
       { path: 'profile/doctor', component: DoctorProfileComponent, canActivate: [RoleGuard], data: { title: 'My Profile', roles: ['doctor'] } },
       { path: 'doctor-practices', component: DoctorPracticesComponent, canActivate: [RoleGuard], data: { title: 'My Practices', roles: ['doctor'] } },

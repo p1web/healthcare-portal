@@ -263,6 +263,29 @@
               </div>
             </div>
 
+            <!-- Payment method -->
+            <div class="col-12">
+              <label class="form-label fw-semibold">Payment Method</label>
+              <div class="btn-group w-100" role="group">
+                <input type="radio" class="btn-check" formControlName="paymentMode" id="payMethodOnline" value="online" />
+                <label class="btn btn-outline-primary" for="payMethodOnline">
+                  <i class="bi bi-credit-card me-1"></i>Pay Online Now
+                </label>
+                <input type="radio" class="btn-check" formControlName="paymentMode" id="payMethodOffline" value="offline" />
+                <label class="btn btn-outline-primary" for="payMethodOffline">
+                  <i class="bi bi-cash-stack me-1"></i>Pay at Hospital
+                </label>
+              </div>
+              <small class="text-muted d-block mt-1">
+                <ng-container *ngIf="appointmentForm.value.paymentMode === 'online'">
+                  Slot is confirmed only after successful payment.
+                </ng-container>
+                <ng-container *ngIf="appointmentForm.value.paymentMode === 'offline'">
+                  Booking is created with <strong>Payment Pending</strong>; settle at the hospital desk.
+                </ng-container>
+              </small>
+            </div>
+
             <div class="col-12">
               <button 
                 type="submit"

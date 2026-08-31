@@ -8,6 +8,8 @@ router.use(authenticate);
 router.get('/', authorize('patient'), controller.getPatientAppointments);
 router.get('/patient/analytics', authorize('patient'), controller.getPatientAnalytics);
 router.post('/', authorize('patient'), controller.createAppointment);
+router.post('/:id/pay', authorize('patient'), controller.payAppointment);
+router.get('/:id/receipt', authorize('patient', 'doctor', 'hospital', 'admin'), controller.getAppointmentReceipt);
 router.patch('/:id/cancel', authorize('patient', 'doctor', 'admin'), controller.cancelAppointment);
 router.get('/doctor', authorize('doctor'), controller.getDoctorAppointments);
 router.get('/doctor/analytics', authorize('doctor'), controller.getDoctorAnalytics);

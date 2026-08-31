@@ -76,6 +76,18 @@ export const routes: Routes = [
       { path: 'profile/patient', component: PatientProfileComponent, canActivate: [RoleGuard], data: { title: 'My Profile', roles: ['patient'] } },
       { path: 'patient-dashboard', component: PatientDashboardComponent, canActivate: [RoleGuard], data: { title: 'Dashboard', roles: ['patient'] } },
       { path: 'appointments', component: AppointmentHistoryComponent, canActivate: [RoleGuard], data: { title: 'My Appointments', roles: ['patient'] } },
+      {
+        path: 'appointments/:id/pay',
+        canActivate: [RoleGuard],
+        data: { title: 'Complete Payment', roles: ['patient'] },
+        loadComponent: () => import('./components/appointment-payment/appointment-payment.component').then(m => m.AppointmentPaymentComponent)
+      },
+      {
+        path: 'appointments/:id/receipt',
+        canActivate: [RoleGuard],
+        data: { title: 'Booking Receipt', roles: ['patient', 'doctor', 'hospital'] },
+        loadComponent: () => import('./components/appointment-receipt/appointment-receipt.component').then(m => m.AppointmentReceiptComponent)
+      },
       { path: 'doctor-appointments', component: DoctorAppointmentsComponent, canActivate: [RoleGuard], data: { title: 'Patient Bookings', roles: ['doctor'] } },
       { path: 'doctor-analytics', component: DoctorAnalyticsComponent, canActivate: [RoleGuard], data: { title: 'Practice Analytics', roles: ['doctor'] } },
       { path: 'profile/doctor', component: DoctorProfileComponent, canActivate: [RoleGuard], data: { title: 'My Profile', roles: ['doctor'] } },

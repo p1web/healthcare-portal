@@ -77,6 +77,7 @@
               <th>Date & Time</th>
               <th>Reason</th>
               <th>Pricing</th>
+              <th>Payment</th>
               <th>Status</th>
               <th>Booked On</th>
               <th class="text-end">Actions</th>
@@ -123,18 +124,35 @@
                 <span *ngIf="appointment.originalPrice === null || appointment.originalPrice === undefined" class="text-muted small">—</span>
               </td>
               <td>
+                <span class="status-badge" [ngClass]="paymentBadgeClass(appointment.paymentStatus)">
+                  {{ (appointment.paymentStatus || 'pending') | titlecase }}
+                </span>
+                <div class="small text-muted mt-1" *ngIf="appointment.bookingNumber">
+                  <code class="coupon-chip">{{ appointment.bookingNumber }}</code>
+                </div>
+                <div class="small mt-1" *ngIf="appointment.paymentMode === 'online' && appointment.paymentStatus === 'pending'">
+                  <a [routerLink]="['/appointments', appointment.id, 'pay']" class="text-primary">Pay now</a>
+                </div>
+              </td>
+              <td>
                 <span class="status-badge" [ngClass]="getStatusClass(appointment.status)">
                   {{ appointment.status | titlecase }}
                 </span>
               </td>
               <td>{{ appointment.createdAt | date:'dd MMM yyyy' }}</td>
               <td class="text-end">
+                <a *ngIf="appointment.bookingNumber"
+                   [routerLink]="['/appointments', appointment.id, 'receipt']"
+                   class="btn btn-sm btn-outline-secondary me-1"
+                   title="View receipt">
+                  <i class="bi bi-receipt"></i>
+                </a>
                 <button *ngIf="canCancel(appointment.status)"
                         type="button" class="btn btn-sm btn-outline-danger"
                         (click)="cancelAppointment(appointment.id)">
                   <i class="bi bi-x-lg me-1"></i>Cancel
                 </button>
-                <span *ngIf="!canCancel(appointment.status)" class="text-muted small">—</span>
+                <span *ngIf="!canCancel(appointment.status) && !appointment.bookingNumber" class="text-muted small">—</span>
               </td>
             </tr>
           </tbody>

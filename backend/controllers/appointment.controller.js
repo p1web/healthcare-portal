@@ -12,6 +12,7 @@ const {
 const { Op } = require('sequelize');
 const { isApprovedStatus } = require('../utils/providerReview');
 const { computeCommission } = require('../utils/practiceCommission');
+const { generateBookingNumber } = require('../utils/bookingNumber');
 const { PRACTICE_STATUSES } = require('../models/doctor-practice');
 
 const doctorInclude = {
@@ -61,6 +62,11 @@ function formatAppointment(appointment) {
       ? parseFloat(value.finalPrice) : null,
     platformRevenueAmount: numeric(value.platformRevenueAmount),
     doctorPayoutAmount: numeric(value.doctorPayoutAmount),
+    bookingNumber: value.bookingNumber || null,
+    paymentMode: value.paymentMode || 'offline',
+    paymentStatus: value.paymentStatus || 'pending',
+    paidAt: value.paidAt || null,
+    paymentTransactionId: value.paymentTransactionId || null,
     createdAt: value.createdAt
   };
 }
@@ -85,6 +91,9 @@ function formatDoctorAppointment(appointment) {
     finalPrice: value.finalPrice !== null && value.finalPrice !== undefined
       ? parseFloat(value.finalPrice) : null,
     doctorPayoutAmount: numeric(value.doctorPayoutAmount),
+    bookingNumber: value.bookingNumber || null,
+    paymentMode: value.paymentMode || 'offline',
+    paymentStatus: value.paymentStatus || 'pending',
     createdAt: value.createdAt
   };
 }
@@ -102,10 +111,11 @@ async function getDoctorProfile(userId) {
 
 exports.createAppointment = async (req, res) => {
   try {
-    const { doctorId, practiceId, date, time, reason, couponCode } = req.body;
+    const { doctorId, practiceId, date, time, reason, couponCode, paymentMode } = req.body;
     if (!doctorId || !date || !time) {
       return res.status(400).json({ success: false, message: 'Doctor, date and time are required' });
     }
+    const mode = paymentMode === 'online' ? 'online' : 'offline';
 
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !/^([01]\d|2[0-3]):[0-5]\d$/.test(time)) {
       return res.status(400).json({ success: false, message: 'Invalid appointment date or time' });
@@ -187,26 +197,41 @@ exports.createAppointment = async (req, res) => {
     const hospitalCommissionPercent = parseFloat(practice.hospital?.hospitalCommissionPercent) || 0;
     const commission = computeCommission({ basePrice: finalPrice, hospitalCommissionPercent });
 
-    const appointment = await Appointment.create({
-      doctorProfileId: doctorProfile.id,
-      patientId: req.user.id,
-      patientName: req.user.name,
-      email: req.user.email,
-      phone: req.user.phone,
-      appointmentDate: date,
-      appointmentTime: time,
-      reason: reason?.trim() || null,
-      status: 'pending',
-      couponCode: couponResult.couponCode,
-      couponId: couponResult.couponId,
-      originalPrice,
-      discountAmount: couponResult.discountAmount,
-      finalPrice,
-      practiceId: practice.id,
-      hospitalProfileId: practice.hospitalProfileId,
-      platformRevenueAmount: commission.platformRevenue,
-      doctorPayoutAmount: commission.doctorPayout
-    });
+    // One retry on booking-number collision (base32 6-char).
+    let appointment;
+    let lastErr;
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        appointment = await Appointment.create({
+          doctorProfileId: doctorProfile.id,
+          patientId: req.user.id,
+          patientName: req.user.name,
+          email: req.user.email,
+          phone: req.user.phone,
+          appointmentDate: date,
+          appointmentTime: time,
+          reason: reason?.trim() || null,
+          status: 'pending',
+          couponCode: couponResult.couponCode,
+          couponId: couponResult.couponId,
+          originalPrice,
+          discountAmount: couponResult.discountAmount,
+          finalPrice,
+          practiceId: practice.id,
+          hospitalProfileId: practice.hospitalProfileId,
+          platformRevenueAmount: commission.platformRevenue,
+          doctorPayoutAmount: commission.doctorPayout,
+          paymentMode: mode,
+          paymentStatus: 'pending',
+          bookingNumber: generateBookingNumber()
+        });
+        break;
+      } catch (err) {
+        lastErr = err;
+        if (err?.name !== 'SequelizeUniqueConstraintError') throw err;
+      }
+    }
+    if (!appointment) throw lastErr;
 
     if (couponResult.coupon) {
       await CouponUsage.create({
@@ -786,3 +811,95 @@ exports.getAdminAppointments = async (req, res) => {
     return res.status(500).json({ success: false, message: 'Failed to fetch appointments' });
   }
 };
+
+// Mock payment endpoint. Real gateway integration slots in here.
+exports.payAppointment = async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (!Number.isInteger(id)) {
+      return res.status(400).json({ success: false, message: 'Invalid appointment id' });
+    }
+    const appointment = await Appointment.findByPk(id);
+    if (!appointment || appointment.patientId !== req.user.id) {
+      return res.status(404).json({ success: false, message: 'Appointment not found' });
+    }
+    if (appointment.paymentMode !== 'online') {
+      return res.status(400).json({ success: false, message: 'This appointment is offline; pay at the hospital desk' });
+    }
+    if (['cancelled', 'rejected'].includes(appointment.status)) {
+      return res.status(400).json({ success: false, message: 'Appointment is no longer active' });
+    }
+    if (appointment.paymentStatus === 'paid') {
+      return res.status(400).json({ success: false, message: 'Appointment is already paid' });
+    }
+    appointment.paymentStatus = 'paid';
+    appointment.paidAt = new Date();
+    appointment.paymentTransactionId = 'MOCK-' + require('crypto').randomBytes(6).toString('hex').toUpperCase();
+    await appointment.save();
+
+    const refreshed = await Appointment.findByPk(id, { include: [doctorInclude, hospitalInclude] });
+    return res.json({
+      success: true,
+      message: 'Payment successful',
+      data: formatAppointment(refreshed)
+    });
+  } catch (error) {
+    console.error('Pay appointment error:', error);
+    return res.status(500).json({ success: false, message: 'Payment failed' });
+  }
+};
+
+// Receipt payload — the PDF is rendered client-side.
+exports.getAppointmentReceipt = async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (!Number.isInteger(id)) {
+      return res.status(400).json({ success: false, message: 'Invalid appointment id' });
+    }
+    const appointment = await Appointment.findByPk(id, {
+      include: [doctorInclude, hospitalInclude, patientInclude]
+    });
+    if (!appointment) {
+      return res.status(404).json({ success: false, message: 'Appointment not found' });
+    }
+    const role = req.user.role;
+    const allowed = (role === 'patient' && appointment.patientId === req.user.id)
+      || role === 'admin'
+      || (role === 'doctor' && appointment.doctorProfile?.userId === req.user.id)
+      || (role === 'hospital' && appointment.hospitalProfile?.userId === req.user.id);
+    if (!allowed) {
+      return res.status(403).json({ success: false, message: 'Not allowed to view this receipt' });
+    }
+    const value = appointment.toJSON();
+    return res.json({
+      success: true,
+      data: {
+        bookingNumber: value.bookingNumber,
+        paymentMode: value.paymentMode,
+        paymentStatus: value.paymentStatus,
+        paidAt: value.paidAt,
+        paymentTransactionId: value.paymentTransactionId,
+        appointmentDate: value.appointmentDate,
+        appointmentTime: value.appointmentTime,
+        patientName: value.patient?.name || value.patientName,
+        patientEmail: value.patient?.email || value.email,
+        patientPhone: value.patient?.phone || value.phone,
+        doctorName: value.doctorProfile?.user?.name || null,
+        specialization: value.doctorProfile?.specialization?.name || null,
+        hospitalName: value.hospitalProfile?.hospitalName || null,
+        hospitalCity: value.hospitalProfile?.hospitalCity || null,
+        originalPrice: value.originalPrice !== null ? parseFloat(value.originalPrice) : null,
+        discountAmount: value.discountAmount !== null ? parseFloat(value.discountAmount) : 0,
+        finalPrice: value.finalPrice !== null ? parseFloat(value.finalPrice) : null,
+        couponCode: value.couponCode || null,
+        platformCommission: value.platformRevenueAmount !== null ? parseFloat(value.platformRevenueAmount) : 0,
+        doctorPayout: value.doctorPayoutAmount !== null ? parseFloat(value.doctorPayoutAmount) : 0
+      }
+    });
+  } catch (error) {
+    console.error('Get appointment receipt error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to load receipt' });
+  }
+};
+
+

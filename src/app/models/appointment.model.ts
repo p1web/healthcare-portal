@@ -1,9 +1,11 @@
 export interface Appointment {
   doctorId: number;
+  practiceId?: number;
   date: string;
   time: string;
   reason?: string;
   couponCode?: string | null;
+  paymentMode?: 'online' | 'offline';
 }
 
 export interface AppointmentHistory extends Appointment {
@@ -19,6 +21,11 @@ export interface AppointmentHistory extends Appointment {
   originalPrice?: number | null;
   discountAmount?: number;
   finalPrice?: number | null;
+  bookingNumber?: string | null;
+  paymentMode?: 'online' | 'offline';
+  paymentStatus?: 'paid' | 'pending' | 'failed' | 'refunded';
+  paidAt?: string | null;
+  paymentTransactionId?: string | null;
 }
 
 export interface DoctorAppointment {
@@ -36,6 +43,9 @@ export interface DoctorAppointment {
   originalPrice?: number | null;
   finalPrice?: number | null;
   doctorPayoutAmount?: number;
+  bookingNumber?: string | null;
+  paymentMode?: 'online' | 'offline';
+  paymentStatus?: 'paid' | 'pending' | 'failed' | 'refunded';
   createdAt: string;
 }
 
@@ -53,7 +63,30 @@ export interface AdminAppointment extends DoctorAppointment {
   originalPrice?: number | null;
   discountAmount?: number | null;
   finalPrice?: number | null;
-  paymentStatus?: 'paid' | 'pending' | 'refunded' | null;
+  paymentStatus?: 'paid' | 'pending' | 'failed' | 'refunded';
   cancelledBy?: 'patient' | 'doctor' | 'admin' | null;
   cancelledAt?: string | null;
+}
+
+export interface AppointmentReceipt {
+  bookingNumber: string;
+  paymentMode: 'online' | 'offline';
+  paymentStatus: 'paid' | 'pending' | 'failed' | 'refunded';
+  paidAt: string | null;
+  paymentTransactionId: string | null;
+  appointmentDate: string;
+  appointmentTime: string | null;
+  patientName: string;
+  patientEmail: string;
+  patientPhone: string;
+  doctorName: string | null;
+  specialization: string | null;
+  hospitalName: string | null;
+  hospitalCity: string | null;
+  originalPrice: number | null;
+  discountAmount: number;
+  finalPrice: number | null;
+  couponCode: string | null;
+  platformCommission: number;
+  doctorPayout: number;
 }

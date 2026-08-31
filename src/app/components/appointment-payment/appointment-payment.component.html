@@ -1,0 +1,61 @@
+<div class="pay-page">
+  <div class="pay-card">
+    <div *ngIf="isLoading" class="text-center py-4 text-muted">
+      <span class="spinner-border spinner-border-sm me-2"></span>Loading...
+    </div>
+
+    <div *ngIf="!isLoading && error" class="alert alert-danger">{{ error }}</div>
+
+    <ng-container *ngIf="!isLoading && receipt">
+      <div class="pay-head">
+        <div class="pay-icon"><i class="bi bi-credit-card-2-front"></i></div>
+        <h3>Complete Payment</h3>
+        <div class="text-muted small">
+          Your slot with <strong>{{ receipt.doctorName }}</strong>
+          on <strong>{{ receipt.appointmentDate }} · {{ receipt.appointmentTime }}</strong>
+          will be confirmed once payment succeeds.
+        </div>
+      </div>
+
+      <div class="pay-details">
+        <div class="row-line" *ngIf="receipt.hospitalName">
+          <span class="label">Hospital</span>
+          <span>{{ receipt.hospitalName }}</span>
+        </div>
+        <div class="row-line">
+          <span class="label">Booking number</span>
+          <span class="mono">{{ receipt.bookingNumber }}</span>
+        </div>
+        <div class="row-line">
+          <span class="label">Consultation fee</span>
+          <span>₹{{ receipt.originalPrice }}</span>
+        </div>
+        <div class="row-line text-success" *ngIf="receipt.discountAmount">
+          <span class="label">Discount ({{ receipt.couponCode }})</span>
+          <span>&minus;₹{{ receipt.discountAmount }}</span>
+        </div>
+        <hr />
+        <div class="row-line total">
+          <span class="label">Amount to pay</span>
+          <span>₹{{ receipt.finalPrice }}</span>
+        </div>
+      </div>
+
+      <div class="pay-actions">
+        <button class="btn btn-primary btn-lg w-100" (click)="pay()" [disabled]="isPaying">
+          <span *ngIf="!isPaying">
+            <i class="bi bi-shield-lock me-2"></i>Pay ₹{{ receipt.finalPrice }} (Mock)
+          </span>
+          <span *ngIf="isPaying">
+            <span class="spinner-border spinner-border-sm me-2"></span>Processing...
+          </span>
+        </button>
+        <div class="text-center small text-muted mt-2">
+          <i class="bi bi-info-circle me-1"></i>
+          Development mode — no real charge is made. Real gateway integration is planned.
+        </div>
+        <a routerLink="/dashboard" class="btn btn-link w-100 mt-2">Cancel and go to dashboard</a>
+      </div>
+    </ng-container>
+  </div>
+</div>

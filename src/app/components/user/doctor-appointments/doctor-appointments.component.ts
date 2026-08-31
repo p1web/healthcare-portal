@@ -194,6 +194,16 @@ export class DoctorAppointmentsComponent implements OnInit {
     return `status-${status}`;
   }
 
+  paymentBadgeClass(status?: string): string {
+    switch (status) {
+      case 'paid': return 'status-completed';
+      case 'pending': return 'status-pending';
+      case 'failed': return 'status-cancelled';
+      case 'refunded': return 'status-rejected';
+      default: return 'status-pending';
+    }
+  }
+
   formatTime(time: string): string {
     const [hourValue, minute] = time.split(':').map(Number);
     const suffix = hourValue >= 12 ? 'PM' : 'AM';

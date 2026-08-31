@@ -50,7 +50,8 @@ export class DoctorDetailComponent implements OnInit {
     this.appointmentForm = this.fb.group({
       reason: [''],
       date: ['', Validators.required],
-      time: ['', Validators.required]
+      time: ['', Validators.required],
+      paymentMode: ['online', Validators.required]
     });
   }
 
@@ -226,15 +227,22 @@ export class DoctorDetailComponent implements OnInit {
       this.appointmentService.bookAppointment(appointmentData).subscribe({
         next: (response: any) => {
           this.isSubmitting = false;
-          this.bookingSuccess = true;
-          this.bookingResult = response?.data || null;
-          this.appointmentForm.reset();
+          const booked = response?.data;
+          this.appointmentForm.reset({ paymentMode: 'online' });
           this.removeCoupon();
 
-          setTimeout(() => {
-            this.bookingSuccess = false;
-            this.bookingResult = null;
-          }, 8000);
+          if (!booked?.id) {
+            this.bookingSuccess = true;
+            this.bookingResult = booked || null;
+            setTimeout(() => { this.bookingSuccess = false; this.bookingResult = null; }, 8000);
+            return;
+          }
+
+          if (booked.paymentMode === 'online' && booked.paymentStatus !== 'paid') {
+            this.router.navigate(['/appointments', booked.id, 'pay']);
+          } else {
+            this.router.navigate(['/appointments', booked.id, 'receipt']);
+          }
         },
         error: (error) => {
           this.isSubmitting = false;

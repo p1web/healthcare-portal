@@ -113,6 +113,7 @@
               <th>Date & Time</th>
               <th>Reason</th>
               <th>Your earning</th>
+              <th>Payment</th>
               <th>Status</th>
               <th class="text-end actions-col">Actions</th>
             </tr>
@@ -160,6 +161,19 @@
                 <ng-template #noEarning>
                   <span class="text-muted small">—</span>
                 </ng-template>
+              </td>
+              <td>
+                <span class="status-badge" [ngClass]="paymentBadgeClass(appointment.paymentStatus)">
+                  {{ (appointment.paymentStatus || 'pending') | titlecase }}
+                </span>
+                <div class="small text-muted mt-1" *ngIf="appointment.bookingNumber">
+                  <code class="coupon-chip">{{ appointment.bookingNumber }}</code>
+                </div>
+                <div class="small text-muted mt-1" *ngIf="appointment.paymentMode">
+                  <i class="bi" [class.bi-credit-card]="appointment.paymentMode === 'online'"
+                     [class.bi-cash-stack]="appointment.paymentMode === 'offline'"></i>
+                  {{ appointment.paymentMode === 'online' ? 'Online' : 'Offline' }}
+                </div>
               </td>
               <td>
                 <span class="status-badge" [ngClass]="getStatusClass(appointment.status)">

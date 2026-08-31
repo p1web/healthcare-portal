@@ -1,0 +1,100 @@
+<div class="receipt-page">
+  <div *ngIf="isLoading" class="text-center py-4 text-muted">
+    <span class="spinner-border spinner-border-sm me-2"></span>Loading...
+  </div>
+
+  <div *ngIf="!isLoading && error" class="alert alert-danger">{{ error }}</div>
+
+  <div class="receipt-actions no-print" *ngIf="!isLoading && receipt">
+    <button class="btn btn-outline-secondary me-2" (click)="print()">
+      <i class="bi bi-printer me-1"></i>Print
+    </button>
+    <button class="btn btn-primary" (click)="downloadPdf()" [disabled]="isDownloading">
+      <span *ngIf="!isDownloading"><i class="bi bi-download me-1"></i>Download PDF</span>
+      <span *ngIf="isDownloading"><span class="spinner-border spinner-border-sm me-1"></span>Preparing...</span>
+    </button>
+    <a routerLink="/dashboard" class="btn btn-link">Back to dashboard</a>
+  </div>
+
+  <div class="receipt-card" #receiptBody *ngIf="!isLoading && receipt">
+    <div class="receipt-header">
+      <div>
+        <h2 class="brand">HealthCare Portal</h2>
+        <div class="subtitle">Appointment Receipt</div>
+      </div>
+      <div class="badge fs-6 payment-badge" [ngClass]="statusBadgeClass(receipt.paymentStatus)">
+        {{ receipt.paymentStatus === 'paid' ? 'Paid' : (receipt.paymentStatus | titlecase) }}
+      </div>
+    </div>
+
+    <div class="booking-strip">
+      <div>
+        <div class="label">Booking Number</div>
+        <div class="value mono">{{ receipt.bookingNumber }}</div>
+      </div>
+      <div>
+        <div class="label">Payment Mode</div>
+        <div class="value">
+          <i class="bi" [class.bi-credit-card]="receipt.paymentMode === 'online'"
+             [class.bi-cash-stack]="receipt.paymentMode === 'offline'"></i>
+          {{ receipt.paymentMode === 'online' ? 'Online' : 'Offline (pay at hospital)' }}
+        </div>
+      </div>
+      <div *ngIf="receipt.paidAt">
+        <div class="label">Paid At</div>
+        <div class="value">{{ receipt.paidAt | date:'medium' }}</div>
+      </div>
+      <div *ngIf="receipt.paymentTransactionId">
+        <div class="label">Transaction ID</div>
+        <div class="value mono">{{ receipt.paymentTransactionId }}</div>
+      </div>
+    </div>
+
+    <div class="section-title">Appointment</div>
+    <div class="grid-2">
+      <div><span class="label">Doctor</span><span>{{ receipt.doctorName }}</span></div>
+      <div><span class="label">Specialization</span><span>{{ receipt.specialization || '—' }}</span></div>
+      <div><span class="label">Hospital</span><span>{{ receipt.hospitalName || '—' }}</span></div>
+      <div><span class="label">Location</span><span>{{ receipt.hospitalCity || '—' }}</span></div>
+      <div><span class="label">Date</span><span>{{ receipt.appointmentDate }}</span></div>
+      <div><span class="label">Time</span><span>{{ receipt.appointmentTime }}</span></div>
+    </div>
+
+    <div class="section-title">Patient</div>
+    <div class="grid-2">
+      <div><span class="label">Name</span><span>{{ receipt.patientName }}</span></div>
+      <div><span class="label">Email</span><span>{{ receipt.patientEmail }}</span></div>
+      <div><span class="label">Phone</span><span>{{ receipt.patientPhone }}</span></div>
+    </div>
+
+    <div class="section-title">Charges</div>
+    <table class="charges">
+      <tbody>
+        <tr>
+          <td>Consultation fee</td>
+          <td class="text-end">₹{{ receipt.originalPrice | number:'1.2-2' }}</td>
+        </tr>
+        <tr *ngIf="receipt.discountAmount">
+          <td class="text-success">Coupon discount ({{ receipt.couponCode }})</td>
+          <td class="text-end text-success">&minus;₹{{ receipt.discountAmount | number:'1.2-2' }}</td>
+        </tr>
+        <tr class="grand-row">
+          <td>Total</td>
+          <td class="text-end">₹{{ receipt.finalPrice | number:'1.2-2' }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="pending-note" *ngIf="receipt.paymentStatus === 'pending'">
+      <i class="bi bi-info-circle me-1"></i>
+      Payment is <strong>pending</strong>. Please pay ₹{{ receipt.finalPrice | number:'1.2-2' }} at
+      the hospital reception desk and quote your booking number
+      <strong>{{ receipt.bookingNumber }}</strong>.
+    </div>
+
+    <div class="footer">
+      <div>Thank you for choosing HealthCare Portal.</div>
+      <div class="small text-muted">Keep this receipt for your records.</div>
+    </div>
+  </div>
+</div>

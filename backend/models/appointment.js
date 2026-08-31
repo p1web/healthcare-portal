@@ -132,6 +132,34 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       defaultValue: 0,
       field: 'doctor_payout_amount'
+    },
+    paymentMode: {
+      type: DataTypes.ENUM('online', 'offline'),
+      allowNull: false,
+      defaultValue: 'offline',
+      field: 'payment_mode'
+    },
+    paymentStatus: {
+      type: DataTypes.ENUM('paid', 'pending', 'failed', 'refunded'),
+      allowNull: false,
+      defaultValue: 'pending',
+      field: 'payment_status'
+    },
+    bookingNumber: {
+      type: DataTypes.STRING(32),
+      allowNull: false,
+      unique: true,
+      field: 'booking_number'
+    },
+    paidAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      field: 'paid_at'
+    },
+    paymentTransactionId: {
+      type: DataTypes.STRING(64),
+      allowNull: true,
+      field: 'payment_transaction_id'
     }
   }, {
     sequelize,

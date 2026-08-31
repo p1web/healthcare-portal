@@ -1,0 +1,133 @@
+.receipt-page {
+  max-width: 720px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.receipt-actions {
+  text-align: right;
+  margin-bottom: 1rem;
+}
+
+.receipt-card {
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  padding: 2rem;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.05);
+}
+
+.receipt-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 2px dashed #d1d5db;
+  padding-bottom: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.brand {
+  margin: 0;
+  color: #4f46e5;
+  font-weight: 700;
+}
+
+.subtitle {
+  color: #6b7280;
+  font-size: 0.95rem;
+}
+
+.payment-badge {
+  padding: 0.4rem 0.8rem;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.booking-strip {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem 1.5rem;
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.booking-strip .label,
+.grid-2 .label {
+  display: block;
+  color: #6b7280;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 0.15rem;
+}
+
+.booking-strip .value {
+  font-weight: 600;
+}
+
+.section-title {
+  font-weight: 700;
+  color: #111827;
+  margin: 1.25rem 0 0.5rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem 1.5rem;
+}
+
+.grid-2 > div {
+  padding: 0.35rem 0;
+}
+
+.grid-2 span:not(.label) {
+  font-weight: 500;
+}
+
+.charges {
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.charges td {
+  padding: 0.5rem 0;
+}
+
+.charges .grand-row td {
+  border-top: 2px solid #111827;
+  padding-top: 0.75rem;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.pending-note {
+  margin-top: 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: 8px;
+  background: #fef3c7;
+  color: #92400e;
+  border-left: 4px solid #f59e0b;
+}
+
+.footer {
+  margin-top: 1.5rem;
+  text-align: center;
+  padding-top: 1rem;
+  border-top: 1px dashed #d1d5db;
+  color: #4b5563;
+}
+
+.mono {
+  font-family: 'Menlo', 'Consolas', monospace;
+}
+
+@media print {
+  .no-print { display: none !important; }
+  .receipt-page { margin: 0; padding: 0; }
+  .receipt-card { border: none; box-shadow: none; }
+}

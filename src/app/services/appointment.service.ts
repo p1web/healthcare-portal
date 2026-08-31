@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Appointment, AppointmentHistory, DoctorAppointment } from '../models/appointment.model';
+import { Appointment, AppointmentHistory, AppointmentReceipt, DoctorAppointment } from '../models/appointment.model';
 
 export interface DoctorAnalytics {
   totals: {
@@ -106,6 +106,14 @@ export class AppointmentService {
 
   cancelAppointment(id: number): Observable<{ success: boolean; message: string; data: any }> {
     return this.http.patch<{ success: boolean; message: string; data: any }>(`${this.apiUrl}/${id}/cancel`, {});
+  }
+
+  payAppointment(id: number): Observable<{ success: boolean; message: string; data: AppointmentHistory }> {
+    return this.http.post<{ success: boolean; message: string; data: AppointmentHistory }>(`${this.apiUrl}/${id}/pay`, {});
+  }
+
+  getReceipt(id: number): Observable<{ success: boolean; data: AppointmentReceipt }> {
+    return this.http.get<{ success: boolean; data: AppointmentReceipt }>(`${this.apiUrl}/${id}/receipt`);
   }
 
   getDoctorAnalytics(): Observable<{ success: boolean; data: DoctorAnalytics }> {

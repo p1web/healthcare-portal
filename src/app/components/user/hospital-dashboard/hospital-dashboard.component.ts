@@ -27,7 +27,7 @@ export class HospitalDashboardComponent implements OnInit {
     }).subscribe({
       next: ({ practices, summary }) => {
         const rows = practices.data || [];
-        this.pendingCount = rows.filter(p => p.status === 'pending_hospital_approval').length;
+        this.pendingCount = rows.filter(p => p.status === 'pending_admin_approval' || p.status === 'pending_hospital_approval').length;
         this.activeCount = rows.filter(p => p.status === 'active').length;
         this.summary = summary.data;
         this.isLoading = false;

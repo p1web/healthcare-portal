@@ -67,6 +67,7 @@ router.patch("/coupons/:id/restore", couponController.restoreCoupon);
 // Doctor practices + per-hospital commission rate + platform default
 router.get("/practices", adminPracticeController.listPractices);
 router.put("/practices/:id", adminPracticeController.updatePractice);
+router.patch("/practices/:id/review", adminPracticeController.reviewPractice);
 router.get("/hospital-commissions", adminPracticeController.listHospitalCommissions);
 router.put("/hospital-commissions/:hospitalProfileId", adminPracticeController.updateHospitalCommission);
 router.get("/commission-settings", adminPracticeController.getCommissionSettings);

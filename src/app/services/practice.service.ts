@@ -26,7 +26,7 @@ export interface Practice {
   consultationFee: number;
   isPrimary: boolean;
   isActive: boolean;
-  status: 'pending_hospital_approval' | 'active' | 'rejected' | 'inactive';
+  status: 'pending_hospital_approval' | 'pending_admin_approval' | 'active' | 'rejected' | 'inactive';
   platformCommissionPercent: number;
   notes: string | null;
   hospital: PracticeHospital | null;
@@ -90,6 +90,22 @@ export class PracticeService {
     return this.http.get<{ success: boolean; data: Practice[] }>(
       `${this.apiBase}/hospital/practices`,
       { params }
+    );
+  }
+
+  listEligibleDoctors(): Observable<{ success: boolean; data: PracticeDoctor[] }> {
+    return this.http.get<{ success: boolean; data: PracticeDoctor[] }>(
+      `${this.apiBase}/hospital/eligible-doctors`
+    );
+  }
+
+  createHospitalPractice(body: { doctorProfileId: number; consultationFee: number; notes?: string }): Observable<{ success: boolean; data: Practice }> {
+    return this.http.post<{ success: boolean; data: Practice }>(`${this.apiBase}/hospital/practices`, body);
+  }
+
+  removeHospitalDoctor(practiceId: number): Observable<{ success: boolean; message: string }> {
+    return this.http.delete<{ success: boolean; message: string }>(
+      `${this.apiBase}/hospital/practices/${practiceId}`
     );
   }
 

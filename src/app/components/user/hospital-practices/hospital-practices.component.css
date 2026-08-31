@@ -72,3 +72,54 @@
   font-weight: 500;
   color: #0f172a;
 }
+
+.modal-backdrop-custom {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 1050;
+}
+
+.modal-shell {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1055;
+  padding: 1rem;
+}
+
+.modal-card {
+  background: #fff;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 540px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+}
+
+.modal-card-head,
+.modal-card-foot {
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.modal-card-head {
+  border-bottom: 1px solid #e5e7eb;
+  justify-content: space-between;
+}
+
+.modal-card-foot {
+  border-top: 1px solid #e5e7eb;
+  justify-content: flex-end;
+}
+
+.modal-card-body {
+  padding: 1.25rem;
+  overflow-y: auto;
+}

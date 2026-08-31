@@ -10,6 +10,7 @@ const {
   DoctorAvailability,
   sequelize
 } = require('../models');
+const { Op } = require('sequelize');
 const { PRACTICE_STATUSES } = require('../models/doctor-practice');
 const { getPlatformDefaults } = require('../utils/practiceCommission');
 const { isApprovedStatus } = require('../utils/providerReview');
@@ -70,7 +71,7 @@ exports.listPublicPracticesForDoctor = async (req, res) => {
       include: [{
         model: HospitalProfile,
         as: 'hospital',
-        attributes: ['id', 'hospitalName', 'hospitalKind', 'hospitalCity', 'hospitalState', 'verificationStatus']
+        attributes: ['id', 'hospitalName', 'hospitalKind', 'hospitalCity', 'hospitalState', 'verificationStatus', 'hospitalCommissionPercent']
       }],
       order: [['isPrimary', 'DESC'], ['id', 'ASC']]
     });
@@ -97,7 +98,7 @@ exports.listMyPractices = async (req, res) => {
       include: [{
         model: HospitalProfile,
         as: 'hospital',
-        attributes: ['id', 'hospitalName', 'hospitalKind', 'hospitalCity', 'hospitalState']
+        attributes: ['id', 'hospitalName', 'hospitalKind', 'hospitalCity', 'hospitalState', 'hospitalCommissionPercent']
       }],
       order: [['isPrimary', 'DESC'], ['id', 'ASC']]
     });
@@ -198,76 +199,6 @@ exports.createSoloClinic = async (req, res) => {
     if (!t.finished) await t.rollback();
     console.error('Create solo clinic error:', error);
     return res.status(500).json({ success: false, message: 'Failed to create solo clinic' });
-  }
-};
-
-// Doctor self-service: request affiliation with a hospital.
-exports.createPracticeRequest = async (req, res) => {
-  const t = await sequelize.transaction();
-  try {
-    const doctor = await DoctorProfile.findOne({ where: { userId: req.user.id }, transaction: t });
-    if (!doctor) {
-      await t.rollback();
-      return res.status(404).json({ success: false, message: 'Doctor profile not found' });
-    }
-
-    const { hospitalProfileId, consultationFee, notes } = req.body || {};
-    const hospId = parseInt(hospitalProfileId, 10);
-    const fee = toNumber(consultationFee, null);
-    if (!Number.isInteger(hospId)) {
-      await t.rollback();
-      return res.status(400).json({ success: false, message: 'hospitalProfileId is required' });
-    }
-    if (fee === null || fee < 0) {
-      await t.rollback();
-      return res.status(400).json({ success: false, message: 'consultationFee must be >= 0' });
-    }
-
-    const hospital = await HospitalProfile.findByPk(hospId, { transaction: t });
-    if (!hospital) {
-      await t.rollback();
-      return res.status(404).json({ success: false, message: 'Hospital not found' });
-    }
-
-    const existing = await DoctorPractice.findOne({
-      where: { doctorProfileId: doctor.id, hospitalProfileId: hospId },
-      transaction: t
-    });
-    if (existing) {
-      await t.rollback();
-      return res.status(409).json({ success: false, message: 'Practice already exists for this doctor + hospital' });
-    }
-
-    const anyPrimary = await DoctorPractice.count({
-      where: { doctorProfileId: doctor.id, isPrimary: true },
-      transaction: t
-    });
-
-    // Self-owned hospital → auto-approve; otherwise, hospital owner must approve.
-    const selfOwned = (hospital.userId != null && hospital.userId === req.user.id)
-      || hospital.hospitalKind === 'solo_practice';
-    const status = selfOwned ? PRACTICE_STATUSES.ACTIVE : PRACTICE_STATUSES.PENDING_HOSPITAL_APPROVAL;
-
-    const practice = await DoctorPractice.create({
-      doctorProfileId: doctor.id,
-      hospitalProfileId: hospId,
-      consultationFee: fee,
-      isPrimary: anyPrimary === 0,
-      isActive: selfOwned,
-      status,
-      platformCommissionPercent: parseFloat(hospital.hospitalCommissionPercent) || 0,
-      notes: notes ? String(notes).trim() : null
-    }, { transaction: t });
-
-    await t.commit();
-    const created = await DoctorPractice.findByPk(practice.id, {
-      include: [{ model: HospitalProfile, as: 'hospital' }]
-    });
-    return res.status(201).json({ success: true, data: formatPractice(created) });
-  } catch (error) {
-    await t.rollback();
-    console.error('Create practice request error:', error);
-    return res.status(500).json({ success: false, message: 'Failed to create practice request' });
   }
 };
 
@@ -372,39 +303,196 @@ exports.listHospitalPractices = async (req, res) => {
   }
 };
 
-// Hospital owner: approve/reject a doctor's affiliation request.
-exports.reviewPractice = async (req, res) => {
+// Retired in CR4: doctors no longer initiate affiliations at other hospitals.
+// The solo-clinic path handles owner-doctor onboarding; multi-doctor
+// affiliations now start from POST /api/hospital/practices (admin-reviewed).
+exports.createPracticeRequest = async (req, res) => {
+  return res.status(410).json({
+    success: false,
+    message: 'This endpoint has been retired. Ask the hospital to send you an affiliation request.'
+  });
+};
+
+// Hospital owner self-service: add a doctor to this hospital. Creates a
+// pending_admin_approval row that the platform admin must approve/reject.
+exports.createHospitalInitiatedPractice = async (req, res) => {
+  const t = await sequelize.transaction();
+  try {
+    const hospital = await HospitalProfile.findOne({ where: { userId: req.user.id }, transaction: t });
+    if (!hospital) {
+      await t.rollback();
+      return res.status(404).json({ success: false, message: 'Hospital profile not found' });
+    }
+
+    const { doctorProfileId, consultationFee, notes } = req.body || {};
+    const docId = parseInt(doctorProfileId, 10);
+    const fee = toNumber(consultationFee, null);
+    if (!Number.isInteger(docId)) {
+      await t.rollback();
+      return res.status(400).json({ success: false, message: 'doctorProfileId is required' });
+    }
+    if (fee === null || fee < 0) {
+      await t.rollback();
+      return res.status(400).json({ success: false, message: 'consultationFee must be >= 0' });
+    }
+
+    const doctor = await DoctorProfile.findByPk(docId, { transaction: t });
+    if (!doctor) {
+      await t.rollback();
+      return res.status(404).json({ success: false, message: 'Doctor not found' });
+    }
+    if (!isApprovedStatus(doctor.verificationStatus)) {
+      await t.rollback();
+      return res.status(400).json({ success: false, message: 'Doctor profile is not approved yet' });
+    }
+
+    const existing = await DoctorPractice.findOne({
+      where: { doctorProfileId: doctor.id, hospitalProfileId: hospital.id },
+      transaction: t
+    });
+    if (existing) {
+      await t.rollback();
+      return res.status(409).json({
+        success: false,
+        message: 'This doctor is already affiliated (or has a pending affiliation) with your hospital'
+      });
+    }
+
+    const practice = await DoctorPractice.create({
+      doctorProfileId: doctor.id,
+      hospitalProfileId: hospital.id,
+      consultationFee: fee,
+      isPrimary: false,
+      isActive: false,
+      status: PRACTICE_STATUSES.PENDING_ADMIN_APPROVAL,
+      platformCommissionPercent: parseFloat(hospital.hospitalCommissionPercent) || 0,
+      notes: notes ? String(notes).trim() : null
+    }, { transaction: t });
+
+    await t.commit();
+    const created = await DoctorPractice.findByPk(practice.id, {
+      include: [
+        { model: HospitalProfile, as: 'hospital' },
+        {
+          model: DoctorProfile,
+          as: 'doctor',
+          include: [
+            { model: User, as: 'user', attributes: ['id', 'name', 'email'] },
+            { model: Specialization, as: 'specialization', attributes: ['id', 'name'] }
+          ]
+        }
+      ]
+    });
+    return res.status(201).json({ success: true, data: formatPractice(created) });
+  } catch (error) {
+    if (!t.finished) await t.rollback();
+    console.error('Create hospital-initiated practice error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to send affiliation request' });
+  }
+};
+
+// Hospital owner: list approved doctors NOT already affiliated with this hospital.
+exports.listEligibleDoctorsForHospital = async (req, res) => {
   try {
     const hospital = await HospitalProfile.findOne({ where: { userId: req.user.id } });
     if (!hospital) return res.status(404).json({ success: false, message: 'Hospital profile not found' });
 
-    const { action, reason } = req.body || {};
-    if (!['approve', 'reject'].includes(action)) {
-      return res.status(400).json({ success: false, message: 'action must be "approve" or "reject"' });
+    const already = await DoctorPractice.findAll({
+      where: { hospitalProfileId: hospital.id },
+      attributes: ['doctorProfileId']
+    });
+    const excludeIds = already.map(r => r.doctorProfileId);
+
+    const where = { verificationStatus: 'approved' };
+    if (excludeIds.length) where.id = { [Op.notIn]: excludeIds };
+
+    const doctors = await DoctorProfile.findAll({
+      where,
+      attributes: ['id', 'registrationNumber', 'qualification'],
+      include: [
+        { model: User, as: 'user', attributes: ['id', 'name', 'email'] },
+        { model: Specialization, as: 'specialization', attributes: ['id', 'name'] }
+      ],
+      order: [[{ model: User, as: 'user' }, 'name', 'ASC']]
+    });
+
+    return res.json({
+      success: true,
+      data: doctors.map(d => ({
+        id: d.id,
+        registrationNumber: d.registrationNumber,
+        qualification: d.qualification,
+        user: d.user ? { id: d.user.id, name: d.user.name, email: d.user.email } : null,
+        specialization: d.specialization ? { id: d.specialization.id, name: d.specialization.name } : null
+      }))
+    });
+  } catch (error) {
+    console.error('List eligible doctors error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to load doctors' });
+  }
+};
+
+// Hospital owner: remove an affiliated doctor. Soft-deactivates the practice
+// and re-primaries another active one for the doctor if needed.
+exports.removeHospitalDoctor = async (req, res) => {
+  const t = await sequelize.transaction();
+  try {
+    const hospital = await HospitalProfile.findOne({ where: { userId: req.user.id }, transaction: t });
+    if (!hospital) {
+      await t.rollback();
+      return res.status(404).json({ success: false, message: 'Hospital profile not found' });
     }
 
     const practice = await DoctorPractice.findOne({
-      where: { id: req.params.id, hospitalProfileId: hospital.id }
+      where: { id: req.params.id, hospitalProfileId: hospital.id },
+      transaction: t
     });
-    if (!practice) return res.status(404).json({ success: false, message: 'Practice not found' });
-    if (practice.status !== PRACTICE_STATUSES.PENDING_HOSPITAL_APPROVAL) {
-      return res.status(409).json({ success: false, message: 'Practice is not pending approval' });
+    if (!practice) {
+      await t.rollback();
+      return res.status(404).json({ success: false, message: 'Practice not found' });
+    }
+    if (!practice.isActive || practice.status !== PRACTICE_STATUSES.ACTIVE) {
+      await t.rollback();
+      return res.status(409).json({ success: false, message: 'Practice is not currently active' });
     }
 
-    if (action === 'approve') {
-      practice.status = PRACTICE_STATUSES.ACTIVE;
-      practice.isActive = true;
-    } else {
-      practice.status = PRACTICE_STATUSES.REJECTED;
-      practice.isActive = false;
-      practice.notes = reason ? String(reason).trim() : practice.notes;
+    const wasPrimary = practice.isPrimary;
+    practice.isActive = false;
+    practice.isPrimary = false;
+    practice.status = PRACTICE_STATUSES.INACTIVE;
+    await practice.save({ transaction: t });
+
+    if (wasPrimary) {
+      const replacement = await DoctorPractice.findOne({
+        where: {
+          doctorProfileId: practice.doctorProfileId,
+          isActive: true,
+          status: PRACTICE_STATUSES.ACTIVE
+        },
+        order: [['id', 'ASC']],
+        transaction: t
+      });
+      if (replacement) {
+        replacement.isPrimary = true;
+        await replacement.save({ transaction: t });
+      }
     }
-    await practice.save();
-    return res.json({ success: true, data: formatPractice(practice) });
+
+    await t.commit();
+    return res.json({ success: true, message: 'Doctor removed from this hospital' });
   } catch (error) {
-    console.error('Review practice error:', error);
-    return res.status(500).json({ success: false, message: 'Failed to review practice' });
+    if (!t.finished) await t.rollback();
+    console.error('Remove hospital doctor error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to remove doctor' });
   }
+};
+
+// Retired in CR4: hospital owners no longer approve affiliations. The admin does.
+exports.reviewPractice = async (req, res) => {
+  return res.status(410).json({
+    success: false,
+    message: 'This endpoint has been retired. Admin review handles affiliation approval.'
+  });
 };
 
 exports.formatPractice = formatPractice;

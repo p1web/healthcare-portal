@@ -158,6 +158,10 @@ export class AdminService {
     return this.http.put(`${this.apiUrl}/practices/${id}`, body);
   }
 
+  reviewPractice(id: number, action: 'approve' | 'reject', reason?: string): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/practices/${id}/review`, { action, reason });
+  }
+
   getCommissionSettings(): Observable<any> {
     return this.http.get(`${this.apiUrl}/commission-settings`);
   }

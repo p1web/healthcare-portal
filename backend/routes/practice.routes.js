@@ -20,6 +20,9 @@ router.put('/doctor/practices/:practiceId/availability', authenticate, authorize
 
 // Hospital owner self-service
 router.get('/hospital/practices', authenticate, authorize('hospital'), practiceCtrl.listHospitalPractices);
+router.post('/hospital/practices', authenticate, authorize('hospital'), practiceCtrl.createHospitalInitiatedPractice);
+router.delete('/hospital/practices/:id', authenticate, authorize('hospital'), practiceCtrl.removeHospitalDoctor);
+router.get('/hospital/eligible-doctors', authenticate, authorize('hospital'), practiceCtrl.listEligibleDoctorsForHospital);
 router.patch('/hospital/practices/:id/review', authenticate, authorize('hospital'), practiceCtrl.reviewPractice);
 router.get('/hospital/summary', authenticate, authorize('hospital'), practiceCtrl.getHospitalSummary);
 

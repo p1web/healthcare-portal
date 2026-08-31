@@ -3,8 +3,6 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormArray, ReactiveFormsModule, Validators, FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { PracticeService, Practice, PracticeAvailabilitySlot } from '../../../services/practice.service';
-import { HospitalService } from '../../../services/hospital.service';
-import { Hospital } from '../../../models/hospital.model';
 
 @Component({
   standalone: true,
@@ -16,15 +14,12 @@ import { Hospital } from '../../../models/hospital.model';
 export class DoctorPracticesComponent implements OnInit {
   readonly weekDays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   practices: Practice[] = [];
-  hospitals: Partial<Hospital>[] = [];
-  addForm!: FormGroup;
   soloForm!: FormGroup;
   editForm!: FormGroup;
   editingId: number | null = null;
   availabilityId: number | null = null;
   availabilityForm!: FormGroup;
   isLoadingAvailability = false;
-  showAdd = false;
   showSolo = false;
   isLoading = false;
   isSaving = false;
@@ -33,16 +28,10 @@ export class DoctorPracticesComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private practiceService: PracticeService,
-    private hospitalService: HospitalService
+    private practiceService: PracticeService
   ) {}
 
   ngOnInit(): void {
-    this.addForm = this.fb.group({
-      hospitalProfileId: ['', Validators.required],
-      consultationFee: [0, [Validators.required, Validators.min(0)]],
-      notes: ['']
-    });
     this.soloForm = this.fb.group({
       hospitalName: ['', [Validators.required, Validators.maxLength(255)]],
       consultationFee: [0, [Validators.required, Validators.min(0)]],
@@ -68,7 +57,6 @@ export class DoctorPracticesComponent implements OnInit {
       )
     });
     this.loadPractices();
-    this.loadHospitals();
   }
 
   get availabilitySlots(): FormArray {
@@ -89,34 +77,11 @@ export class DoctorPracticesComponent implements OnInit {
     });
   }
 
-  loadHospitals(): void {
-    this.hospitalService.getHospitalList().subscribe({
-      next: (data) => { this.hospitals = data; },
-      error: () => { this.hospitals = []; }
-    });
-  }
-
-  availableHospitals(): Partial<Hospital>[] {
-    const taken = new Set(this.practices.map(p => p.hospitalProfileId));
-    return this.hospitals.filter(h => h.id !== undefined && !taken.has(h.id as number));
-  }
-
-  toggleAdd(): void {
-    this.showAdd = !this.showAdd;
-    this.error = '';
-    this.success = '';
-    if (this.showAdd) {
-      this.showSolo = false;
-      this.addForm.reset({ hospitalProfileId: '', consultationFee: 0, notes: '' });
-    }
-  }
-
   toggleSolo(): void {
     this.showSolo = !this.showSolo;
     this.error = '';
     this.success = '';
     if (this.showSolo) {
-      this.showAdd = false;
       this.soloForm.reset({
         hospitalName: '',
         consultationFee: 0,
@@ -153,36 +118,9 @@ export class DoctorPracticesComponent implements OnInit {
         this.showSolo = false;
         this.isSaving = false;
         this.loadPractices();
-        this.loadHospitals();
       },
       error: (err) => {
         this.error = err?.error?.message || 'Failed to create solo clinic';
-        this.isSaving = false;
-      }
-    });
-  }
-
-  submitAdd(): void {
-    if (this.addForm.invalid) {
-      this.addForm.markAllAsTouched();
-      return;
-    }
-    this.isSaving = true;
-    this.error = '';
-    const { hospitalProfileId, consultationFee, notes } = this.addForm.value;
-    this.practiceService.create({
-      hospitalProfileId: Number(hospitalProfileId),
-      consultationFee: Number(consultationFee),
-      notes: notes || undefined
-    }).subscribe({
-      next: () => {
-        this.success = 'Practice request submitted.';
-        this.showAdd = false;
-        this.isSaving = false;
-        this.loadPractices();
-      },
-      error: (err) => {
-        this.error = err?.error?.message || 'Failed to add practice';
         this.isSaving = false;
       }
     });
@@ -257,6 +195,7 @@ export class DoctorPracticesComponent implements OnInit {
   statusLabel(status: Practice['status']): string {
     switch (status) {
       case 'active': return 'Active';
+      case 'pending_admin_approval': return 'Pending admin approval';
       case 'pending_hospital_approval': return 'Pending hospital approval';
       case 'rejected': return 'Rejected';
       case 'inactive': return 'Inactive';
@@ -266,6 +205,7 @@ export class DoctorPracticesComponent implements OnInit {
   statusBadgeClass(status: Practice['status']): string {
     switch (status) {
       case 'active': return 'bg-success';
+      case 'pending_admin_approval': return 'bg-warning text-dark';
       case 'pending_hospital_approval': return 'bg-warning text-dark';
       case 'rejected': return 'bg-danger';
       case 'inactive': return 'bg-secondary';

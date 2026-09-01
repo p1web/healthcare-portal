@@ -485,7 +485,11 @@ exports.getHospitalSummary = async (req, res) => {
       upcomingAppointments: 0,
       grossRevenue: 0,
       platformCommissionCharged: 0,
-      doctorPayout: 0
+      // Rows where a real doctor is the payee; this is money that leaves the hospital.
+      doctorPayout: 0,
+      // Rows where the booking is hospital-direct (no doctor); doctor_payout_amount
+      // stores the hospital's retention (fee - commission), which stays with the hospital.
+      hospitalRetention: 0
     };
     const perDoctor = new Map();
     const todayStr = new Date().toISOString().slice(0, 10);
@@ -501,7 +505,11 @@ exports.getHospitalSummary = async (req, res) => {
         // Patient pays original_price; commission + payout already reflect that.
         totals.grossRevenue += num(row.originalPrice);
         totals.platformCommissionCharged += num(row.platformRevenueAmount);
-        totals.doctorPayout += num(row.doctorPayoutAmount);
+        if (row.doctorProfileId) {
+          totals.doctorPayout += num(row.doctorPayoutAmount);
+        } else {
+          totals.hospitalRetention += num(row.doctorPayoutAmount);
+        }
       }
 
       const dateStr = typeof row.appointmentDate === 'string'

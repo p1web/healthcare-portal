@@ -124,6 +124,7 @@ export interface HospitalSummary {
     grossRevenue: number;
     platformCommissionCharged: number;
     doctorPayout: number;
+    hospitalRetention: number;
   };
   perDoctor: {
     doctorProfileId: number;

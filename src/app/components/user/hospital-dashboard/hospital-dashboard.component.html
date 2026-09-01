@@ -70,7 +70,14 @@
           <div class="tile-value">₹{{ summary.totals.platformCommissionCharged }}</div>
           <div class="tile-label">Commission owed to platform</div>
         </div>
-        <div class="tile-cta"><small class="text-muted">Doctors received ₹{{ summary.totals.doctorPayout }}</small></div>
+        <div class="tile-cta">
+          <small class="text-muted">
+            <span *ngIf="summary.totals.doctorPayout">Doctors received ₹{{ summary.totals.doctorPayout }}</span>
+            <span *ngIf="summary.totals.doctorPayout && summary.totals.hospitalRetention"> · </span>
+            <span *ngIf="summary.totals.hospitalRetention">Hospital kept ₹{{ summary.totals.hospitalRetention }} (walk-ins)</span>
+            <span *ngIf="!summary.totals.doctorPayout && !summary.totals.hospitalRetention">No payouts yet</span>
+          </small>
+        </div>
       </div>
     </div>
   </div>

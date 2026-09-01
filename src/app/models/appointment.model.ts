@@ -61,6 +61,8 @@ export interface AdminAppointment extends DoctorAppointment {
   specialization?: string | null;
   hospital?: string | null;
   hospitalAddress?: string | null;
+  isHospitalBooking?: boolean;
+  platformRevenueAmount?: number;
   couponCode?: string | null;
   couponId?: number | null;
   couponTitle?: string | null;

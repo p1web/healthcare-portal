@@ -41,7 +41,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     doctorProfileId: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
       field: 'doctor_profile_id'
     },
     patientId: {

@@ -21,6 +21,20 @@ module.exports = (sequelize, DataTypes) => {
         as: 'practices'
       });
 
+      if (models.HospitalStaff) {
+        HospitalProfile.hasMany(models.HospitalStaff, {
+          foreignKey: 'hospital_profile_id',
+          as: 'staff'
+        });
+      }
+
+      if (models.HospitalAvailability) {
+        HospitalProfile.hasMany(models.HospitalAvailability, {
+          foreignKey: 'hospital_profile_id',
+          as: 'availability'
+        });
+      }
+
       HospitalProfile.belongsToMany(models.Coupon, {
         through: 'coupon_hospitals',
         foreignKey: 'hospital_id',
@@ -131,6 +145,12 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       defaultValue: 20.00,
       field: 'hospital_commission_percent'
+    },
+    defaultConsultationFee: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: false,
+      defaultValue: 500.00,
+      field: 'default_consultation_fee'
     },
     operatingHours: {
       type: DataTypes.STRING(100),

@@ -21,6 +21,8 @@ const PatientAllergy = require("./patient-allergy")(sequelize, DataTypes);
 const PatientMedicalCondition = require("./patient-medical-condition")(sequelize, DataTypes);
 const DoctorPractice = require("./doctor-practice")(sequelize, DataTypes);
 const PlatformCommissionSettings = require("./platform-commission-settings")(sequelize, DataTypes);
+const HospitalStaff = require("./hospital-staff")(sequelize, DataTypes);
+const HospitalAvailability = require("./hospital-availability")(sequelize, DataTypes);
 
 
 // Run associations
@@ -38,11 +40,13 @@ User.associate({ PatientProfile, DoctorProfile, HospitalProfile });
 // Profile associations
 PatientProfile.associate({ User, PatientAllergy, PatientMedicalCondition });
 DoctorProfile.associate({ User, Specialization, DoctorAvailability, Appointment, DoctorPractice });
-HospitalProfile.associate({ User, Coupon, DoctorPractice });
+HospitalProfile.associate({ User, Coupon, DoctorPractice, HospitalStaff, HospitalAvailability });
 PatientAllergy.associate({ PatientProfile });
 PatientMedicalCondition.associate({ PatientProfile });
 DoctorPractice.associate({ DoctorProfile, HospitalProfile, DoctorAvailability, Appointment });
 PlatformCommissionSettings.associate({ User });
+HospitalStaff.associate({ HospitalProfile });
+HospitalAvailability.associate({ HospitalProfile });
 
 
 module.exports = {
@@ -65,5 +69,7 @@ module.exports = {
   PatientAllergy,
   PatientMedicalCondition,
   DoctorPractice,
-  PlatformCommissionSettings
+  PlatformCommissionSettings,
+  HospitalStaff,
+  HospitalAvailability
 };

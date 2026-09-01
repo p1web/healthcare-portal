@@ -206,9 +206,6 @@ export class HospitalsComponent implements OnInit {
   }
 
   bookAppointment(hospital: Hospital) {
-    // Navigate to doctors page filtered by hospital
-    this.router.navigate(['/doctors'], {
-      queryParams: { hospital: hospital.name }
-    });
+    this.router.navigate(['/hospital', hospital.id, 'book']);
   }
 }

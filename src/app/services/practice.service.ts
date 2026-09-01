@@ -84,38 +84,6 @@ export class PracticeService {
     return this.http.delete<{ success: boolean }>(`${this.apiBase}/doctor/practices/${id}`);
   }
 
-  listHospitalPractices(status?: string): Observable<{ success: boolean; data: Practice[] }> {
-    const params: any = {};
-    if (status) params.status = status;
-    return this.http.get<{ success: boolean; data: Practice[] }>(
-      `${this.apiBase}/hospital/practices`,
-      { params }
-    );
-  }
-
-  listEligibleDoctors(): Observable<{ success: boolean; data: PracticeDoctor[] }> {
-    return this.http.get<{ success: boolean; data: PracticeDoctor[] }>(
-      `${this.apiBase}/hospital/eligible-doctors`
-    );
-  }
-
-  createHospitalPractice(body: { doctorProfileId: number; consultationFee: number; notes?: string }): Observable<{ success: boolean; data: Practice }> {
-    return this.http.post<{ success: boolean; data: Practice }>(`${this.apiBase}/hospital/practices`, body);
-  }
-
-  removeHospitalDoctor(practiceId: number): Observable<{ success: boolean; message: string }> {
-    return this.http.delete<{ success: boolean; message: string }>(
-      `${this.apiBase}/hospital/practices/${practiceId}`
-    );
-  }
-
-  reviewPractice(id: number, action: 'approve' | 'reject', reason?: string): Observable<{ success: boolean; data: Practice }> {
-    return this.http.patch<{ success: boolean; data: Practice }>(
-      `${this.apiBase}/hospital/practices/${id}/review`,
-      { action, reason }
-    );
-  }
-
   getHospitalSummary(): Observable<{ success: boolean; data: HospitalSummary }> {
     return this.http.get<{ success: boolean; data: HospitalSummary }>(`${this.apiBase}/hospital/summary`);
   }

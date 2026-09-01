@@ -21,7 +21,7 @@
     <!-- Patient basics -->
     <div class="snapshot-card">
       <div class="patient-head">
-        <div class="patient-avatar">{{ snapshot.patient.name?.charAt(0) || 'P' }}</div>
+        <div class="patient-avatar">{{ (snapshot.patient.name || 'P').charAt(0) }}</div>
         <div>
           <h3 class="mb-1">{{ snapshot.patient.name }}</h3>
           <div class="text-muted small">

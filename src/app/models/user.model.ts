@@ -107,6 +107,7 @@ export interface HospitalProfile {
   operatingHours?: string;
   emergencyServices?: boolean;
   ambulanceServices?: boolean;
+  defaultConsultationFee?: number;
   isVerified?: boolean;
   verificationStatus?: ProfileReviewStatus;
   verificationDocuments?: VerificationDocument[];

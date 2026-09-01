@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HospitalService } from '../../services/hospital.service';
 import { SpecialtyService } from '../../services/specialty.service';
+import { AuthService } from '../../services/auth.service';
 
 import { Hospital } from '../../models/hospital.model';
 
@@ -33,7 +34,8 @@ export class HospitalsComponent implements OnInit {
     private hospitalService: HospitalService,
     private specialtyService: SpecialtyService,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private authService: AuthService
   ) {}
 
   ngOnInit() {
@@ -206,6 +208,12 @@ export class HospitalsComponent implements OnInit {
   }
 
   bookAppointment(hospital: Hospital) {
-    this.router.navigate(['/hospital', hospital.id, 'book']);
+    const target = `/hospital/${hospital.id}/book`;
+    const isPatient = this.authService.isLoggedIn() && this.authService.getUserRole() === 'patient';
+    if (!isPatient) {
+      this.router.navigate(['/login'], { queryParams: { returnUrl: target } });
+      return;
+    }
+    this.router.navigateByUrl(target);
   }
 }

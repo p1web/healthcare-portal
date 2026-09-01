@@ -3,6 +3,7 @@ import { CommonModule, Location } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HospitalService } from '../../services/hospital.service';
 import { HospitalStaffMember, HospitalStaffService } from '../../services/hospital-staff.service';
+import { AuthService } from '../../services/auth.service';
 import { Hospital } from '../../models/hospital.model';
 
 @Component({
@@ -23,7 +24,8 @@ export class HospitalDetailComponent implements OnInit {
     private router: Router,
     private location: Location,
     private hospitalService: HospitalService,
-    private staffService: HospitalStaffService
+    private staffService: HospitalStaffService,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -72,7 +74,13 @@ export class HospitalDetailComponent implements OnInit {
 
   bookAppointment(): void {
     if (!this.hospital) return;
-    this.router.navigate(['/hospital', this.hospital.id, 'book']);
+    const target = `/hospital/${this.hospital.id}/book`;
+    const isPatient = this.authService.isLoggedIn() && this.authService.getUserRole() === 'patient';
+    if (!isPatient) {
+      this.router.navigate(['/login'], { queryParams: { returnUrl: target } });
+      return;
+    }
+    this.router.navigateByUrl(target);
   }
 
   getStarArray(): number[] {

@@ -44,6 +44,10 @@ export class HospitalBookingComponent implements OnInit {
 
   ngOnInit(): void {
     this.hospitalId = Number(this.route.snapshot.paramMap.get('id'));
+    if (!this.authService.isLoggedIn() || this.authService.getUserRole() !== 'patient') {
+      this.goToLogin();
+      return;
+    }
     this.form = this.fb.group({
       reason: [''],
       date: ['', Validators.required],
@@ -63,7 +67,7 @@ export class HospitalBookingComponent implements OnInit {
   }
 
   goToLogin(): void {
-    this.router.navigate(['/login'], { queryParams: { redirect: this.router.url } });
+    this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } });
   }
 
   private load(): void {

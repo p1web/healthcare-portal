@@ -74,6 +74,7 @@ export interface AdminAppointment extends DoctorAppointment {
 
 export interface AppointmentReceipt {
   bookingNumber: string;
+  bookingType?: 'doctor' | 'hospital';
   paymentMode: 'online' | 'offline';
   paymentStatus: 'paid' | 'pending' | 'failed' | 'refunded';
   paidAt: string | null;

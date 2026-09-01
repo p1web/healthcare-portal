@@ -52,8 +52,17 @@
 
     <div class="section-title">Appointment</div>
     <div class="grid-2">
-      <div><span class="label">Doctor</span><span>{{ receipt.doctorName }}</span></div>
-      <div><span class="label">Specialization</span><span>{{ receipt.specialization || '—' }}</span></div>
+      <ng-container *ngIf="receipt.bookingType !== 'hospital'">
+        <div><span class="label">Doctor</span><span>{{ receipt.doctorName || '—' }}</span></div>
+        <div><span class="label">Specialization</span><span>{{ receipt.specialization || '—' }}</span></div>
+      </ng-container>
+      <ng-container *ngIf="receipt.bookingType === 'hospital'">
+        <div>
+          <span class="label">Booked with</span>
+          <span><i class="bi bi-hospital me-1"></i>{{ receipt.hospitalName || 'Hospital' }} (walk-in)</span>
+        </div>
+        <div><span class="label">Doctor</span><span class="text-muted">Assigned by hospital on the day</span></div>
+      </ng-container>
       <div><span class="label">Hospital</span><span>{{ receipt.hospitalName || '—' }}</span></div>
       <div><span class="label">Location</span><span>{{ receipt.hospitalCity || '—' }}</span></div>
       <div><span class="label">Date</span><span>{{ receipt.appointmentDate }}</span></div>
@@ -99,7 +108,9 @@
         <div class="cashback-hint">
           <ng-container [ngSwitch]="receipt.cashbackStatus">
             <span *ngSwitchCase="'pending'">
-              Will be credited within 24 hours after the doctor marks the appointment complete.
+              Will be credited within 24 hours after the
+              {{ receipt.bookingType === 'hospital' ? 'hospital' : 'doctor' }}
+              marks the appointment complete.
             </span>
             <span *ngSwitchCase="'issued'">
               Credited on {{ receipt.cashbackIssuedAt | date:'medium' }}

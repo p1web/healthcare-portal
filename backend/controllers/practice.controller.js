@@ -511,11 +511,12 @@ exports.getHospitalSummary = async (req, res) => {
         totals.upcomingAppointments++;
       }
 
-      const docKey = row.doctorProfileId;
+      const docKey = row.doctorProfileId != null ? row.doctorProfileId : 'hospital-direct';
       if (!perDoctor.has(docKey)) {
         perDoctor.set(docKey, {
-          doctorProfileId: docKey,
-          doctorName: row.doctorProfile?.user?.name || `Doctor #${docKey}`,
+          doctorProfileId: row.doctorProfileId || null,
+          doctorName: row.doctorProfile?.user?.name
+            || (row.doctorProfileId == null ? 'Hospital walk-ins' : `Doctor #${row.doctorProfileId}`),
           appointmentCount: 0,
           commissionCharged: 0
         });

@@ -998,10 +998,13 @@ exports.getAppointmentReceipt = async (req, res) => {
     const originalPrice = value.originalPrice !== null ? parseFloat(value.originalPrice) : null;
     const discountAmount = value.discountAmount !== null ? parseFloat(value.discountAmount) : 0;
     const finalPrice = value.finalPrice !== null ? parseFloat(value.finalPrice) : null;
+    const bookingType = value.doctorProfileId ? 'doctor' : 'hospital';
+    const hospitalName = value.hospitalProfile?.hospitalName || null;
     return res.json({
       success: true,
       data: {
         bookingNumber: value.bookingNumber,
+        bookingType,
         paymentMode: value.paymentMode,
         paymentStatus: value.paymentStatus,
         paidAt: value.paidAt,
@@ -1011,9 +1014,9 @@ exports.getAppointmentReceipt = async (req, res) => {
         patientName: value.patient?.name || value.patientName,
         patientEmail: value.patient?.email || value.email,
         patientPhone: value.patient?.phone || value.phone,
-        doctorName: value.doctorProfile?.user?.name || null,
+        doctorName: value.doctorProfile?.user?.name || (bookingType === 'hospital' ? hospitalName : null),
         specialization: value.doctorProfile?.specialization?.name || null,
-        hospitalName: value.hospitalProfile?.hospitalName || null,
+        hospitalName,
         hospitalCity: value.hospitalProfile?.hospitalCity || null,
         appointmentStatus: value.status,
         originalPrice,
@@ -1027,6 +1030,8 @@ exports.getAppointmentReceipt = async (req, res) => {
         cashbackIssuedAt: value.cashbackIssuedAt || null,
         cashbackTransactionId: value.cashbackTransactionId || null,
         platformCommission: value.platformRevenueAmount !== null ? parseFloat(value.platformRevenueAmount) : 0,
+        // For a hospital-direct booking this is the hospital's retention (fee - commission),
+        // not a doctor payout. The frontend labels it accordingly.
         doctorPayout: value.doctorPayoutAmount !== null ? parseFloat(value.doctorPayoutAmount) : 0
       }
     });

@@ -118,7 +118,7 @@ async function getDoctorProfile(userId) {
 
 exports.createAppointment = async (req, res) => {
   try {
-    const { doctorId, hospitalId, practiceId, date, time, reason, couponCode, paymentMode } = req.body;
+    const { doctorId, hospitalId, practiceId, date, time, reason, couponCode, paymentMode, expectedFee } = req.body;
     if ((!doctorId && !hospitalId) || !date || !time) {
       return res.status(400).json({ success: false, message: 'Doctor or hospital, plus date and time, are required' });
     }
@@ -234,6 +234,22 @@ exports.createAppointment = async (req, res) => {
 
       hospitalForBooking = hospital;
       originalPrice = parseFloat(hospital.defaultConsultationFee) || 0;
+    }
+
+    // Fee-change guard: if the client sent the fee it saw and it no longer matches
+    // the source of truth, block with 409 so the UI can prompt the patient rather
+    // than silently billing them a different amount.
+    if (expectedFee !== undefined && expectedFee !== null && expectedFee !== '') {
+      const seen = Number(expectedFee);
+      if (Number.isFinite(seen) && Math.abs(seen - originalPrice) > 0.005) {
+        return res.status(409).json({
+          success: false,
+          code: 'FEE_CHANGED',
+          message: `Consultation fee has changed from ₹${seen.toFixed(2)} to ₹${originalPrice.toFixed(2)}. Please review before booking.`,
+          currentFee: originalPrice,
+          previousFee: seen
+        });
+      }
     }
 
     let couponResult = { couponId: null, couponCode: null, discountAmount: 0, coupon: null };

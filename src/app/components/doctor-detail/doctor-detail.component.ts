@@ -211,49 +211,75 @@ export class DoctorDetailComponent implements OnInit {
     this.validateSelectedDate();
     this.validateSelectedTime();
     if (this.appointmentForm.valid && this.doctor) {
-      this.isSubmitting = true;
-      
-      const appointmentData: any = {
-        doctorId: this.doctor.id,
-        ...this.appointmentForm.value
-      };
-      if (this.selectedPractice) {
-        appointmentData.practiceId = this.selectedPractice.id;
-      }
-      if (this.appliedCoupon?.code) {
-        appointmentData.couponCode = this.appliedCoupon.code;
-      }
-
-      this.appointmentService.bookAppointment(appointmentData).subscribe({
-        next: (response: any) => {
-          this.isSubmitting = false;
-          const booked = response?.data;
-          this.appointmentForm.reset({ paymentMode: 'online' });
-          this.removeCoupon();
-
-          if (!booked?.id) {
-            this.bookingSuccess = true;
-            this.bookingResult = booked || null;
-            setTimeout(() => { this.bookingSuccess = false; this.bookingResult = null; }, 8000);
-            return;
-          }
-
-          if (booked.paymentMode === 'online' && booked.paymentStatus !== 'paid') {
-            this.router.navigate(['/appointments', booked.id, 'pay']);
-          } else {
-            this.router.navigate(['/appointments', booked.id, 'receipt']);
-          }
-        },
-        error: (error) => {
-          this.isSubmitting = false;
-          console.error('Booking failed:', error);
-          alert(error?.error?.message || 'Failed to book appointment. Please try again.');
-        }
-      });
+      this.submitBooking(this.activeConsultationFee);
     } else {
       Object.keys(this.appointmentForm.controls).forEach(key => {
         this.appointmentForm.get(key)?.markAsTouched();
       });
+    }
+  }
+
+  private submitBooking(expectedFee: number): void {
+    if (!this.doctor) return;
+    this.isSubmitting = true;
+
+    const appointmentData: any = {
+      doctorId: this.doctor.id,
+      ...this.appointmentForm.value,
+      expectedFee
+    };
+    if (this.selectedPractice) {
+      appointmentData.practiceId = this.selectedPractice.id;
+    }
+    if (this.appliedCoupon?.code) {
+      appointmentData.couponCode = this.appliedCoupon.code;
+    }
+
+    this.appointmentService.bookAppointment(appointmentData).subscribe({
+      next: (response: any) => {
+        this.isSubmitting = false;
+        const booked = response?.data;
+        this.appointmentForm.reset({ paymentMode: 'online' });
+        this.removeCoupon();
+
+        if (!booked?.id) {
+          this.bookingSuccess = true;
+          this.bookingResult = booked || null;
+          setTimeout(() => { this.bookingSuccess = false; this.bookingResult = null; }, 8000);
+          return;
+        }
+
+        if (booked.paymentMode === 'online' && booked.paymentStatus !== 'paid') {
+          this.router.navigate(['/appointments', booked.id, 'pay']);
+        } else {
+          this.router.navigate(['/appointments', booked.id, 'receipt']);
+        }
+      },
+      error: (error) => {
+        this.isSubmitting = false;
+        const code = error?.error?.code;
+        const currentFee = Number(error?.error?.currentFee);
+        if (code === 'FEE_CHANGED' && Number.isFinite(currentFee)) {
+          this.handleFeeChange(currentFee, Number(error?.error?.previousFee));
+          return;
+        }
+        console.error('Booking failed:', error);
+        alert(error?.error?.message || 'Failed to book appointment. Please try again.');
+      }
+    });
+  }
+
+  private handleFeeChange(currentFee: number, previousFee: number): void {
+    if (this.selectedPractice) {
+      this.selectedPractice = { ...this.selectedPractice, consultationFee: currentFee };
+    }
+    const droppedCoupon = this.appliedCoupon?.code || null;
+    this.removeCoupon();
+
+    const priceLine = `The consultation fee changed from \u20b9${previousFee.toFixed(2)} to \u20b9${currentFee.toFixed(2)}.`;
+    const couponLine = droppedCoupon ? `\nCoupon ${droppedCoupon} was removed; please re-apply if it still qualifies.` : '';
+    if (confirm(`${priceLine}${couponLine}\n\nContinue booking at the new price?`)) {
+      this.submitBooking(currentFee);
     }
   }
 

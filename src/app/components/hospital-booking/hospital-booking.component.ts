@@ -148,6 +148,10 @@ export class HospitalBookingComponent implements OnInit {
       this.form.markAllAsTouched();
       return;
     }
+    this.submitBooking(this.consultationFee);
+  }
+
+  private submitBooking(expectedFee: number): void {
     this.error = '';
     this.isSubmitting = true;
     const payload: any = {
@@ -155,7 +159,8 @@ export class HospitalBookingComponent implements OnInit {
       date: this.form.value.date,
       time: this.form.value.time,
       reason: this.form.value.reason || null,
-      paymentMode: this.form.value.paymentMode
+      paymentMode: this.form.value.paymentMode,
+      expectedFee
     };
     if (this.appliedCoupon?.code) payload.couponCode = this.appliedCoupon.code;
 
@@ -174,8 +179,30 @@ export class HospitalBookingComponent implements OnInit {
       },
       error: (err) => {
         this.isSubmitting = false;
+        const code = err?.error?.code;
+        const currentFee = Number(err?.error?.currentFee);
+        if (code === 'FEE_CHANGED' && Number.isFinite(currentFee)) {
+          this.handleFeeChange(currentFee, Number(err?.error?.previousFee));
+          return;
+        }
         this.error = err?.error?.message || 'Failed to book appointment.';
       }
     });
+  }
+
+  private handleFeeChange(currentFee: number, previousFee: number): void {
+    // Update the local price the user sees so any subsequent submit uses the new value.
+    if (this.hospital) {
+      this.hospital = { ...this.hospital, defaultConsultationFee: currentFee, consultationFee: currentFee };
+    }
+    // Coupon min-amount rule may no longer hold; drop it and let the user re-apply.
+    const droppedCoupon = this.appliedCoupon?.code || null;
+    this.removeCoupon();
+
+    const priceLine = `The consultation fee changed from \u20b9${previousFee.toFixed(2)} to \u20b9${currentFee.toFixed(2)}.`;
+    const couponLine = droppedCoupon ? `\nCoupon ${droppedCoupon} was removed; please re-apply if it still qualifies.` : '';
+    if (confirm(`${priceLine}${couponLine}\n\nContinue booking at the new price?`)) {
+      this.submitBooking(currentFee);
+    }
   }
 }

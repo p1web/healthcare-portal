@@ -144,4 +144,22 @@ exports.publicListStaffForHospital = async (req, res) => {
   }
 };
 
+// POST /api/hospital/staff-avatar — used by the sitting-doctor form to upload
+// an avatar image before the staff row exists. Returns a public URL that the
+// form embeds in its avatarUrl field on save. Files are stored per-hospital-user
+// under uploads/staff-avatars/<userId>/.
+exports.uploadStaffAvatar = async (req, res) => {
+  try {
+    await requireOwnedHospital(req.user.id);
+    const file = req.file;
+    if (!file) return res.status(400).json({ success: false, message: 'No image uploaded' });
+
+    const url = `/uploads/staff-avatars/${req.user.id}/${file.filename}`;
+    return res.json({ success: true, data: { url } });
+  } catch (error) {
+    console.error('Upload staff avatar error:', error);
+    return res.status(error.statusCode || 500).json({ success: false, message: error.message || 'Failed to upload avatar' });
+  }
+};
+
 exports.formatStaff = formatStaff;

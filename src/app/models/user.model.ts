@@ -13,6 +13,7 @@ export interface User {
   state?: string;
   pincode?: string;
   country?: string;
+  profileImage?: string | null;
   isActive?: boolean;
   isBlocked?: boolean;
   isEmailVerified?: boolean;

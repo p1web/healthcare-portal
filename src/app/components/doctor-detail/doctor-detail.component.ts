@@ -202,6 +202,14 @@ export class DoctorDetailComponent implements OnInit {
     return parts.length > 1 ? parts[1][0] : parts[0][0];
   }
 
+  readonly apiHost = 'http://localhost:3000';
+  doctorImageUrl(): string | null {
+    const img = this.doctor?.image;
+    if (!img || typeof img !== 'string') return null;
+    if (img.includes('placeholder')) return null;
+    return img.startsWith('http') ? img : `${this.apiHost}${img}`;
+  }
+
   onSubmit() {
     if (!this.isPatientLoggedIn) {
       this.goToLogin();

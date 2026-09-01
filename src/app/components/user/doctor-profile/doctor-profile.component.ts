@@ -6,6 +6,7 @@ import { User } from '../../../models/user.model';
 import type { ProfileReviewStatus } from '../../../models/user.model';
 import { AuthService } from '../../../services/auth.service';
 import { DoctorProfileService } from '../../../services/doctor-profile.service';
+import { ImageUploadService } from '../../../services/image-upload.service';
 import { SpecializationService, Specializations } from '../../../services/specialization.service';
 import { PracticeService, Practice } from '../../../services/practice.service';
 
@@ -26,6 +27,9 @@ export class DoctorProfileComponent implements OnInit {
   user: User | null = null;
   isSubmitting: boolean = false;
   isSubmittingReview: boolean = false;
+  isUploadingAvatar = false;
+  avatarError = '';
+  readonly apiHost = 'http://localhost:3000';
   error: string = '';
   success: string = '';
   loading: boolean = false;
@@ -73,6 +77,7 @@ export class DoctorProfileComponent implements OnInit {
     private fb: FormBuilder,
     private authService: AuthService,
     private doctorProfileService: DoctorProfileService,
+    private imageUploadService: ImageUploadService,
     private specializationService: SpecializationService,
     private practiceService: PracticeService,
   ) { }
@@ -488,5 +493,43 @@ export class DoctorProfileComponent implements OnInit {
     const month = String(d.getMonth() + 1).padStart(2, '0');
     const day = String(d.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
+  }
+
+  profileImageUrl(): string | null {
+    const img = this.user?.profileImage;
+    if (!img) return null;
+    return img.startsWith('http') ? img : `${this.apiHost}${img}`;
+  }
+
+  onAvatarSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files && input.files[0];
+    input.value = '';
+    if (!file) return;
+    this.avatarError = '';
+    if (!['image/jpeg', 'image/jpg', 'image/png', 'image/webp'].includes(file.type)) {
+      this.avatarError = 'Please pick a JPG, PNG, or WEBP image.';
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      this.avatarError = 'Image must be under 5 MB.';
+      return;
+    }
+    this.isUploadingAvatar = true;
+    this.imageUploadService.upload('doctor-avatar', file).subscribe({
+      next: (res) => {
+        this.isUploadingAvatar = false;
+        if (res.url && this.user) {
+          this.user = { ...this.user, profileImage: res.url };
+          this.authService.setCurrentUser(this.user);
+          this.success = 'Profile picture updated.';
+          setTimeout(() => (this.success = ''), 3000);
+        }
+      },
+      error: (err) => {
+        this.isUploadingAvatar = false;
+        this.avatarError = err?.error?.message || 'Failed to update profile picture.';
+      }
+    });
   }
 }

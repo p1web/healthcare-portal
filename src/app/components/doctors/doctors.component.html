@@ -218,7 +218,8 @@
       <div class="card doctor-card h-100 shadow-sm border-0" (click)="viewDoctorProfile(doctor.id)">
         <div class="card-header bg-gradient-purple text-white text-center py-4">
           <div class="doctor-avatar mx-auto mb-3">
-            <span class="fs-2 fw-bold">{{ getDoctorInitial(doctor.name) }}</span>
+            <img *ngIf="doctorImageUrl(doctor) as url" [src]="url" [alt]="doctor.name" class="doctor-avatar-img" />
+            <span *ngIf="!doctorImageUrl(doctor)" class="fs-2 fw-bold">{{ getDoctorInitial(doctor.name) }}</span>
           </div>
           <h5 class="fw-bold mb-1">{{ doctor.name }}</h5>
           <p class="mb-2 small opacity-75">{{ doctor.specialization }}</p>
@@ -297,7 +298,8 @@
           <div class="row align-items-center">
             <div class="col-md-auto text-center mb-3 mb-md-0">
               <div class="doctor-avatar-list bg-gradient-purple text-white">
-                <span class="fs-4 fw-bold">{{ getDoctorInitial(doctor.name) }}</span>
+                <img *ngIf="doctorImageUrl(doctor) as url" [src]="url" [alt]="doctor.name" class="doctor-avatar-img" />
+                <span *ngIf="!doctorImageUrl(doctor)" class="fs-4 fw-bold">{{ getDoctorInitial(doctor.name) }}</span>
               </div>
             </div>
             <div class="col-md">

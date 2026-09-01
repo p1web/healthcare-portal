@@ -4,6 +4,7 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { HospitalStaffMember, HospitalStaffPayload, HospitalStaffService } from '../../../services/hospital-staff.service';
 import { SpecializationService, Specializations } from '../../../services/specialization.service';
 import { QualificationService, Qualification } from '../../../services/qualification.service';
+import { ImageUploadService } from '../../../services/image-upload.service';
 import { forkJoin } from 'rxjs';
 
 @Component({
@@ -19,6 +20,9 @@ export class HospitalStaffComponent implements OnInit {
   qualifications: Qualification[] = [];
   isLoading = false;
   isSaving = false;
+  isUploadingAvatar = false;
+  avatarError = '';
+  readonly apiHost = 'http://localhost:3000';
   error = '';
   success = '';
 
@@ -30,7 +34,8 @@ export class HospitalStaffComponent implements OnInit {
     private fb: FormBuilder,
     private staffService: HospitalStaffService,
     private specializationService: SpecializationService,
-    private qualificationService: QualificationService
+    private qualificationService: QualificationService,
+    private imageUploadService: ImageUploadService
   ) {}
 
   ngOnInit(): void {
@@ -171,5 +176,42 @@ export class HospitalStaffComponent implements OnInit {
         this.error = err?.error?.message || 'Failed to remove staff';
       }
     });
+  }
+
+  avatarPreviewUrl(url?: string | null): string | null {
+    if (!url) return null;
+    return url.startsWith('http') ? url : `${this.apiHost}${url}`;
+  }
+
+  onAvatarSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files && input.files[0];
+    input.value = '';
+    if (!file) return;
+    this.avatarError = '';
+    if (!['image/jpeg', 'image/jpg', 'image/png', 'image/webp'].includes(file.type)) {
+      this.avatarError = 'Please pick a JPG, PNG, or WEBP image.';
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      this.avatarError = 'Image must be under 5 MB.';
+      return;
+    }
+    this.isUploadingAvatar = true;
+    this.imageUploadService.upload('staff-avatar', file).subscribe({
+      next: (res) => {
+        this.isUploadingAvatar = false;
+        if (res.url) this.form.patchValue({ avatarUrl: res.url });
+      },
+      error: (err) => {
+        this.isUploadingAvatar = false;
+        this.avatarError = err?.error?.message || 'Failed to upload image.';
+      }
+    });
+  }
+
+  clearAvatar(): void {
+    this.form.patchValue({ avatarUrl: '' });
+    this.avatarError = '';
   }
 }

@@ -77,6 +77,30 @@
   object-fit: cover;
 }
 
+.staff-avatar-preview {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: linear-gradient(135deg, #eef2ff, #ede9fe);
+  color: #6366f1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  flex-shrink: 0;
+  border: 1px dashed #c7d2fe;
+}
+
+.staff-avatar-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.staff-avatar-preview.empty { border-style: dashed; }
+
 .staff-body {
   flex: 1;
 }

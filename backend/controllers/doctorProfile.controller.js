@@ -1,4 +1,6 @@
 // controllers/doctorProfile.controller.js
+const path = require('path');
+const fs = require('fs');
 const { User, DoctorProfile, DoctorAvailability, DoctorPractice, sequelize } = require('../models');
 const { PRACTICE_STATUSES } = require('../models/doctor-practice');
 const { applyUserBasicUpdates } = require('../utils/userBasicUpdate');
@@ -279,9 +281,43 @@ exports.uploadDocuments = async (req, res) => {
   }
 };
 
-// POST /api/doctor/profile/submit
-exports.submitForReview = async (req, res) => {
+// POST /api/doctor/profile/avatar — upload a public profile picture.
+// Stores the file under /uploads/profile-images/<userId>/, updates User.profileImage
+// to the relative URL, and best-effort deletes the previous image (if any) that
+// lives under the same folder.
+exports.uploadProfileImage = async (req, res) => {
   try {
+    const userId = req.user.id;
+    const file = req.file;
+    if (!file) {
+      return res.status(400).json({ success: false, message: 'No image uploaded' });
+    }
+
+    const user = await User.findByPk(userId);
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    const previous = user.profileImage;
+    const newUrl = `/uploads/profile-images/${userId}/${file.filename}`;
+    await user.update({ profileImage: newUrl });
+
+    // Only remove a file we previously wrote to that same per-user folder.
+    if (previous && previous.startsWith(`/uploads/profile-images/${userId}/`)) {
+      const abs = path.join(__dirname, '..', previous.replace(/^\//, ''));
+      fs.promises.unlink(abs).catch(() => { /* ignore missing / errors */ });
+    }
+
+    return res.json({ success: true, data: { profileImage: newUrl } });
+  } catch (err) {
+    console.error('Error uploading doctor profile image:', err);
+    return res.status(500).json({
+      success: false,
+      message: err.message || 'Profile image upload failed'
+    });
+  }
+};
+
+// POST /api/doctor/profile/submit
+exports.submitForReview = async (req, res) => {  try {
     const userId = req.user.id;
     const profile = await DoctorProfile.findOne({ where: { userId } });
 

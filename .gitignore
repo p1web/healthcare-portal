@@ -47,3 +47,6 @@ backend/.env
 
 # Database config
 backend/config/db.js
+
+# User-uploaded assets (created at runtime by multer)
+backend/uploads/

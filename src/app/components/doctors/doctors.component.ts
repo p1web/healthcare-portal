@@ -340,6 +340,14 @@ export class DoctorsComponent implements OnInit {
     return parts.length > 1 ? parts[1][0] : parts[0][0];
   }
 
+  readonly apiHost = 'http://localhost:3000';
+  doctorImageUrl(doctor: any): string | null {
+    const img = doctor?.image;
+    if (!img || typeof img !== 'string') return null;
+    if (img.includes('placeholder')) return null;
+    return img.startsWith('http') ? img : `${this.apiHost}${img}`;
+  }
+
   getExperienceYears(experience: string): number {
     return parseInt(experience);
   }

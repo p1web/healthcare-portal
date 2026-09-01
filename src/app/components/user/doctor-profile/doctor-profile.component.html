@@ -1,11 +1,22 @@
 <div class="profile-page">
   <div class="profile-header">
-    <div class="profile-avatar">
-      <i class="bi bi-person-badge-fill"></i>
-    </div>
+    <label class="profile-avatar profile-avatar-uploadable" for="doctorAvatarInput"
+           [class.is-uploading]="isUploadingAvatar" title="Change profile picture">
+      <img *ngIf="profileImageUrl() as url" [src]="url" alt="Profile picture" />
+      <i *ngIf="!profileImageUrl()" class="bi bi-person-badge-fill"></i>
+      <span class="profile-avatar-overlay">
+        <i class="bi bi-camera-fill" *ngIf="!isUploadingAvatar"></i>
+        <span class="spinner-border spinner-border-sm" *ngIf="isUploadingAvatar"></span>
+      </span>
+      <input type="file" id="doctorAvatarInput" accept="image/jpeg,image/png,image/webp" hidden
+             (change)="onAvatarSelected($event)" [disabled]="isUploadingAvatar" />
+    </label>
     <div>
       <h4 class="mb-1">{{ profileForm.get('basic.name')?.value || 'My Profile' }}</h4>
       <span class="role-badge">Doctor Account</span>
+      <div class="small text-white-50 mt-1" *ngIf="avatarError">
+        <i class="bi bi-exclamation-triangle me-1"></i>{{ avatarError }}
+      </div>
     </div>
   </div>
 

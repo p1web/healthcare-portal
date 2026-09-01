@@ -18,6 +18,7 @@ export class HospitalDetailComponent implements OnInit {
   staff: HospitalStaffMember[] = [];
   isLoading = true;
   loadError = '';
+  readonly apiHost = 'http://localhost:3000';
 
   constructor(
     private route: ActivatedRoute,
@@ -93,5 +94,10 @@ export class HospitalDetailComponent implements OnInit {
 
   isStarHalf(star: number, rating: number): boolean {
     return star === Math.ceil(rating) && rating % 1 !== 0;
+  }
+
+  staffAvatarUrl(url?: string | null): string | null {
+    if (!url) return null;
+    return url.startsWith('http') ? url : `${this.apiHost}${url}`;
   }
 }

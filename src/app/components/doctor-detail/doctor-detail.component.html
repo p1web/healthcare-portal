@@ -11,7 +11,8 @@
       <div class="row align-items-center">
         <div class="col-md-auto text-center text-md-start mb-3 mb-md-0">
           <div class="doctor-avatar-large rounded-circle bg-white text-primary mx-auto mx-md-0 d-flex align-items-center justify-content-center">
-            <span class="display-4 fw-bold">{{ getDoctorInitial() }}</span>
+            <img *ngIf="doctorImageUrl() as url" [src]="url" [alt]="doctor.name" class="doctor-avatar-large-img" />
+            <span *ngIf="!doctorImageUrl()" class="display-4 fw-bold">{{ getDoctorInitial() }}</span>
           </div>
         </div>
         <div class="col-md text-center text-md-start">

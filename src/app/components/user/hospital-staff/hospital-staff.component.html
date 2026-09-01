@@ -70,9 +70,28 @@
         <label class="form-label">Bio</label>
         <textarea class="form-control" rows="2" formControlName="bio" placeholder="Short description shown on the public profile"></textarea>
       </div>
-      <div class="mb-3">
-        <label class="form-label">Avatar URL</label>
-        <input type="text" class="form-control" formControlName="avatarUrl" placeholder="https://..." />
+      <div class="mb-3 staff-avatar-picker">
+        <label class="form-label">Profile picture</label>
+        <div class="d-flex align-items-center gap-3">
+          <div class="staff-avatar-preview" [class.empty]="!form.value.avatarUrl">
+            <img *ngIf="avatarPreviewUrl(form.value.avatarUrl) as url" [src]="url" alt="Preview" />
+            <i *ngIf="!form.value.avatarUrl" class="bi bi-person-fill"></i>
+          </div>
+          <div class="d-flex flex-column gap-2">
+            <div class="d-flex gap-2 flex-wrap">
+              <label class="btn btn-outline-primary btn-sm mb-0" for="staffAvatarInput">
+                <span *ngIf="!isUploadingAvatar"><i class="bi bi-cloud-arrow-up me-1"></i>Upload image</span>
+                <span *ngIf="isUploadingAvatar"><span class="spinner-border spinner-border-sm me-1"></span>Uploading...</span>
+              </label>
+              <button *ngIf="form.value.avatarUrl" type="button" class="btn btn-outline-secondary btn-sm"
+                      (click)="clearAvatar()" [disabled]="isUploadingAvatar">Remove</button>
+              <input type="file" id="staffAvatarInput" accept="image/jpeg,image/png,image/webp" hidden
+                     (change)="onAvatarSelected($event)" [disabled]="isUploadingAvatar" />
+            </div>
+            <small class="text-muted">JPG, PNG, or WEBP up to 5 MB.</small>
+            <small class="text-danger" *ngIf="avatarError"><i class="bi bi-exclamation-triangle me-1"></i>{{ avatarError }}</small>
+          </div>
+        </div>
       </div>
       <div class="mb-3 form-check">
         <input type="checkbox" class="form-check-input" id="staffActive" formControlName="isActive" />
@@ -108,7 +127,7 @@
     <div class="staff-grid">
       <div class="staff-card" *ngFor="let m of staff" [class.staff-inactive]="!m.isActive">
         <div class="staff-avatar">
-          <img *ngIf="m.avatarUrl" [src]="m.avatarUrl" [alt]="m.name" />
+          <img *ngIf="avatarPreviewUrl(m.avatarUrl) as url" [src]="url" [alt]="m.name" />
           <span *ngIf="!m.avatarUrl">{{ (m.name || 'D').charAt(0) }}</span>
         </div>
         <div class="staff-body">

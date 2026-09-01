@@ -166,7 +166,7 @@
             <div class="col-md-6" *ngFor="let m of staff">
               <div class="staff-mini-card">
                 <div class="staff-mini-avatar">
-                  <img *ngIf="m.avatarUrl" [src]="m.avatarUrl" [alt]="m.name" />
+                  <img *ngIf="staffAvatarUrl(m.avatarUrl) as url" [src]="url" [alt]="m.name" />
                   <span *ngIf="!m.avatarUrl">{{ (m.name || 'D').charAt(0) }}</span>
                 </div>
                 <div class="staff-mini-body">

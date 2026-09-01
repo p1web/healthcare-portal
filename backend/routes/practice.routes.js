@@ -18,12 +18,9 @@ router.delete('/doctor/practices/:id', authenticate, authorize('doctor'), practi
 router.get('/doctor/practices/:practiceId/availability', authenticate, authorize('doctor'), practiceCtrl.getMyPracticeAvailability);
 router.put('/doctor/practices/:practiceId/availability', authenticate, authorize('doctor'), practiceCtrl.replaceMyPracticeAvailability);
 
-// Hospital owner self-service
-router.get('/hospital/practices', authenticate, authorize('hospital'), practiceCtrl.listHospitalPractices);
-router.post('/hospital/practices', authenticate, authorize('hospital'), practiceCtrl.createHospitalInitiatedPractice);
-router.delete('/hospital/practices/:id', authenticate, authorize('hospital'), practiceCtrl.removeHospitalDoctor);
-router.get('/hospital/eligible-doctors', authenticate, authorize('hospital'), practiceCtrl.listEligibleDoctorsForHospital);
-router.patch('/hospital/practices/:id/review', authenticate, authorize('hospital'), practiceCtrl.reviewPractice);
+// Hospital owner self-service — the affiliation flow was retired in CR-5.
+// The remaining endpoint is the revenue summary; it still surfaces both
+// hospital-direct bookings and legacy solo-doctor practice rows.
 router.get('/hospital/summary', authenticate, authorize('hospital'), practiceCtrl.getHospitalSummary);
 
 module.exports = router;

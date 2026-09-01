@@ -5,39 +5,39 @@
     </div>
     <div>
       <h1 class="dashboard-hero-title">Hospital Dashboard</h1>
-      <p class="dashboard-hero-subtitle">Manage doctor affiliations and keep your hospital profile up to date.</p>
+      <p class="dashboard-hero-subtitle">Manage your team, appointments and public profile.</p>
     </div>
   </div>
 
   <div class="row g-3 dashboard-tiles">
     <div class="col-md-4">
-      <a routerLink="/hospital-practices" class="tile tile-warning" [class.tile-muted]="!pendingCount">
+      <a routerLink="/hospital-appointments" class="tile tile-warning" [class.tile-muted]="!pendingCount">
         <div class="tile-icon"><i class="bi bi-hourglass-split"></i></div>
         <div class="tile-body">
           <div class="tile-value">{{ pendingCount }}</div>
-          <div class="tile-label">Pending affiliations</div>
+          <div class="tile-label">Appointments awaiting confirmation</div>
         </div>
         <div class="tile-cta">Review <i class="bi bi-arrow-right"></i></div>
       </a>
     </div>
     <div class="col-md-4">
-      <a routerLink="/hospital-practices" class="tile tile-success">
-        <div class="tile-icon"><i class="bi bi-people-fill"></i></div>
+      <a routerLink="/hospital-appointments" class="tile tile-success">
+        <div class="tile-icon"><i class="bi bi-calendar2-check"></i></div>
         <div class="tile-body">
           <div class="tile-value">{{ activeCount }}</div>
-          <div class="tile-label">Active doctors</div>
+          <div class="tile-label">Confirmed appointments</div>
         </div>
-        <div class="tile-cta">View roster <i class="bi bi-arrow-right"></i></div>
+        <div class="tile-cta">Go to appointments <i class="bi bi-arrow-right"></i></div>
       </a>
     </div>
     <div class="col-md-4">
-      <a routerLink="/profile/hospital" class="tile tile-primary">
-        <div class="tile-icon"><i class="bi bi-building-gear"></i></div>
+      <a routerLink="/hospital-staff" class="tile tile-primary">
+        <div class="tile-icon"><i class="bi bi-people-fill"></i></div>
         <div class="tile-body">
-          <div class="tile-value">Profile</div>
-          <div class="tile-label">Public hospital listing</div>
+          <div class="tile-value">{{ staffCount }}</div>
+          <div class="tile-label">Sitting doctors on your public page</div>
         </div>
-        <div class="tile-cta">Edit <i class="bi bi-arrow-right"></i></div>
+        <div class="tile-cta">Manage team <i class="bi bi-arrow-right"></i></div>
       </a>
     </div>
   </div>
@@ -97,10 +97,11 @@
 
   <div class="dashboard-empty" *ngIf="!pendingCount && !activeCount && !isLoading">
     <i class="bi bi-info-circle"></i>
-    <h2>No doctors here yet</h2>
+    <h2>No appointments here yet</h2>
     <p>
-      Once doctors request affiliation with your hospital, they'll appear under
-      <a routerLink="/hospital-practices">Doctor Affiliations</a> for you to approve.
+      Add your <a routerLink="/hospital-staff">sitting doctors</a> so they appear on
+      your public hospital page, and patients can book appointments directly with
+      your hospital. Bookings will show up here for confirmation.
     </p>
   </div>
 </section>

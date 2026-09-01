@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { PracticeService, HospitalSummary } from '../../../services/practice.service';
+import { HospitalStaffService } from '../../../services/hospital-staff.service';
+import { HospitalAppointmentService } from '../../../services/hospital-appointment.service';
 
 @Component({
   selector: 'app-hospital-dashboard',
@@ -12,23 +14,30 @@ import { PracticeService, HospitalSummary } from '../../../services/practice.ser
   styleUrls: ['./hospital-dashboard.component.css']
 })
 export class HospitalDashboardComponent implements OnInit {
+  staffCount = 0;
   pendingCount = 0;
   activeCount = 0;
   summary: HospitalSummary | null = null;
   isLoading = false;
 
-  constructor(private practiceService: PracticeService) {}
+  constructor(
+    private practiceService: PracticeService,
+    private staffService: HospitalStaffService,
+    private apptService: HospitalAppointmentService
+  ) {}
 
   ngOnInit(): void {
     this.isLoading = true;
     forkJoin({
-      practices: this.practiceService.listHospitalPractices(),
+      staff: this.staffService.listMine(),
+      appts: this.apptService.list(),
       summary: this.practiceService.getHospitalSummary()
     }).subscribe({
-      next: ({ practices, summary }) => {
-        const rows = practices.data || [];
-        this.pendingCount = rows.filter(p => p.status === 'pending_admin_approval' || p.status === 'pending_hospital_approval').length;
-        this.activeCount = rows.filter(p => p.status === 'active').length;
+      next: ({ staff, appts, summary }) => {
+        this.staffCount = (staff.data || []).filter(s => s.isActive).length;
+        const rows = appts.data || [];
+        this.pendingCount = rows.filter(a => a.status === 'pending').length;
+        this.activeCount = rows.filter(a => a.status === 'confirmed').length;
         this.summary = summary.data;
         this.isLoading = false;
       },

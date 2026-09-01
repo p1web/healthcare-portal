@@ -20,7 +20,6 @@ import { DoctorProfileComponent } from './components/user/doctor-profile/doctor-
 import { DoctorPracticesComponent } from './components/user/doctor-practices/doctor-practices.component';
 import { HospitalProfileComponent } from './components/user/hospital-profile/hospital-profile.component';
 import { HospitalDashboardComponent } from './components/user/hospital-dashboard/hospital-dashboard.component';
-import { HospitalPracticesComponent } from './components/user/hospital-practices/hospital-practices.component';
 import { ChangePasswordComponent } from './components/user/change-password/change-password.component';
 import { ResetPasswordComponent } from './components/user/reset-password/reset-password.component';
 import { PublicLayoutComponent } from './public-layout.component';
@@ -104,7 +103,6 @@ export const routes: Routes = [
       { path: 'doctor-practices', component: DoctorPracticesComponent, canActivate: [RoleGuard], data: { title: 'My Practices', roles: ['doctor'] } },
       { path: 'profile/hospital', component: HospitalProfileComponent, canActivate: [RoleGuard], data: { title: 'My Profile', roles: ['hospital'] } },
       { path: 'hospital-dashboard', component: HospitalDashboardComponent, canActivate: [RoleGuard], data: { title: 'Dashboard', roles: ['hospital'] } },
-      { path: 'hospital-practices', component: HospitalPracticesComponent, canActivate: [RoleGuard], data: { title: 'Doctor Affiliations', roles: ['hospital'] } },
       {
         path: 'hospital-staff',
         canActivate: [RoleGuard],

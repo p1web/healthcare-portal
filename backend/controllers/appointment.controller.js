@@ -39,14 +39,17 @@ const patientInclude = {
 function formatAppointment(appointment) {
   const value = appointment.toJSON();
   const numeric = (v) => (v !== null && v !== undefined) ? parseFloat(v) : 0;
+  const withHospital = !!value.hospitalProfileId;
   return {
     id: value.id,
     doctorId: value.doctorProfileId,
-    doctorName: value.doctorProfile?.user?.name || 'Doctor',
+    doctorName: value.doctorProfile?.user?.name
+      || (withHospital && !value.doctorProfileId ? (value.hospitalProfile?.hospitalName || 'Hospital') : 'Doctor'),
     specialization: value.doctorProfile?.specialization?.name || null,
     hospital: value.hospitalProfile?.hospitalName || null,
     hospitalProfileId: value.hospitalProfileId || null,
     practiceId: value.practiceId || null,
+    isHospitalBooking: withHospital && !value.doctorProfileId,
     date: value.appointmentDate,
     time: value.appointmentTime,
     reason: value.reason,
@@ -115,9 +118,12 @@ async function getDoctorProfile(userId) {
 
 exports.createAppointment = async (req, res) => {
   try {
-    const { doctorId, practiceId, date, time, reason, couponCode, paymentMode } = req.body;
-    if (!doctorId || !date || !time) {
-      return res.status(400).json({ success: false, message: 'Doctor, date and time are required' });
+    const { doctorId, hospitalId, practiceId, date, time, reason, couponCode, paymentMode } = req.body;
+    if ((!doctorId && !hospitalId) || !date || !time) {
+      return res.status(400).json({ success: false, message: 'Doctor or hospital, plus date and time, are required' });
+    }
+    if (doctorId && hospitalId) {
+      return res.status(400).json({ success: false, message: 'Pick either a doctor or a hospital, not both' });
     }
     const mode = paymentMode === 'online' ? 'online' : 'offline';
 
@@ -132,64 +138,110 @@ exports.createAppointment = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Appointment date cannot be in the past' });
     }
 
-    const doctorProfile = await DoctorProfile.findByPk(doctorId, {
-      include: [{ model: User, as: 'user', attributes: ['id', 'name', 'isActive', 'isBlocked'] }]
-    });
-    if (!doctorProfile || !isApprovedStatus(doctorProfile.verificationStatus)
-      || !doctorProfile.user?.isActive || doctorProfile.user?.isBlocked) {
-      return res.status(404).json({ success: false, message: 'Doctor is not available for booking' });
-    }
-
-    // Resolve practice: explicit practiceId wins; otherwise fall back to the doctor's primary practice.
+    // Branch: doctor-directed vs hospital-directed booking.
+    let doctorProfileForRow = null;
     let practice = null;
-    if (practiceId) {
-      practice = await DoctorPractice.findOne({
-        where: {
-          id: parseInt(practiceId, 10),
-          doctorProfileId: doctorProfile.id,
-          isActive: true,
-          status: PRACTICE_STATUSES.ACTIVE
-        },
-        include: [{ model: HospitalProfile, as: 'hospital' }]
+    let hospitalForBooking = null;
+    let originalPrice = 0;
+
+    if (doctorId) {
+      const doctorProfile = await DoctorProfile.findByPk(doctorId, {
+        include: [{ model: User, as: 'user', attributes: ['id', 'name', 'isActive', 'isBlocked'] }]
       });
-      if (!practice) {
-        return res.status(400).json({ success: false, message: 'Selected hospital is not available for this doctor' });
+      if (!doctorProfile || !isApprovedStatus(doctorProfile.verificationStatus)
+        || !doctorProfile.user?.isActive || doctorProfile.user?.isBlocked) {
+        return res.status(404).json({ success: false, message: 'Doctor is not available for booking' });
       }
+      doctorProfileForRow = doctorProfile;
+
+      if (practiceId) {
+        practice = await DoctorPractice.findOne({
+          where: {
+            id: parseInt(practiceId, 10),
+            doctorProfileId: doctorProfile.id,
+            isActive: true,
+            status: PRACTICE_STATUSES.ACTIVE
+          },
+          include: [{ model: HospitalProfile, as: 'hospital' }]
+        });
+        if (!practice) {
+          return res.status(400).json({ success: false, message: 'Selected hospital is not available for this doctor' });
+        }
+      } else {
+        practice = await DoctorPractice.findOne({
+          where: {
+            doctorProfileId: doctorProfile.id,
+            isPrimary: true,
+            isActive: true,
+            status: PRACTICE_STATUSES.ACTIVE
+          },
+          include: [{ model: HospitalProfile, as: 'hospital' }]
+        });
+        if (!practice) {
+          return res.status(400).json({ success: false, message: 'Doctor has no active practice available for booking' });
+        }
+      }
+
+      const availability = await DoctorAvailability.findOne({
+        where: {
+          practice_id: practice.id,
+          day_of_week: appointmentDate.getDay(),
+          is_available: true
+        }
+      });
+      if (!availability || time < availability.start_time.slice(0, 5) || time > availability.end_time.slice(0, 5)) {
+        return res.status(400).json({ success: false, message: 'Selected time is outside the doctor\'s availability at this hospital' });
+      }
+
+      hospitalForBooking = practice.hospital;
+      originalPrice = parseFloat(practice.consultationFee) || 0;
     } else {
-      practice = await DoctorPractice.findOne({
-        where: {
-          doctorProfileId: doctorProfile.id,
-          isPrimary: true,
-          isActive: true,
-          status: PRACTICE_STATUSES.ACTIVE
-        },
-        include: [{ model: HospitalProfile, as: 'hospital' }]
+      const hospId = parseInt(hospitalId, 10);
+      if (!Number.isInteger(hospId)) {
+        return res.status(400).json({ success: false, message: 'Invalid hospital id' });
+      }
+      const { HospitalAvailability } = require('../models');
+      const hospital = await HospitalProfile.findByPk(hospId, {
+        include: [{ model: User, as: 'user', attributes: ['id', 'isActive', 'isBlocked'] }]
       });
-      if (!practice) {
-        return res.status(400).json({ success: false, message: 'Doctor has no active practice available for booking' });
+      if (!hospital || !isApprovedStatus(hospital.verificationStatus)
+        || !hospital.user?.isActive || hospital.user?.isBlocked) {
+        return res.status(404).json({ success: false, message: 'Hospital is not available for booking' });
       }
-    }
 
-    const availability = await DoctorAvailability.findOne({
-      where: {
-        practice_id: practice.id,
-        day_of_week: appointmentDate.getDay(),
-        is_available: true
+      // If hospital admin set weekly hours, enforce them; otherwise allow any time.
+      const slot = await HospitalAvailability.findOne({
+        where: {
+          hospital_profile_id: hospital.id,
+          day_of_week: appointmentDate.getDay(),
+          is_available: true
+        }
+      });
+      const hasScheduleForDay = !!slot;
+      const anyScheduleAtAll = await HospitalAvailability.count({
+        where: { hospital_profile_id: hospital.id, is_available: true }
+      });
+      if (anyScheduleAtAll > 0) {
+        if (!hasScheduleForDay) {
+          return res.status(400).json({ success: false, message: 'Hospital is closed on the selected day' });
+        }
+        const startHM = String(slot.start_time).slice(0, 5);
+        const endHM = String(slot.end_time).slice(0, 5);
+        if (time < startHM || time > endHM) {
+          return res.status(400).json({ success: false, message: `Selected time is outside hospital hours (${startHM}-${endHM})` });
+        }
       }
-    });
-    if (!availability || time < availability.start_time.slice(0, 5) || time > availability.end_time.slice(0, 5)) {
-      return res.status(400).json({ success: false, message: 'Selected time is outside the doctor\'s availability at this hospital' });
-    }
 
-    // Fee is per practice, not per doctor.
-    const originalPrice = parseFloat(practice.consultationFee) || 0;
+      hospitalForBooking = hospital;
+      originalPrice = parseFloat(hospital.defaultConsultationFee) || 0;
+    }
 
     let couponResult = { couponId: null, couponCode: null, discountAmount: 0, coupon: null };
     if (couponCode) {
       couponResult = await resolveCouponForBooking({
         couponCode,
         amount: originalPrice,
-        hospitalId: practice.hospitalProfileId,
+        hospitalId: hospitalForBooking.id,
         userId: req.user.id
       });
       if (couponResult.error) {
@@ -198,19 +250,16 @@ exports.createAppointment = async (req, res) => {
     }
 
     const finalPrice = Math.max(0, originalPrice - couponResult.discountAmount);
-    const hospitalCommissionPercent = parseFloat(practice.hospital?.hospitalCommissionPercent) || 0;
-    // Commission is charged on the full consultation fee; cashback comes out of
-    // the platform's commission revenue after the doctor completes the appointment.
+    const hospitalCommissionPercent = parseFloat(hospitalForBooking?.hospitalCommissionPercent) || 0;
     const commission = computeCommission({ basePrice: originalPrice, hospitalCommissionPercent });
     const cashbackStatus = couponResult.discountAmount > 0 ? 'pending' : 'none';
 
-    // One retry on booking-number collision (base32 6-char).
     let appointment;
     let lastErr;
     for (let attempt = 0; attempt < 2; attempt++) {
       try {
         appointment = await Appointment.create({
-          doctorProfileId: doctorProfile.id,
+          doctorProfileId: doctorProfileForRow ? doctorProfileForRow.id : null,
           patientId: req.user.id,
           patientName: req.user.name,
           email: req.user.email,
@@ -224,8 +273,8 @@ exports.createAppointment = async (req, res) => {
           originalPrice,
           discountAmount: couponResult.discountAmount,
           finalPrice,
-          practiceId: practice.id,
-          hospitalProfileId: practice.hospitalProfileId,
+          practiceId: practice ? practice.id : null,
+          hospitalProfileId: hospitalForBooking.id,
           platformRevenueAmount: commission.platformRevenue,
           doctorPayoutAmount: commission.doctorPayout,
           paymentMode: mode,

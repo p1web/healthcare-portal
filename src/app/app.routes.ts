@@ -37,6 +37,10 @@ export const routes: Routes = [
       { path: 'doctor/:id', component: DoctorDetailComponent },
       { path: 'hospitals', component: HospitalsComponent },
       { path: 'hospital/:id', component: HospitalDetailComponent },
+      {
+        path: 'hospital/:id/book',
+        loadComponent: () => import('./components/hospital-booking/hospital-booking.component').then(m => m.HospitalBookingComponent)
+      },
       { path: 'login', component: LoginComponent },
       { path: 'register', component: RegisterComponent }
     ]

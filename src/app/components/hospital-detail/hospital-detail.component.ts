@@ -72,7 +72,7 @@ export class HospitalDetailComponent implements OnInit {
 
   bookAppointment(): void {
     if (!this.hospital) return;
-    this.router.navigate(['/hospitals', this.hospital.id, 'book']);
+    this.router.navigate(['/hospital', this.hospital.id, 'book']);
   }
 
   getStarArray(): number[] {

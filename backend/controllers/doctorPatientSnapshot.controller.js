@@ -135,7 +135,7 @@ exports.getPatientSnapshot = async (req, res) => {
           reason: v.reason,
           status: v.status,
           paymentStatus: v.paymentStatus,
-          finalPrice: v.finalPrice !== null ? parseFloat(v.finalPrice) : null,
+          netCostAfterCashback: v.finalPrice !== null ? parseFloat(v.finalPrice) : null,
           createdAt: v.createdAt
         }))
       }

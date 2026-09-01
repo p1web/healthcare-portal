@@ -20,7 +20,7 @@ export interface HospitalAppointmentRow {
   rejectionReason: string | null;
   originalPrice: number | null;
   discountAmount: number;
-  finalPrice: number | null;
+  netCostAfterCashback: number | null;
   platformRevenueAmount: number;
   doctorPayoutAmount: number;
   paymentMode: 'online' | 'offline';

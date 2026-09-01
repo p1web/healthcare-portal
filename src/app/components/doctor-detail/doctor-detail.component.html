@@ -42,8 +42,7 @@
               <div *ngIf="bookingResult.originalPrice !== null && bookingResult.originalPrice !== undefined">
                 Consultation fee: ₹{{ bookingResult.originalPrice }}
                 <span *ngIf="bookingResult.discountAmount > 0">
-                  &nbsp;·&nbsp; Discount: −₹{{ bookingResult.discountAmount }}
-                  &nbsp;·&nbsp; <strong>Total: ₹{{ bookingResult.finalPrice }}</strong>
+                  &nbsp;·&nbsp; Cashback after visit: ₹{{ bookingResult.discountAmount }}
                 </span>
               </div>
             </div>

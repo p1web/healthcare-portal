@@ -159,12 +159,9 @@
               </td>
               <td class="pricing-cell">
                 <ng-container *ngIf="hasPricing(appointment); else noPrice">
-                  <strong>₹{{ (appointment.finalPrice ?? appointment.originalPrice) | number:'1.0-2' }}</strong>
+                  <strong>₹{{ appointment.originalPrice | number:'1.0-2' }}</strong>
                   <div *ngIf="appointment.discountAmount && appointment.discountAmount > 0" class="small">
-                    <span class="text-muted text-decoration-line-through">
-                      ₹{{ appointment.originalPrice | number:'1.0-2' }}
-                    </span>
-                    <span class="text-success ms-1">−₹{{ appointment.discountAmount | number:'1.0-2' }}</span>
+                    <span class="text-success">Cashback: ₹{{ appointment.discountAmount | number:'1.0-2' }}</span>
                   </div>
                   <div class="payout-breakdown small text-muted mt-1"
                        *ngIf="appointment.platformRevenueAmount || appointment.doctorPayoutAmount">
@@ -312,8 +309,8 @@
               <span class="text-success">−₹{{ appt.discountAmount | number:'1.0-2' }}</span>
             </div>
             <div class="billing-row billing-total">
-              <span>Payable</span>
-              <span>₹{{ (appt.finalPrice ?? appt.originalPrice ?? 0) | number:'1.0-2' }}</span>
+              <span>Amount payable</span>
+              <span>₹{{ (appt.originalPrice ?? 0) | number:'1.0-2' }}</span>
             </div>
             <div class="billing-row billing-payment" *ngIf="appt.paymentStatus">
               <span>Payment status</span>

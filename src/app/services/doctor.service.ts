@@ -32,7 +32,7 @@ export interface PatientSnapshotVisit {
   reason: string | null;
   status: string;
   paymentStatus: string | null;
-  finalPrice: number | null;
+  netCostAfterCashback: number | null;
   createdAt: string;
 }
 

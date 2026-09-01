@@ -274,7 +274,7 @@
               <span *ngIf="a.specialization"> · {{ a.specialization }}</span>
             </div>
           </div>
-          <div class="activity-price" *ngIf="a.finalPrice as price">
+          <div class="activity-price" *ngIf="a.originalPrice as price">
             {{ formatCurrency(price) }}
           </div>
         </li>

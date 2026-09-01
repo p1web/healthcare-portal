@@ -121,7 +121,7 @@ export class AppointmentsComponent implements OnInit {
   }
 
   hasPricing(appointment: AdminAppointment): boolean {
-    return appointment.originalPrice != null || appointment.finalPrice != null;
+    return appointment.originalPrice != null;
   }
 
   discountPercent(appointment: AdminAppointment): number | null {

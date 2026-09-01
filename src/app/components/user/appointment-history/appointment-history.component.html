@@ -112,10 +112,9 @@
               </td>
               <td class="pricing-cell">
                 <ng-container *ngIf="appointment.originalPrice !== null && appointment.originalPrice !== undefined">
-                  <strong>₹{{ appointment.finalPrice }}</strong>
-                  <div *ngIf="appointment.discountAmount && appointment.discountAmount > 0" class="small">
-                    <span class="text-muted text-decoration-line-through">₹{{ appointment.originalPrice }}</span>
-                    <span class="text-success ms-1">−₹{{ appointment.discountAmount }}</span>
+                  <strong>₹{{ appointment.originalPrice }}</strong>
+                  <div *ngIf="appointment.discountAmount && appointment.discountAmount > 0" class="small text-success">
+                    Cashback: ₹{{ appointment.discountAmount }}
                   </div>
                   <div *ngIf="appointment.couponCode" class="small">
                     <code class="coupon-chip">{{ appointment.couponCode }}</code>

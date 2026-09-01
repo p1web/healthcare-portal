@@ -20,7 +20,7 @@ export interface AppointmentHistory extends Appointment {
   couponId?: number | null;
   originalPrice?: number | null;
   discountAmount?: number;
-  finalPrice?: number | null;
+  netCostAfterCashback?: number | null;
   bookingNumber?: string | null;
   paymentMode?: 'online' | 'offline';
   paymentStatus?: 'paid' | 'pending' | 'failed' | 'refunded';
@@ -44,7 +44,7 @@ export interface DoctorAppointment {
   rejectionReason?: string | null;
   hospital?: string | null;
   originalPrice?: number | null;
-  finalPrice?: number | null;
+  netCostAfterCashback?: number | null;
   doctorPayoutAmount?: number;
   bookingNumber?: string | null;
   paymentMode?: 'online' | 'offline';
@@ -68,7 +68,7 @@ export interface AdminAppointment extends DoctorAppointment {
   couponTitle?: string | null;
   originalPrice?: number | null;
   discountAmount?: number | null;
-  finalPrice?: number | null;
+  netCostAfterCashback?: number | null;
   paymentStatus?: 'paid' | 'pending' | 'failed' | 'refunded';
   cancelledBy?: 'patient' | 'doctor' | 'admin' | null;
   cancelledAt?: string | null;
@@ -93,7 +93,7 @@ export interface AppointmentReceipt {
   hospitalCity: string | null;
   originalPrice: number | null;
   discountAmount: number;
-  finalPrice: number | null;
+  netCostAfterCashback: number | null;
   amountPayable: number | null;
   couponCode: string | null;
   cashbackAmount: number;

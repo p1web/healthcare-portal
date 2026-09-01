@@ -61,7 +61,9 @@ function formatAppointment(appointment) {
       ? parseFloat(value.originalPrice) : null,
     discountAmount: value.discountAmount !== null && value.discountAmount !== undefined
       ? parseFloat(value.discountAmount) : 0,
-    finalPrice: value.finalPrice !== null && value.finalPrice !== undefined
+    // originalPrice = what the patient is invoiced (they always pay this up front).
+    // netCostAfterCashback = originalPrice - discountAmount once cashback is credited.
+    netCostAfterCashback: value.finalPrice !== null && value.finalPrice !== undefined
       ? parseFloat(value.finalPrice) : null,
     platformRevenueAmount: numeric(value.platformRevenueAmount),
     doctorPayoutAmount: numeric(value.doctorPayoutAmount),
@@ -94,7 +96,7 @@ function formatDoctorAppointment(appointment) {
     hospital: value.hospitalProfile?.hospitalName || null,
     originalPrice: value.originalPrice !== null && value.originalPrice !== undefined
       ? parseFloat(value.originalPrice) : null,
-    finalPrice: value.finalPrice !== null && value.finalPrice !== undefined
+    netCostAfterCashback: value.finalPrice !== null && value.finalPrice !== undefined
       ? parseFloat(value.finalPrice) : null,
     doctorPayoutAmount: numeric(value.doctorPayoutAmount),
     bookingNumber: value.bookingNumber || null,
@@ -1028,7 +1030,7 @@ exports.getAppointmentReceipt = async (req, res) => {
     const value = appointment.toJSON();
     const originalPrice = value.originalPrice !== null ? parseFloat(value.originalPrice) : null;
     const discountAmount = value.discountAmount !== null ? parseFloat(value.discountAmount) : 0;
-    const finalPrice = value.finalPrice !== null ? parseFloat(value.finalPrice) : null;
+    const netCostAfterCashback = value.finalPrice !== null ? parseFloat(value.finalPrice) : null;
     const bookingType = value.doctorProfileId ? 'doctor' : 'hospital';
     const hospitalName = value.hospitalProfile?.hospitalName || null;
     return res.json({
@@ -1052,7 +1054,7 @@ exports.getAppointmentReceipt = async (req, res) => {
         appointmentStatus: value.status,
         originalPrice,
         discountAmount,
-        finalPrice,
+        netCostAfterCashback,
         // Patient always pays the full consultation fee upfront.
         amountPayable: originalPrice,
         couponCode: value.couponCode || null,

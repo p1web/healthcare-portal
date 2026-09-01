@@ -46,7 +46,7 @@ function formatHospitalAppointment(a) {
     rejectionReason: v.rejectionReason || null,
     originalPrice: v.originalPrice !== null ? parseFloat(v.originalPrice) : null,
     discountAmount: num(v.discountAmount),
-    finalPrice: v.finalPrice !== null ? parseFloat(v.finalPrice) : null,
+    netCostAfterCashback: v.finalPrice !== null ? parseFloat(v.finalPrice) : null,
     platformRevenueAmount: num(v.platformRevenueAmount),
     doctorPayoutAmount: num(v.doctorPayoutAmount),
     paymentMode: v.paymentMode || 'offline',

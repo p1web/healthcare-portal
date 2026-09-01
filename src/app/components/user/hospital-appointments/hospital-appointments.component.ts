@@ -104,6 +104,23 @@ export class HospitalAppointmentsComponent implements OnInit {
     });
   }
 
+  cancel(a: HospitalAppointmentRow): void {
+    if (!confirm(`Cancel the confirmed appointment for ${a.patientName} on ${a.date} ${a.time}? Coupon usage will be refunded and any pending cashback will be forfeited.`)) return;
+    this.actingId = a.id;
+    this.error = '';
+    this.svc.cancel(a.id).subscribe({
+      next: () => {
+        this.actingId = null;
+        this.success = 'Appointment cancelled.';
+        this.load();
+      },
+      error: (err) => {
+        this.actingId = null;
+        this.error = err?.error?.message || 'Failed to cancel';
+      }
+    });
+  }
+
   statusBadgeClass(status: string): string {
     switch (status) {
       case 'confirmed': return 'bg-primary';

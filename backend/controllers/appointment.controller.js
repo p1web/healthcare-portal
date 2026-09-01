@@ -434,6 +434,13 @@ exports.cancelAppointment = async (req, res) => {
         return res.status(403).json({ success: false, message: 'Not authorized to cancel this appointment' });
       }
     }
+    if (req.user.role === 'hospital') {
+      const { HospitalProfile } = require('../models');
+      const hospitalProfile = await HospitalProfile.findOne({ where: { userId: req.user.id } });
+      if (!hospitalProfile || appointment.hospitalProfileId !== hospitalProfile.id) {
+        return res.status(403).json({ success: false, message: 'Not authorized to cancel this appointment' });
+      }
+    }
     if (['cancelled', 'completed'].includes(appointment.status)) {
       return res.status(409).json({
         success: false,

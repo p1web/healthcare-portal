@@ -60,4 +60,12 @@ export class HospitalAppointmentService {
   reject(id: number, reason: string): Observable<{ success: boolean; message: string; data: HospitalAppointmentRow }> {
     return this.http.patch<{ success: boolean; message: string; data: HospitalAppointmentRow }>(`${this.apiBase}/${id}/reject`, { reason });
   }
+
+  cancel(id: number): Observable<{ success: boolean; message: string; data: unknown }> {
+    // Uses the shared /api/appointments/:id/cancel endpoint (authorized for hospital role).
+    return this.http.patch<{ success: boolean; message: string; data: unknown }>(
+      `http://localhost:3000/api/appointments/${id}/cancel`,
+      {}
+    );
+  }
 }

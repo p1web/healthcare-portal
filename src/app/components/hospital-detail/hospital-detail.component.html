@@ -72,6 +72,9 @@
               <strong>{{ h.rating }}</strong>
               <span class="rating-scale">/ 5.0</span>
             </span>
+            <span class="hero-badge hero-badge-neutral" *ngIf="h.defaultConsultationFee != null">
+              <i class="bi bi-currency-rupee"></i>₹{{ h.defaultConsultationFee | number:'1.0-0' }} consult fee
+            </span>
             <span class="hero-badge hero-badge-discount" *ngIf="h.discount">
               <i class="bi bi-tag-fill"></i>{{ h.discount }} OFF
             </span>

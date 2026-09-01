@@ -19,5 +19,6 @@ export interface Hospital {
   operatingHours?: string;
   emergencyAvailable?: boolean;
   ambulanceAvailable?: boolean;
+  defaultConsultationFee?: number | null;
   
 }

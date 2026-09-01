@@ -65,7 +65,9 @@ function formatPublicHospital({ profile, specialties }) {
     image: data.user?.profileImage || null,
     images: [],
     registrationNumber: data.registrationNumber,
-    hospitalType: data.hospitalType
+    hospitalType: data.hospitalType,
+    defaultConsultationFee: data.defaultConsultationFee !== null && data.defaultConsultationFee !== undefined
+      ? parseFloat(data.defaultConsultationFee) : null
   };
 }
 

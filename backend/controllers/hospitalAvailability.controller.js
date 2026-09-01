@@ -1,7 +1,6 @@
 'use strict';
 
 const { HospitalProfile, HospitalAvailability, sequelize } = require('../models');
-
 const TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d(?::[0-5]\d)?$/;
 
 async function requireOwnedHospital(userId) {
@@ -59,7 +58,13 @@ exports.getMyAvailability = async (req, res) => {
       where: { hospitalProfileId: hospital.id },
       order: [['dayOfWeek', 'ASC']]
     });
-    return res.json({ success: true, data: rows.map(formatSlot) });
+    return res.json({
+      success: true,
+      data: {
+        acceptsBookings: hospital.acceptsBookings !== false,
+        slots: rows.map(formatSlot)
+      }
+    });
   } catch (error) {
     console.error('Get hospital availability error:', error);
     return res.status(error.statusCode || 500).json({ success: false, message: error.message || 'Failed to load availability' });
@@ -107,13 +112,38 @@ exports.getPublicAvailability = async (req, res) => {
     if (!Number.isInteger(hospitalProfileId)) {
       return res.status(400).json({ success: false, message: 'Invalid hospital id' });
     }
+    const hospital = await HospitalProfile.findByPk(hospitalProfileId, {
+      attributes: ['id', 'acceptsBookings']
+    });
     const rows = await HospitalAvailability.findAll({
       where: { hospitalProfileId, isAvailable: true },
       order: [['dayOfWeek', 'ASC']]
     });
-    return res.json({ success: true, data: rows.map(formatSlot) });
+    return res.json({
+      success: true,
+      data: {
+        acceptsBookings: hospital ? hospital.acceptsBookings !== false : true,
+        slots: rows.map(formatSlot)
+      }
+    });
   } catch (error) {
     console.error('Public hospital availability error:', error);
     return res.status(500).json({ success: false, message: 'Failed to load availability' });
+  }
+};
+
+exports.setAcceptsBookings = async (req, res) => {
+  try {
+    const hospital = await requireOwnedHospital(req.user.id);
+    const value = req.body?.acceptsBookings;
+    if (typeof value !== 'boolean') {
+      return res.status(400).json({ success: false, message: 'acceptsBookings must be true or false' });
+    }
+    hospital.acceptsBookings = value;
+    await hospital.save();
+    return res.json({ success: true, data: { acceptsBookings: hospital.acceptsBookings } });
+  } catch (error) {
+    console.error('Set accepts_bookings error:', error);
+    return res.status(error.statusCode || 500).json({ success: false, message: error.message || 'Failed to update' });
   }
 };

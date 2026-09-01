@@ -89,7 +89,14 @@
                 </div>
               </div>
 
-              <button type="submit" class="btn btn-primary btn-lg w-100 py-3" [disabled]="isSubmitting">
+              <div class="alert alert-warning mb-3" *ngIf="!acceptsBookings">
+                <i class="bi bi-shop me-2"></i>
+                <strong>This hospital is not accepting new bookings at the moment.</strong>
+                Please check back later or contact them directly.
+              </div>
+
+              <button type="submit" class="btn btn-primary btn-lg w-100 py-3"
+                      [disabled]="isSubmitting || !acceptsBookings">
                 <span *ngIf="!isSubmitting"><i class="bi bi-check-circle me-2"></i>Confirm Appointment</span>
                 <span *ngIf="isSubmitting"><span class="spinner-border spinner-border-sm me-2"></span>Booking...</span>
               </button>

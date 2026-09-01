@@ -7,6 +7,7 @@ import { AppointmentService } from '../../services/appointment.service';
 import { AuthService } from '../../services/auth.service';
 import { CouponService } from '../../services/coupon.service';
 import { HospitalStaffMember, HospitalStaffService } from '../../services/hospital-staff.service';
+import { HospitalAvailabilityService } from '../../services/hospital-availability.service';
 
 @Component({
   standalone: true,
@@ -19,6 +20,7 @@ export class HospitalBookingComponent implements OnInit {
   hospitalId!: number;
   hospital: any = null;
   staff: HospitalStaffMember[] = [];
+  acceptsBookings = true;
   form!: FormGroup;
 
   couponInput = '';
@@ -37,6 +39,7 @@ export class HospitalBookingComponent implements OnInit {
     private fb: FormBuilder,
     private hospitalService: HospitalService,
     private staffService: HospitalStaffService,
+    private availabilityService: HospitalAvailabilityService,
     private appointmentService: AppointmentService,
     private authService: AuthService,
     private couponService: CouponService
@@ -89,6 +92,10 @@ export class HospitalBookingComponent implements OnInit {
     this.staffService.listPublic(this.hospitalId).subscribe({
       next: (res) => { this.staff = res.data || []; },
       error: () => { this.staff = []; }
+    });
+    this.availabilityService.listPublic(this.hospitalId).subscribe({
+      next: (res) => { this.acceptsBookings = res.data?.acceptsBookings !== false; },
+      error: () => { this.acceptsBookings = true; }
     });
   }
 

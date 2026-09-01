@@ -29,3 +29,17 @@
 .hours-row:last-child {
   border-bottom: none;
 }
+
+.accepts-card {
+  border-left: 4px solid #10b981;
+}
+
+.accepts-card-closed {
+  border-left-color: #dc3545;
+  background: #fef2f2;
+}
+
+.form-switch .form-check-input {
+  width: 3rem;
+  height: 1.5rem;
+}

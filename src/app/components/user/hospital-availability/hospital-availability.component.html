@@ -18,6 +18,40 @@
     <div class="alert alert-success mb-0"><i class="bi bi-check-circle me-2"></i>{{ success }}</div>
   </div>
 
+  <section class="profile-section accepts-card"
+           [class.accepts-card-closed]="!acceptsBookings" *ngIf="!isLoading">
+    <div class="d-flex align-items-start justify-content-between flex-wrap gap-3">
+      <div>
+        <h6 class="mb-1">
+          <i class="bi" [class.bi-shop-window]="acceptsBookings"
+                       [class.bi-shop]="!acceptsBookings"></i>
+          {{ acceptsBookings ? 'Accepting bookings' : 'Closed to new bookings' }}
+        </h6>
+        <p class="text-muted small mb-0" *ngIf="acceptsBookings">
+          Patients can request appointments at your hospital.
+          Set weekly hours below to limit when.
+        </p>
+        <p class="text-muted small mb-0" *ngIf="!acceptsBookings">
+          New bookings are blocked. Patients see a "closed" message on the booking form.
+          Existing confirmed bookings are unaffected.
+        </p>
+      </div>
+      <div class="form-check form-switch fs-5">
+        <input class="form-check-input" type="checkbox" id="acceptsToggle"
+               [checked]="acceptsBookings"
+               [disabled]="acceptsToggleBusy"
+               (change)="toggleAcceptsBookings(!acceptsBookings)" />
+        <label class="form-check-label" for="acceptsToggle"></label>
+      </div>
+    </div>
+    <div class="alert alert-warning mt-3 mb-0 small"
+         *ngIf="acceptsBookings && !hasAnyEnabledDay">
+      <i class="bi bi-exclamation-triangle me-2"></i>
+      <strong>Heads up:</strong> no weekly hours are set. Patients can book at
+      <em>any time on any day</em>. Add hours below, or flip the toggle off if you're closing.
+    </div>
+  </section>
+
   <section class="profile-section">
     <h6 class="section-title mb-2"><i class="bi bi-currency-rupee me-1"></i>Consultation fee</h6>
     <p class="text-muted small mb-2">

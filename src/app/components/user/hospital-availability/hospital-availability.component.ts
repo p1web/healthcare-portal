@@ -16,6 +16,8 @@ export class HospitalAvailabilityComponent implements OnInit {
   readonly weekDays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   form!: FormGroup;
   feeForm!: FormGroup;
+  acceptsBookings = true;
+  acceptsToggleBusy = false;
   isLoading = false;
   isSaving = false;
   isSavingFee = false;
@@ -88,8 +90,10 @@ export class HospitalAvailabilityComponent implements OnInit {
     this.error = '';
     this.svc.listMine().subscribe({
       next: (res) => {
+        this.acceptsBookings = res.data?.acceptsBookings !== false;
+        const slots = res.data?.slots || [];
         this.slots.controls.forEach((ctrl, day) => {
-          const row = (res.data || []).find(r => r.dayOfWeek === day);
+          const row = slots.find(r => r.dayOfWeek === day);
           if (row) {
             ctrl.patchValue({
               dayOfWeek: day,
@@ -106,6 +110,30 @@ export class HospitalAvailabilityComponent implements OnInit {
       error: (err) => {
         this.error = err?.error?.message || 'Failed to load hospital hours';
         this.isLoading = false;
+      }
+    });
+  }
+
+  get hasAnyEnabledDay(): boolean {
+    return (this.slots.value as Array<{ isAvailable: boolean }>).some(s => !!s.isAvailable);
+  }
+
+  toggleAcceptsBookings(next: boolean): void {
+    if (this.acceptsToggleBusy) return;
+    this.acceptsToggleBusy = true;
+    this.error = '';
+    this.success = '';
+    this.svc.setAcceptsBookings(next).subscribe({
+      next: (res) => {
+        this.acceptsBookings = res.data.acceptsBookings;
+        this.acceptsToggleBusy = false;
+        this.success = this.acceptsBookings
+          ? 'Bookings enabled. Patients can now book at your hospital.'
+          : 'Bookings paused. Patients will see a closed message when they try to book.';
+      },
+      error: (err) => {
+        this.acceptsToggleBusy = false;
+        this.error = err?.error?.message || 'Failed to update';
       }
     });
   }

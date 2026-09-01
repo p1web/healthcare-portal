@@ -152,6 +152,12 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: 500.00,
       field: 'default_consultation_fee'
     },
+    acceptsBookings: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: true,
+      field: 'accepts_bookings'
+    },
     operatingHours: {
       type: DataTypes.STRING(100),
       allowNull: true,

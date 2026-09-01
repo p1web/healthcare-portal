@@ -209,6 +209,14 @@ exports.createAppointment = async (req, res) => {
         return res.status(404).json({ success: false, message: 'Hospital is not available for booking' });
       }
 
+      if (hospital.acceptsBookings === false) {
+        return res.status(400).json({
+          success: false,
+          code: 'HOSPITAL_CLOSED',
+          message: 'This hospital is not accepting bookings at the moment. Please try again later.'
+        });
+      }
+
       // If hospital admin set weekly hours, enforce them; otherwise allow any time.
       const slot = await HospitalAvailability.findOne({
         where: {

@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HospitalService } from '../../services/hospital.service';
+import { HospitalStaffMember, HospitalStaffService } from '../../services/hospital-staff.service';
 import { Hospital } from '../../models/hospital.model';
 
 @Component({
@@ -13,6 +14,7 @@ import { Hospital } from '../../models/hospital.model';
 })
 export class HospitalDetailComponent implements OnInit {
   hospital: Hospital | null = null;
+  staff: HospitalStaffMember[] = [];
   isLoading = true;
   loadError = '';
 
@@ -20,7 +22,8 @@ export class HospitalDetailComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private location: Location,
-    private hospitalService: HospitalService
+    private hospitalService: HospitalService,
+    private staffService: HospitalStaffService
   ) {}
 
   ngOnInit(): void {
@@ -31,6 +34,7 @@ export class HospitalDetailComponent implements OnInit {
       return;
     }
     this.loadHospital(id);
+    this.loadStaff(id);
   }
 
   loadHospital(id: number): void {
@@ -55,13 +59,20 @@ export class HospitalDetailComponent implements OnInit {
     });
   }
 
+  loadStaff(id: number): void {
+    this.staffService.listPublic(id).subscribe({
+      next: (res) => { this.staff = res.data || []; },
+      error: () => { this.staff = []; }
+    });
+  }
+
   goBack(): void {
     this.location.back();
   }
 
   bookAppointment(): void {
     if (!this.hospital) return;
-    this.router.navigate(['/doctors'], { queryParams: { hospital: this.hospital.id } });
+    this.router.navigate(['/hospitals', this.hospital.id, 'book']);
   }
 
   getStarArray(): number[] {

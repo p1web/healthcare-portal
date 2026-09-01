@@ -101,6 +101,12 @@ export const routes: Routes = [
       { path: 'profile/hospital', component: HospitalProfileComponent, canActivate: [RoleGuard], data: { title: 'My Profile', roles: ['hospital'] } },
       { path: 'hospital-dashboard', component: HospitalDashboardComponent, canActivate: [RoleGuard], data: { title: 'Dashboard', roles: ['hospital'] } },
       { path: 'hospital-practices', component: HospitalPracticesComponent, canActivate: [RoleGuard], data: { title: 'Doctor Affiliations', roles: ['hospital'] } },
+      {
+        path: 'hospital-staff',
+        canActivate: [RoleGuard],
+        data: { title: 'Sitting Doctors', roles: ['hospital'] },
+        loadComponent: () => import('./components/user/hospital-staff/hospital-staff.component').then(m => m.HospitalStaffComponent)
+      },
       { path: 'change-password', component: ChangePasswordComponent, data: { title: 'Change Password' } },
       { path: 'reset-password', component: ResetPasswordComponent, data: { title: 'Reset Password' } }
     ]

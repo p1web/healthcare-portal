@@ -1,0 +1,86 @@
+.profile-page {
+  max-width: 1000px;
+  margin: 1.5rem auto;
+  padding: 0 1rem;
+}
+
+.profile-header {
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  color: #fff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.profile-section {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+.section-title {
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.section-title .bi {
+  margin-right: 0.35rem;
+  color: #4f46e5;
+}
+
+.form-actions {
+  text-align: right;
+}
+
+.staff-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1rem;
+}
+
+.staff-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 1rem;
+  display: flex;
+  gap: 1rem;
+  background: #fafafa;
+}
+
+.staff-card.staff-inactive {
+  opacity: 0.6;
+}
+
+.staff-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.staff-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.staff-body {
+  flex: 1;
+}
+
+.staff-bio {
+  line-height: 1.4;
+}

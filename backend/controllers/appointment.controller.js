@@ -212,21 +212,21 @@ exports.createAppointment = async (req, res) => {
       // If hospital admin set weekly hours, enforce them; otherwise allow any time.
       const slot = await HospitalAvailability.findOne({
         where: {
-          hospital_profile_id: hospital.id,
-          day_of_week: appointmentDate.getDay(),
-          is_available: true
+          hospitalProfileId: hospital.id,
+          dayOfWeek: appointmentDate.getDay(),
+          isAvailable: true
         }
       });
       const hasScheduleForDay = !!slot;
       const anyScheduleAtAll = await HospitalAvailability.count({
-        where: { hospital_profile_id: hospital.id, is_available: true }
+        where: { hospitalProfileId: hospital.id, isAvailable: true }
       });
       if (anyScheduleAtAll > 0) {
         if (!hasScheduleForDay) {
           return res.status(400).json({ success: false, message: 'Hospital is closed on the selected day' });
         }
-        const startHM = String(slot.start_time).slice(0, 5);
-        const endHM = String(slot.end_time).slice(0, 5);
+        const startHM = String(slot.startTime).slice(0, 5);
+        const endHM = String(slot.endTime).slice(0, 5);
         if (time < startHM || time > endHM) {
           return res.status(400).json({ success: false, message: `Selected time is outside hospital hours (${startHM}-${endHM})` });
         }

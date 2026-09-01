@@ -1,0 +1,134 @@
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormArray, FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
+import { HospitalAvailabilityService, HospitalAvailabilitySlot } from '../../../services/hospital-availability.service';
+import { HospitalProfileService } from '../../../services/hospital-profile.service';
+
+@Component({
+  standalone: true,
+  selector: 'app-hospital-availability',
+  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  templateUrl: './hospital-availability.component.html',
+  styleUrl: './hospital-availability.component.css'
+})
+export class HospitalAvailabilityComponent implements OnInit {
+  readonly weekDays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  form!: FormGroup;
+  feeForm!: FormGroup;
+  isLoading = false;
+  isSaving = false;
+  isSavingFee = false;
+  error = '';
+  success = '';
+  feeSuccess = '';
+  feeError = '';
+
+  constructor(
+    private fb: FormBuilder,
+    private svc: HospitalAvailabilityService,
+    private http: HttpClient,
+    private hospitalProfileService: HospitalProfileService
+  ) {}
+
+  ngOnInit(): void {
+    this.form = this.fb.group({
+      slots: this.fb.array(
+        this.weekDays.map((_, day) => this.fb.group({
+          dayOfWeek: [day],
+          isAvailable: [false],
+          startTime: ['09:00'],
+          endTime: ['17:00']
+        }))
+      )
+    });
+    this.feeForm = this.fb.group({
+      defaultConsultationFee: [500, [Validators.required, Validators.min(0)]]
+    });
+    this.load();
+    this.loadFee();
+  }
+
+  get slots(): FormArray {
+    return this.form.get('slots') as FormArray;
+  }
+
+  loadFee(): void {
+    this.hospitalProfileService.getProfile().subscribe({
+      next: (res: any) => {
+        const fee = res?.data?.hospitalProfile?.defaultConsultationFee;
+        if (fee != null) this.feeForm.patchValue({ defaultConsultationFee: Number(fee) });
+      },
+      error: () => { /* silent */ }
+    });
+  }
+
+  saveFee(): void {
+    this.feeError = '';
+    this.feeSuccess = '';
+    if (this.feeForm.invalid) { this.feeError = 'Please enter a valid fee.'; return; }
+    this.isSavingFee = true;
+    this.http.patch<any>(
+      'http://localhost:3000/api/hospital/consultation-fee',
+      { defaultConsultationFee: Number(this.feeForm.value.defaultConsultationFee) }
+    ).subscribe({
+      next: () => {
+        this.isSavingFee = false;
+        this.feeSuccess = 'Consultation fee updated. Applies to new bookings.';
+      },
+      error: (err) => {
+        this.isSavingFee = false;
+        this.feeError = err?.error?.message || 'Failed to update fee';
+      }
+    });
+  }
+
+  load(): void {
+    this.isLoading = true;
+    this.error = '';
+    this.svc.listMine().subscribe({
+      next: (res) => {
+        this.slots.controls.forEach((ctrl, day) => {
+          const row = (res.data || []).find(r => r.dayOfWeek === day);
+          if (row) {
+            ctrl.patchValue({
+              dayOfWeek: day,
+              isAvailable: true,
+              startTime: row.startTime,
+              endTime: row.endTime
+            }, { emitEvent: false });
+          } else {
+            ctrl.patchValue({ isAvailable: false, startTime: '09:00', endTime: '17:00' }, { emitEvent: false });
+          }
+        });
+        this.isLoading = false;
+      },
+      error: (err) => {
+        this.error = err?.error?.message || 'Failed to load hospital hours';
+        this.isLoading = false;
+      }
+    });
+  }
+
+  save(): void {
+    this.error = '';
+    this.success = '';
+    const raw = this.form.value.slots as HospitalAvailabilitySlot[];
+    const enabled = raw.filter(s => s.isAvailable);
+    if (enabled.some(s => s.startTime >= s.endTime)) {
+      this.error = 'End time must be after start time for every enabled day.';
+      return;
+    }
+    this.isSaving = true;
+    this.svc.replaceMine(enabled).subscribe({
+      next: () => {
+        this.isSaving = false;
+        this.success = 'Hours saved. Patients will only be able to book within these windows.';
+      },
+      error: (err) => {
+        this.isSaving = false;
+        this.error = err?.error?.message || 'Failed to save hours';
+      }
+    });
+  }
+}

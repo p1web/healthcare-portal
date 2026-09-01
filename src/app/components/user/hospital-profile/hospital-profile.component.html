@@ -306,6 +306,12 @@
           <label class="form-label">Operating Hours</label>
           <input type="text" class="form-control" placeholder="e.g. 24x7 / 9AM - 6PM" formControlName="operatingHours">
         </div>
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Consultation Fee (₹) <span class="text-danger">*</span></label>
+          <input type="number" class="form-control" min="0" step="0.01"
+                 formControlName="defaultConsultationFee" placeholder="e.g. 500" />
+          <small class="text-muted">Charged when a patient books directly with the hospital.</small>
+        </div>
       </div>
     </section>
 

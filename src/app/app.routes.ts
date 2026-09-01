@@ -110,6 +110,12 @@ export const routes: Routes = [
         loadComponent: () => import('./components/user/hospital-staff/hospital-staff.component').then(m => m.HospitalStaffComponent)
       },
       {
+        path: 'hospital-availability',
+        canActivate: [RoleGuard],
+        data: { title: 'Hospital Hours', roles: ['hospital'] },
+        loadComponent: () => import('./components/user/hospital-availability/hospital-availability.component').then(m => m.HospitalAvailabilityComponent)
+      },
+      {
         path: 'hospital-appointments',
         canActivate: [RoleGuard],
         data: { title: 'Appointments', roles: ['hospital'] },

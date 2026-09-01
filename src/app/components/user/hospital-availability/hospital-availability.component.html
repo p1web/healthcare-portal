@@ -1,0 +1,85 @@
+<div class="profile-page">
+  <div class="profile-header">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+      <div>
+        <h2 class="mb-1"><i class="bi bi-clock-history me-2"></i>Hospital Hours</h2>
+        <p class="mb-0 text-white-50">Set the weekly hours during which patients can book appointments.</p>
+      </div>
+      <button type="button" class="btn btn-outline-light" (click)="load()" [disabled]="isLoading">
+        <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+      </button>
+    </div>
+  </div>
+
+  <div class="profile-section" *ngIf="error">
+    <div class="alert alert-danger mb-0"><i class="bi bi-exclamation-triangle me-2"></i>{{ error }}</div>
+  </div>
+  <div class="profile-section" *ngIf="success">
+    <div class="alert alert-success mb-0"><i class="bi bi-check-circle me-2"></i>{{ success }}</div>
+  </div>
+
+  <section class="profile-section">
+    <h6 class="section-title mb-2"><i class="bi bi-currency-rupee me-1"></i>Consultation fee</h6>
+    <p class="text-muted small mb-2">
+      Charged when a patient books directly with your hospital (rather than with a specific doctor).
+    </p>
+    <form [formGroup]="feeForm" (ngSubmit)="saveFee()">
+      <div class="row g-2 align-items-end">
+        <div class="col-md-4">
+          <label class="form-label small text-muted mb-1">Fee (₹)</label>
+          <input type="number" class="form-control" min="0" step="0.01" formControlName="defaultConsultationFee" />
+        </div>
+        <div class="col-md-4">
+          <button type="submit" class="btn btn-primary" [disabled]="isSavingFee || feeForm.invalid">
+            <span *ngIf="isSavingFee" class="spinner-border spinner-border-sm me-1"></span>
+            Save fee
+          </button>
+        </div>
+      </div>
+      <div class="text-danger small mt-2" *ngIf="feeError">{{ feeError }}</div>
+      <div class="text-success small mt-2" *ngIf="feeSuccess">{{ feeSuccess }}</div>
+    </form>
+  </section>
+
+  <section class="profile-section" *ngIf="isLoading">
+    <div class="text-center text-muted py-4">
+      <span class="spinner-border spinner-border-sm me-2"></span>Loading...
+    </div>
+  </section>
+
+  <section class="profile-section" *ngIf="!isLoading">
+    <p class="text-muted small mb-3">
+      Toggle a day on to accept bookings that day, then choose the open and close times.
+      If you leave every day off, patients can book any time (fallback for demo &mdash; not recommended for a live hospital).
+    </p>
+
+    <form [formGroup]="form" (ngSubmit)="save()">
+      <div formArrayName="slots">
+        <div class="row g-2 mb-2 align-items-center hours-row"
+             *ngFor="let ctrl of slots.controls; let i = index" [formGroupName]="i">
+          <div class="col-md-3">
+            <div class="form-check">
+              <input type="checkbox" class="form-check-input" [id]="'day-' + i" formControlName="isAvailable" />
+              <label class="form-check-label fw-semibold" [for]="'day-' + i">{{ weekDays[i] }}</label>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label small text-muted mb-1">Open</label>
+            <input type="time" class="form-control" formControlName="startTime" [disabled]="!ctrl.value.isAvailable" />
+          </div>
+          <div class="col-md-4">
+            <label class="form-label small text-muted mb-1">Close</label>
+            <input type="time" class="form-control" formControlName="endTime" [disabled]="!ctrl.value.isAvailable" />
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions mt-3 text-end">
+        <button type="submit" class="btn btn-primary" [disabled]="isSaving">
+          <span *ngIf="isSaving" class="spinner-border spinner-border-sm me-2"></span>
+          Save hours
+        </button>
+      </div>
+    </form>
+  </section>
+</div>

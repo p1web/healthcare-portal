@@ -158,8 +158,18 @@ exports.updateProfile = async (req, res) => {
       'hospitalState', 'hospitalPincode', 'website',
       'registrationNumber', 'bio', 'specialtyIds', 'establishedYear', 'totalBeds',
       'hospitalType', 'operatingHours',
-      'emergencyServices', 'ambulanceServices'
+      'emergencyServices', 'ambulanceServices',
+      'defaultConsultationFee'
     ];
+
+    if (hospitalProfile.defaultConsultationFee !== undefined) {
+      const feeNum = Number(hospitalProfile.defaultConsultationFee);
+      if (!Number.isFinite(feeNum) || feeNum < 0) {
+        await t.rollback();
+        return res.status(400).json({ success: false, message: 'defaultConsultationFee must be a positive number' });
+      }
+      hospitalProfile.defaultConsultationFee = feeNum;
+    }
 
     const hospitalUpdates = Object.fromEntries(
       hospitalFields
@@ -332,3 +342,27 @@ exports.submitForReview = async (req, res) => {
     });
   }
 };
+
+// PATCH /api/hospital/consultation-fee — operational setting, not verification-relevant.
+exports.updateConsultationFee = async (req, res) => {
+  try {
+    const profile = await HospitalProfile.findOne({ where: { userId: req.user.id } });
+    if (!profile) {
+      return res.status(404).json({ success: false, message: 'Hospital profile not found' });
+    }
+    const fee = Number(req.body?.defaultConsultationFee);
+    if (!Number.isFinite(fee) || fee < 0) {
+      return res.status(400).json({ success: false, message: 'defaultConsultationFee must be a positive number' });
+    }
+    profile.defaultConsultationFee = fee;
+    await profile.save();
+    return res.json({
+      success: true,
+      data: { defaultConsultationFee: Number(profile.defaultConsultationFee) }
+    });
+  } catch (error) {
+    console.error('Update consultation fee error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to update consultation fee' });
+  }
+};
+

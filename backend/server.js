@@ -39,6 +39,7 @@ const hospitalProfileRoutes = require('./routes/hospitalProfile.routes');
 const practiceRoutes = require('./routes/practice.routes');
 const hospitalStaffRoutes = require('./routes/hospitalStaff.routes');
 const hospitalAppointmentRoutes = require('./routes/hospitalAppointment.routes');
+const hospitalAvailabilityRoutes = require('./routes/hospitalAvailability.routes');
 
 // Use routes
 app.use('/api/auth', authRoutes);
@@ -56,6 +57,7 @@ app.use('/api/hospital', hospitalProfileRoutes);
 app.use('/api', practiceRoutes);
 app.use('/api', hospitalStaffRoutes);
 app.use('/api', hospitalAppointmentRoutes);
+app.use('/api', hospitalAvailabilityRoutes);
 
 // add user routes
 

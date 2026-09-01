@@ -188,6 +188,7 @@ export class HospitalProfileComponent implements OnInit {
         totalBeds: ['', Validators.min(0)],
         hospitalType: ['', Validators.required],
         operatingHours: [''],
+        defaultConsultationFee: [500, [Validators.required, Validators.min(0)]],
         emergencyServices: [false],
         ambulanceServices: [false],
         verificationDocuments: [[]]
@@ -280,6 +281,7 @@ export class HospitalProfileComponent implements OnInit {
         totalBeds: h.totalBeds || '',
         hospitalType: h.hospitalType || '',
         operatingHours: h.operatingHours || '',
+        defaultConsultationFee: h.defaultConsultationFee != null ? Number(h.defaultConsultationFee) : 500,
         emergencyServices: !!h.emergencyServices,
         ambulanceServices: !!h.ambulanceServices,
         verificationDocuments: h.verificationDocuments || []

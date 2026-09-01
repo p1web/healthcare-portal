@@ -62,6 +62,13 @@
       <span class="sidebar-item-icon"><i class="bi bi-calendar2-check"></i></span>
       <span class="sidebar-item-text">Appointments</span>
     </a>
+
+    <a *ngIf="isHospital"
+       class="sidebar-item" routerLink="/hospital-availability"
+       routerLinkActive="active">
+      <span class="sidebar-item-icon"><i class="bi bi-clock-history"></i></span>
+      <span class="sidebar-item-text">Hospital Hours</span>
+    </a>
   </div>
 
   <!-- Account group -->

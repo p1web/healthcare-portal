@@ -111,6 +111,12 @@ export const routes: Routes = [
         data: { title: 'Sitting Doctors', roles: ['hospital'] },
         loadComponent: () => import('./components/user/hospital-staff/hospital-staff.component').then(m => m.HospitalStaffComponent)
       },
+      {
+        path: 'hospital-appointments',
+        canActivate: [RoleGuard],
+        data: { title: 'Appointments', roles: ['hospital'] },
+        loadComponent: () => import('./components/user/hospital-appointments/hospital-appointments.component').then(m => m.HospitalAppointmentsComponent)
+      },
       { path: 'change-password', component: ChangePasswordComponent, data: { title: 'Change Password' } },
       { path: 'reset-password', component: ResetPasswordComponent, data: { title: 'Reset Password' } }
     ]

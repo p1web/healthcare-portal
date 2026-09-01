@@ -62,6 +62,13 @@
       <span class="sidebar-item-icon"><i class="bi bi-people-fill"></i></span>
       <span class="sidebar-item-text">Sitting Doctors</span>
     </a>
+
+    <a *ngIf="isHospital"
+       class="sidebar-item" routerLink="/hospital-appointments"
+       routerLinkActive="active">
+      <span class="sidebar-item-icon"><i class="bi bi-calendar2-check"></i></span>
+      <span class="sidebar-item-text">Appointments</span>
+    </a>
   </div>
 
   <!-- Account group -->

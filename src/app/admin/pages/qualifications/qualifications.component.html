@@ -1,0 +1,139 @@
+<div class="pagetitle">
+    <nav>
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="admin/dashboard">Home</a></li>
+            <li class="breadcrumb-item active">Qualifications</li>
+        </ol>
+    </nav>
+</div>
+
+<section class="section dashboard">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="card-title mb-0">Qualifications</h5>
+
+                        <a href="javascript:void(0)" class="btn btn-primary" (click)="openAddQualificationModal()"
+                            data-bs-toggle="modal" data-bs-target="#createQualificationModal">
+                            <i class="bi bi-plus me-1"></i>
+                            Add New Qualification
+                        </a>
+                    </div>
+
+                    <table class="table table-borderless datatable">
+                        <thead>
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">Qualification Name</th>
+                                <th scope="col">Description</th>
+                                <th scope="col">Created At</th>
+                                <th scope="col">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let q of pagedQualifications; let i = index">
+                                <th scope="row">{{ (currentPage - 1) * pageSize + i + 1 }}</th>
+                                <td><a class="btn-link align-middle">{{ q?.name }}</a></td>
+                                <td>{{ q?.description }}</td>
+                                <td>{{ q?.created_at | date:'dd MMM yyyy' }}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary me-1" data-bs-toggle="modal"
+                                        data-bs-target="#editQualificationModal"
+                                        (click)="openEditQualificationModal(q)">
+                                        <i class="bi bi-eye"></i> Edit
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger" (click)="deleteQualification(q.id)">
+                                        <i class="bi bi-trash"></i> Delete
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <app-pagination
+                        [totalItems]="qualificationList.length"
+                        [(currentPage)]="currentPage"
+                        [(pageSize)]="pageSize"
+                        [pageSizeOptions]="pageSizeOptions">
+                    </app-pagination>
+
+                    <div class="modal fade" id="createQualificationModal" tabindex="-1">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Create New Qualification</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <form [formGroup]="qualificationForm" (ngSubmit)="saveQualification()">
+                                        <div class="form-group mb-3">
+                                            <label class="form-label">Qualification Name</label>
+                                            <input type="text" class="form-control"
+                                                formControlName="qualification_name" placeholder="e.g. MBBS">
+                                            <div *ngIf="qualificationForm.get('qualification_name')?.invalid && qualificationForm.get('qualification_name')?.touched"
+                                                class="text-danger small">
+                                                Qualification Name is required
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group mb-3">
+                                            <label class="form-label">Description</label>
+                                            <input type="text" class="form-control"
+                                                formControlName="qualification_description" placeholder="Description">
+                                        </div>
+
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary"
+                                                data-bs-dismiss="modal">Close</button>
+                                            <button type="submit" class="btn btn-primary"
+                                                [disabled]="qualificationForm.invalid">Save</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal fade" id="editQualificationModal" tabindex="-1">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Update Qualification</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <form [formGroup]="editQualificationForm" (ngSubmit)="updateQualification()">
+                                        <div class="form-group mb-3">
+                                            <label class="form-label">Qualification Name</label>
+                                            <input type="text" class="form-control"
+                                                formControlName="qualification_name" placeholder="e.g. MBBS">
+                                            <div *ngIf="editQualificationForm.get('qualification_name')?.invalid && editQualificationForm.get('qualification_name')?.touched"
+                                                class="text-danger small">
+                                                Qualification Name is required
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group mb-3">
+                                            <label class="form-label">Description</label>
+                                            <input type="text" class="form-control"
+                                                formControlName="qualification_description" placeholder="Description">
+                                        </div>
+
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary"
+                                                data-bs-dismiss="modal">Close</button>
+                                            <button type="submit" class="btn btn-primary">Save</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

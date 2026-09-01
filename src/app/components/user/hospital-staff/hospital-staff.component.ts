@@ -2,6 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HospitalStaffMember, HospitalStaffPayload, HospitalStaffService } from '../../../services/hospital-staff.service';
+import { SpecializationService, Specializations } from '../../../services/specialization.service';
+import { QualificationService, Qualification } from '../../../services/qualification.service';
+import { forkJoin } from 'rxjs';
 
 @Component({
   standalone: true,
@@ -12,6 +15,8 @@ import { HospitalStaffMember, HospitalStaffPayload, HospitalStaffService } from 
 })
 export class HospitalStaffComponent implements OnInit {
   staff: HospitalStaffMember[] = [];
+  specializations: Specializations[] = [];
+  qualifications: Qualification[] = [];
   isLoading = false;
   isSaving = false;
   error = '';
@@ -21,11 +26,33 @@ export class HospitalStaffComponent implements OnInit {
   editingId: number | null = null;
   showForm = false;
 
-  constructor(private fb: FormBuilder, private staffService: HospitalStaffService) {}
+  constructor(
+    private fb: FormBuilder,
+    private staffService: HospitalStaffService,
+    private specializationService: SpecializationService,
+    private qualificationService: QualificationService
+  ) {}
 
   ngOnInit(): void {
     this.form = this.buildForm();
+    this.loadMasters();
     this.load();
+  }
+
+  private loadMasters(): void {
+    forkJoin({
+      specializations: this.specializationService.getSpecializations(),
+      qualifications: this.qualificationService.getQualifications()
+    }).subscribe({
+      next: ({ specializations, qualifications }) => {
+        this.specializations = specializations || [];
+        this.qualifications = qualifications || [];
+      },
+      error: () => {
+        this.specializations = [];
+        this.qualifications = [];
+      }
+    });
   }
 
   private buildForm(): FormGroup {

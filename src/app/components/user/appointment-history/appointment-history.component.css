@@ -63,7 +63,8 @@
 /* Table */
 .appointments-table-wrap {
   width: 100%;
-  overflow-x: auto;
+  max-height: 65vh;
+  overflow: auto;
   border: 1px solid #e8eaf0;
   border-radius: 8px;
   margin-bottom: 1.25rem;
@@ -84,6 +85,9 @@
   letter-spacing: 0.03em;
   text-transform: uppercase;
   white-space: nowrap;
+  position: sticky;
+  top: 0;
+  z-index: 2;
 }
 
 .appointments-table tbody td {

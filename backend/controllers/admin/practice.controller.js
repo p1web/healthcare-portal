@@ -124,53 +124,6 @@ exports.updatePractice = async (req, res) => {
   }
 };
 
-// Admin approves or rejects a hospital-initiated affiliation request.
-exports.reviewPractice = async (req, res) => {
-  try {
-    const practice = await DoctorPractice.findByPk(req.params.id, {
-      include: [
-        { model: HospitalProfile, as: 'hospital' },
-        {
-          model: DoctorProfile,
-          as: 'doctor',
-          include: [
-            { model: User, as: 'user', attributes: ['id', 'name', 'email'] },
-            { model: Specialization, as: 'specialization', attributes: ['id', 'name'] }
-          ]
-        }
-      ]
-    });
-    if (!practice) return res.status(404).json({ success: false, message: 'Practice not found' });
-
-    const { action, reason } = req.body || {};
-    if (!['approve', 'reject'].includes(action)) {
-      return res.status(400).json({ success: false, message: 'action must be "approve" or "reject"' });
-    }
-    if (practice.status !== PRACTICE_STATUSES.PENDING_ADMIN_APPROVAL) {
-      return res.status(409).json({ success: false, message: 'This affiliation is not pending admin review' });
-    }
-
-    if (action === 'approve') {
-      practice.status = PRACTICE_STATUSES.ACTIVE;
-      practice.isActive = true;
-      // If the doctor has no primary yet, mark this one primary.
-      const primaryCount = await DoctorPractice.count({
-        where: { doctorProfileId: practice.doctorProfileId, isPrimary: true }
-      });
-      if (primaryCount === 0) practice.isPrimary = true;
-    } else {
-      practice.status = PRACTICE_STATUSES.REJECTED;
-      practice.isActive = false;
-      if (reason) practice.notes = String(reason).trim();
-    }
-    await practice.save();
-    return res.json({ success: true, data: formatAdminPractice(practice) });
-  } catch (error) {
-    console.error('Admin review practice error:', error);
-    return res.status(500).json({ success: false, message: 'Failed to review affiliation' });
-  }
-};
-
 // Admin: list all hospitals with their MOU commission rate.
 exports.listHospitalCommissions = async (req, res) => {
   try {

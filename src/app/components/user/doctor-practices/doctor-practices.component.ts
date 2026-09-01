@@ -43,7 +43,6 @@ export class DoctorPracticesComponent implements OnInit {
       hospitalPincode: ['']
     });
     this.editForm = this.fb.group({
-      consultationFee: [0, [Validators.required, Validators.min(0)]],
       notes: ['']
     });
     this.availabilityForm = this.fb.group({
@@ -133,7 +132,7 @@ export class DoctorPracticesComponent implements OnInit {
 
   startEdit(p: Practice): void {
     this.editingId = p.id;
-    this.editForm.reset({ consultationFee: p.consultationFee, notes: p.notes || '' });
+    this.editForm.reset({ notes: p.notes || '' });
     this.error = '';
   }
 
@@ -145,7 +144,6 @@ export class DoctorPracticesComponent implements OnInit {
     if (this.editForm.invalid) return;
     this.isSaving = true;
     this.practiceService.update(p.id, {
-      consultationFee: Number(this.editForm.value.consultationFee),
       notes: this.editForm.value.notes || undefined
     }).subscribe({
       next: () => {
@@ -200,7 +198,6 @@ export class DoctorPracticesComponent implements OnInit {
   statusLabel(status: Practice['status']): string {
     switch (status) {
       case 'active': return 'Active';
-      case 'pending_admin_approval': return 'Pending admin approval';
       case 'pending_hospital_approval': return 'Pending hospital approval';
       case 'rejected': return 'Rejected';
       case 'inactive': return 'Inactive';
@@ -210,7 +207,6 @@ export class DoctorPracticesComponent implements OnInit {
   statusBadgeClass(status: Practice['status']): string {
     switch (status) {
       case 'active': return 'bg-success';
-      case 'pending_admin_approval': return 'bg-warning text-dark';
       case 'pending_hospital_approval': return 'bg-warning text-dark';
       case 'rejected': return 'bg-danger';
       case 'inactive': return 'bg-secondary';

@@ -11,6 +11,7 @@ const profileController = require("../controllers/admin/profile.controller");
 const couponCategoryController = require("../controllers/admin/coupon-category.controller");
 const couponController = require("../controllers/admin/coupon.controller");
 const adminPracticeController = require("../controllers/admin/practice.controller");
+const qualificationController = require("../controllers/admin/qualification.controller");
 const { authenticate, authorize } = require("../middleware/auth.middleware");
 
 router.use(authenticate, authorize("admin"));
@@ -44,6 +45,11 @@ router.post("/add-specialization", specializationController.addSpecialization);
 router.put("/update-specialization/:id", specializationController.updateSpecialization);
 router.delete("/delete-specialization/:id", specializationController.deleteSpecialization);
 
+router.get("/qualifications", qualificationController.getQualifications);
+router.post("/add-qualification", qualificationController.addQualification);
+router.put("/update-qualification/:id", qualificationController.updateQualification);
+router.delete("/delete-qualification/:id", qualificationController.deleteQualification);
+
 router.get("/doctor-specialization-mapping", doctorSpecializationController.getDoctorSpecialization);
 
 // Coupon Categories (admin CRUD)
@@ -67,7 +73,6 @@ router.patch("/coupons/:id/restore", couponController.restoreCoupon);
 // Doctor practices + per-hospital commission rate + platform default
 router.get("/practices", adminPracticeController.listPractices);
 router.put("/practices/:id", adminPracticeController.updatePractice);
-router.patch("/practices/:id/review", adminPracticeController.reviewPractice);
 router.get("/hospital-commissions", adminPracticeController.listHospitalCommissions);
 router.put("/hospital-commissions/:hospitalProfileId", adminPracticeController.updateHospitalCommission);
 router.get("/commission-settings", adminPracticeController.getCommissionSettings);

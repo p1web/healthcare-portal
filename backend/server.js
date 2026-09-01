@@ -31,6 +31,7 @@ const specialtiesRoutes = require('./routes/specialties.routes'); // adjust path
 const appointmentRoutes = require('./routes/appointment.routes');
 const couponRoutes = require('./routes/coupon.routes');
 const specializationRoutes = require('./routes/specialization.routes');
+const qualificationRoutes = require('./routes/qualification.routes');
 const adminRoutes = require('./routes/admin.routes');
 const patientMedicalRecordRoutes = require('./routes/patientMedicalRecord.routes');
 const patientProfileRoutes = require('./routes/patientProfile.routes');
@@ -49,6 +50,7 @@ app.use('/api/specialties', specialtiesRoutes);
 app.use('/api/appointments', appointmentRoutes);
 app.use('/api/coupons', couponRoutes);
 app.use('/api/specializations', specializationRoutes);
+app.use('/api/qualifications', qualificationRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/patient', patientMedicalRecordRoutes);
 app.use('/api/patient', patientProfileRoutes);

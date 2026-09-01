@@ -70,6 +70,10 @@ export class HospitalAppointmentsComponent implements OnInit {
   }
 
   complete(a: HospitalAppointmentRow): void {
+    if (!this.hasStarted(a)) {
+      this.error = `Appointment cannot be marked complete before its scheduled start (${a.date}${a.time ? ' ' + a.time.slice(0, 5) : ''}).`;
+      return;
+    }
     if (!confirm(`Mark ${a.patientName}'s appointment complete? If a coupon was used, cashback will be credited.`)) return;
     this.actingId = a.id;
     this.error = '';
@@ -132,21 +136,20 @@ export class HospitalAppointmentsComponent implements OnInit {
     }
   }
 
+  hasStarted(a: HospitalAppointmentRow): boolean {
+    if (!a?.date) return true;
+    const time = a.time ? String(a.time).slice(0, 5) : '00:00';
+    const start = new Date(`${a.date}T${time}:00`);
+    if (Number.isNaN(start.getTime())) return true;
+    return Date.now() >= start.getTime();
+  }
+
   paymentBadgeClass(status?: string): string {
     switch (status) {
       case 'paid': return 'bg-success';
       case 'pending': return 'bg-warning text-dark';
       case 'failed': return 'bg-danger';
       case 'refunded': return 'bg-secondary';
-      default: return 'bg-secondary';
-    }
-  }
-
-  cashbackBadgeClass(status?: string): string {
-    switch (status) {
-      case 'issued': return 'bg-success';
-      case 'pending': return 'bg-warning text-dark';
-      case 'forfeited': return 'bg-danger';
       default: return 'bg-secondary';
     }
   }

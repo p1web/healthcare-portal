@@ -202,7 +202,8 @@ exports.createSoloClinic = async (req, res) => {
   }
 };
 
-// Doctor self-service: update own practice (fee/notes only; commission percents are admin-only).
+// Doctor self-service: update own practice (notes/isPrimary only). Fee and
+// commission percents are managed by the system admin.
 exports.updateMyPractice = async (req, res) => {
   try {
     const doctor = await DoctorProfile.findOne({ where: { userId: req.user.id } });
@@ -215,11 +216,10 @@ exports.updateMyPractice = async (req, res) => {
 
     const { consultationFee, notes, isPrimary } = req.body || {};
     if (consultationFee !== undefined) {
-      const fee = toNumber(consultationFee, null);
-      if (fee === null || fee < 0) {
-        return res.status(400).json({ success: false, message: 'consultationFee must be >= 0' });
-      }
-      practice.consultationFee = fee;
+      return res.status(403).json({
+        success: false,
+        message: 'Consultation fee is managed by the system admin. Please contact support to change it.'
+      });
     }
     if (notes !== undefined) practice.notes = notes ? String(notes).trim() : null;
 
@@ -310,39 +310,6 @@ exports.createPracticeRequest = async (req, res) => {
   return res.status(410).json({
     success: false,
     message: 'This endpoint has been retired. Ask the hospital to send you an affiliation request.'
-  });
-};
-
-// Retired in CR-5: hospitals no longer add doctors via affiliation. They now
-// manage lightweight "sitting doctor" records via /api/hospital/staff and
-// accept patient bookings directly. See hospitalStaff.controller.js +
-// hospitalAppointment.controller.js.
-exports.createHospitalInitiatedPractice = async (req, res) => {
-  return res.status(410).json({
-    success: false,
-    message: 'Hospital-initiated affiliations were retired. Manage your team via /api/hospital/staff.'
-  });
-};
-
-exports.listEligibleDoctorsForHospital = async (req, res) => {
-  return res.status(410).json({
-    success: false,
-    message: 'Retired in CR-5.'
-  });
-};
-
-exports.removeHospitalDoctor = async (req, res) => {
-  return res.status(410).json({
-    success: false,
-    message: 'Retired in CR-5.'
-  });
-};
-
-// Retired in CR4: hospital owners no longer approve affiliations. The admin does.
-exports.reviewPractice = async (req, res) => {
-  return res.status(410).json({
-    success: false,
-    message: 'This endpoint has been retired. Admin review handles affiliation approval.'
   });
 };
 

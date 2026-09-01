@@ -3,7 +3,6 @@ const { Model } = require('sequelize');
 
 const PRACTICE_STATUSES = Object.freeze({
   PENDING_HOSPITAL_APPROVAL: 'pending_hospital_approval',
-  PENDING_ADMIN_APPROVAL: 'pending_admin_approval',
   ACTIVE: 'active',
   REJECTED: 'rejected',
   INACTIVE: 'inactive'
@@ -68,7 +67,6 @@ module.exports = (sequelize, DataTypes) => {
     status: {
       type: DataTypes.ENUM(
         PRACTICE_STATUSES.PENDING_HOSPITAL_APPROVAL,
-        PRACTICE_STATUSES.PENDING_ADMIN_APPROVAL,
         PRACTICE_STATUSES.ACTIVE,
         PRACTICE_STATUSES.REJECTED,
         PRACTICE_STATUSES.INACTIVE

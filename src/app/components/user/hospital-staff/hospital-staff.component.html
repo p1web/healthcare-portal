@@ -33,13 +33,19 @@
         </div>
         <div class="col-md-6 mb-3">
           <label class="form-label">Specialization</label>
-          <input type="text" class="form-control" formControlName="specialization" placeholder="Cardiology" />
+          <select class="form-select" formControlName="specialization">
+            <option value="">Select a specialization</option>
+            <option *ngFor="let s of specializations" [value]="s.name">{{ s.name }}</option>
+          </select>
         </div>
       </div>
       <div class="row">
         <div class="col-md-6 mb-3">
           <label class="form-label">Qualification</label>
-          <input type="text" class="form-control" formControlName="qualification" placeholder="MBBS, MD" />
+          <select class="form-select" formControlName="qualification">
+            <option value="">Select a qualification</option>
+            <option *ngFor="let q of qualifications" [value]="q.name">{{ q.name }}</option>
+          </select>
         </div>
         <div class="col-md-3 mb-3">
           <label class="form-label">Experience (yrs)</label>

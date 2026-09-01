@@ -107,6 +107,10 @@ export class DoctorAppointmentsComponent implements OnInit {
   }
 
   completeAppointment(appointment: DoctorAppointment): void {
+    if (!this.hasStarted(appointment)) {
+      this.error = `Appointment cannot be marked complete before its scheduled start (${appointment.date}${appointment.time ? ' ' + appointment.time.slice(0, 5) : ''}).`;
+      return;
+    }
     if (!confirm(`Mark this appointment as completed?\n\nIf the patient used a coupon, the cashback will be credited to them.`)) return;
     this.completingId = appointment.id;
     this.error = '';
@@ -270,5 +274,13 @@ export class DoctorAppointmentsComponent implements OnInit {
     const to = Math.min(total, current + window);
     for (let p = from; p <= to; p++) pages.push(p);
     return pages;
+  }
+
+  hasStarted(appointment: DoctorAppointment): boolean {
+    if (!appointment?.date) return true;
+    const time = appointment.time ? String(appointment.time).slice(0, 5) : '00:00';
+    const start = new Date(`${appointment.date}T${time}:00`);
+    if (Number.isNaN(start.getTime())) return true;
+    return Date.now() >= start.getTime();
   }
 }

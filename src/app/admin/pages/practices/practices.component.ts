@@ -10,7 +10,7 @@ interface AdminPractice {
   consultationFee: number;
   isPrimary: boolean;
   isActive: boolean;
-  status: 'pending_hospital_approval' | 'pending_admin_approval' | 'active' | 'rejected' | 'inactive';
+  status: 'pending_hospital_approval' | 'active' | 'rejected' | 'inactive';
   platformCommissionPercent: number;
   notes: string | null;
   hospital: {
@@ -126,49 +126,9 @@ export class AdminPracticesComponent implements OnInit {
     });
   }
 
-  approve(p: AdminPractice): void {
-    if (!confirm(`Approve ${p.doctor?.user?.name || 'doctor'} to practice at ${p.hospital?.hospitalName || 'this hospital'}?`)) return;
-    this.isSaving = true;
-    this.error = '';
-    this.admin.reviewPractice(p.id, 'approve').subscribe({
-      next: () => {
-        this.isSaving = false;
-        this.success = 'Affiliation approved.';
-        this.load();
-      },
-      error: (err) => {
-        this.isSaving = false;
-        this.error = err?.error?.message || 'Failed to approve';
-      }
-    });
-  }
-
-  reject(p: AdminPractice): void {
-    const reason = prompt('Rejection reason (visible to hospital & doctor):');
-    if (reason === null) return;
-    if (!reason.trim()) {
-      this.error = 'A reason is required.';
-      return;
-    }
-    this.isSaving = true;
-    this.error = '';
-    this.admin.reviewPractice(p.id, 'reject', reason.trim()).subscribe({
-      next: () => {
-        this.isSaving = false;
-        this.success = 'Affiliation rejected.';
-        this.load();
-      },
-      error: (err) => {
-        this.isSaving = false;
-        this.error = err?.error?.message || 'Failed to reject';
-      }
-    });
-  }
-
   statusBadgeClass(status: AdminPractice['status']): string {
     switch (status) {
       case 'active': return 'bg-success';
-      case 'pending_admin_approval': return 'bg-warning text-dark';
       case 'pending_hospital_approval': return 'bg-warning text-dark';
       case 'rejected': return 'bg-danger';
       case 'inactive': return 'bg-secondary';
@@ -178,7 +138,6 @@ export class AdminPracticesComponent implements OnInit {
   statusLabel(status: AdminPractice['status']): string {
     switch (status) {
       case 'active': return 'Active';
-      case 'pending_admin_approval': return 'Pending admin';
       case 'pending_hospital_approval': return 'Pending hospital';
       case 'rejected': return 'Rejected';
       case 'inactive': return 'Inactive';

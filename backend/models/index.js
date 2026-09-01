@@ -5,6 +5,7 @@ const Specialty = require("./specialty")(sequelize, DataTypes);
 const Facility = require("./facility")(sequelize, DataTypes);
 const Accreditation = require("./accreditation")(sequelize, DataTypes);
 const Specialization = require("./specialization")(sequelize, DataTypes);
+const Qualification = require("./qualification")(sequelize, DataTypes);
 const DoctorAvailability = require("./doctorAvailability")(sequelize, DataTypes);
 
 const Coupon = require("./coupon")(sequelize, DataTypes);
@@ -55,6 +56,7 @@ module.exports = {
   Facility,
   Accreditation,
   Specialization,
+  Qualification,
   DoctorAvailability,
   Coupon,
   CouponCategory,

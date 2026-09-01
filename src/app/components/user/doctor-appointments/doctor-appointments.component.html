@@ -202,7 +202,8 @@
                 <button *ngIf="appointment.status === 'confirmed'"
                         type="button" class="btn btn-sm btn-primary"
                         (click)="completeAppointment(appointment)"
-                        [disabled]="completingId === appointment.id">
+                        [disabled]="completingId === appointment.id || !hasStarted(appointment)"
+                        [title]="!hasStarted(appointment) ? 'Available after the scheduled start time' : ''">
                   <span *ngIf="completingId !== appointment.id"><i class="bi bi-check2-all me-1"></i>Mark completed</span>
                   <span *ngIf="completingId === appointment.id" class="spinner-border spinner-border-sm"></span>
                 </button>

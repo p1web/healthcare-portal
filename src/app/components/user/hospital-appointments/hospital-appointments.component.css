@@ -28,3 +28,28 @@ code {
   border-radius: 3px;
   font-size: 0.85em;
 }
+
+.appointments-table-wrap {
+  max-height: 65vh;
+  overflow: auto;
+  border: 1px solid #e8eaf0;
+  border-radius: 8px;
+}
+
+.appointments-table {
+  min-width: 960px;
+}
+
+.appointments-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #f5f6f8;
+  border-bottom: 1px solid #dde1e7;
+  color: #59636e;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}

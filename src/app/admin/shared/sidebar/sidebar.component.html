@@ -90,6 +90,15 @@
       </a>
     </li>
 
+    <li class="nav-item">
+      <a class="nav-link" routerLink="/admin/qualifications" routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }" #qualificationsLink="routerLinkActive"
+        [class.collapsed]="!qualificationsLink.isActive">
+        <i class="bi bi-mortarboard"></i>
+        <span>Qualifications</span>
+      </a>
+    </li>
+
     <!-- Coupon Management -->
     <li class="nav-heading">Coupon Management</li>
 

@@ -7,6 +7,7 @@ import { DoctorsComponent } from './pages/doctors/doctors.component';
 import { PublicHospitalsComponent } from './pages/public-hospitals/public-hospitals.component';
 import { SpecialtiesComponent } from './pages/specialties/specialties.component';
 import { SpecializationsComponent } from './pages/specializations/specializations.component';
+import { QualificationsComponent } from './pages/qualifications/qualifications.component';
 import { DoctorSpecializationMappingComponent } from './pages/doctor-specialization-mapping/doctor-specialization-mapping.component';
 import { AppointmentsComponent } from './pages/appointments/appointments.component';
 import { ProfileComponent } from './pages/profile/profile.component';
@@ -35,6 +36,7 @@ const routes: Routes = [
       { path: 'appointments', component: AppointmentsComponent },
       { path: 'specialties', component: SpecialtiesComponent },
       { path: 'specializations', component: SpecializationsComponent },
+      { path: 'qualifications', component: QualificationsComponent },
       { path: 'doctor-specialization-mapping', component: DoctorSpecializationMappingComponent },
       { path: 'coupon-categories', component: CouponCategoriesComponent },
       { path: 'coupons', component: CouponsComponent },

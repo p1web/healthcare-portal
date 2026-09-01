@@ -24,6 +24,17 @@ const patientInclude = {
   attributes: ['id', 'name', 'email', 'phone']
 };
 
+// Returns the scheduled start as a local-time Date, or null if the row has no
+// usable appointment_date. Falls back to 00:00 when appointment_time is null.
+function getAppointmentStart(appointment) {
+  const date = appointment.appointmentDate;
+  if (!date) return null;
+  const rawTime = appointment.appointmentTime || '00:00';
+  const time = String(rawTime).length >= 5 ? String(rawTime).slice(0, 5) : '00:00';
+  const start = new Date(`${date}T${time}:00`);
+  return Number.isNaN(start.getTime()) ? null : start;
+}
+
 function num(v) { return (v === null || v === undefined) ? 0 : parseFloat(v); }
 
 function formatHospitalAppointment(a) {
@@ -131,6 +142,13 @@ exports.completeAppointment = async (req, res) => {
     if (!appointment) return res.status(404).json({ success: false, message: 'Appointment not found' });
     if (appointment.status !== 'confirmed') {
       return res.status(409).json({ success: false, message: 'Only confirmed appointments can be marked complete' });
+    }
+    const scheduledStart = getAppointmentStart(appointment);
+    if (scheduledStart && Date.now() < scheduledStart.getTime()) {
+      return res.status(409).json({
+        success: false,
+        message: `Appointment cannot be marked complete before its scheduled start (${appointment.appointmentDate}${appointment.appointmentTime ? ' ' + appointment.appointmentTime.slice(0, 5) : ''}).`
+      });
     }
     // Same rule as doctor's /complete: online must be paid; offline auto-flips.
     if (appointment.paymentStatus !== 'paid') {

@@ -26,7 +26,7 @@ export interface Practice {
   consultationFee: number;
   isPrimary: boolean;
   isActive: boolean;
-  status: 'pending_hospital_approval' | 'pending_admin_approval' | 'active' | 'rejected' | 'inactive';
+  status: 'pending_hospital_approval' | 'active' | 'rejected' | 'inactive';
   platformCommissionPercent: number;
   notes: string | null;
   hospital: PracticeHospital | null;

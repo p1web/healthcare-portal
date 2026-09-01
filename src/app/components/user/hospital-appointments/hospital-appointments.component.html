@@ -48,16 +48,14 @@
       <p class="mt-3 mb-0 text-muted">No appointments match the current filters.</p>
     </div>
 
-    <div class="table-responsive" *ngIf="!isLoading && filtered.length">
-      <table class="table table-hover align-middle mb-0">
+    <div class="table-responsive appointments-table-wrap" *ngIf="!isLoading && filtered.length">
+      <table class="table table-hover align-middle mb-0 appointments-table">
         <thead>
           <tr>
             <th>Patient</th>
             <th>Doctor</th>
             <th>Date &amp; Time</th>
-            <th>Fee</th>
             <th>Payment</th>
-            <th>Cashback</th>
             <th>Status</th>
             <th class="text-end">Actions</th>
           </tr>
@@ -87,21 +85,8 @@
               </div>
             </td>
             <td>
-              <strong>₹{{ a.originalPrice | number:'1.0-2' }}</strong>
-              <div class="small text-muted" *ngIf="a.discountAmount">
-                Coupon: <code>{{ a.couponCode }}</code>
-              </div>
-            </td>
-            <td>
               <span class="badge" [ngClass]="paymentBadgeClass(a.paymentStatus)">{{ a.paymentStatus | titlecase }}</span>
               <div class="small text-muted mt-1">{{ a.paymentMode | titlecase }}</div>
-            </td>
-            <td>
-              <span class="badge" [ngClass]="cashbackBadgeClass(a.cashbackStatus)"
-                    *ngIf="a.cashbackStatus !== 'none'">
-                <i class="bi bi-gift me-1"></i>{{ a.cashbackStatus | titlecase }}
-              </span>
-              <span *ngIf="a.cashbackStatus === 'none'" class="text-muted small">—</span>
             </td>
             <td>
               <span class="badge" [ngClass]="statusBadgeClass(a.status)">{{ a.status | titlecase }}</span>
@@ -110,9 +95,6 @@
               </div>
             </td>
             <td class="text-end">
-              <a [routerLink]="['/appointments', a.id, 'receipt']" class="btn btn-sm btn-outline-secondary me-1" title="Receipt">
-                <i class="bi bi-receipt"></i>
-              </a>
               <ng-container *ngIf="a.status === 'pending'">
                 <button class="btn btn-sm btn-success me-1"
                         (click)="confirm(a)" [disabled]="actingId === a.id">
@@ -125,7 +107,9 @@
                 </button>
               </ng-container>
               <button *ngIf="a.status === 'confirmed'" class="btn btn-sm btn-primary me-1"
-                      (click)="complete(a)" [disabled]="actingId === a.id">
+                      (click)="complete(a)"
+                      [disabled]="actingId === a.id || !hasStarted(a)"
+                      [title]="!hasStarted(a) ? 'Available after the scheduled start time' : ''">
                 <span *ngIf="actingId !== a.id"><i class="bi bi-check2-all me-1"></i>Complete</span>
                 <span *ngIf="actingId === a.id" class="spinner-border spinner-border-sm"></span>
               </button>

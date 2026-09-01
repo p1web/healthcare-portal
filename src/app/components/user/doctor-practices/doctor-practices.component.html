@@ -2,7 +2,7 @@
   <div class="profile-header">
     <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
       <div>
-        <h2 class="mb-1"><i class="bi bi-hospital me-2"></i>My Affiliations</h2>
+        <h2 class="mb-1"><i class="bi bi-hospital me-2"></i>My Clinic</h2>
         <p class="mb-0 text-white-50">Hospitals where you consult. Hospitals send you affiliation requests; the platform admin reviews them.</p>
       </div>
       <div class="d-flex flex-wrap gap-2">
@@ -96,15 +96,6 @@
     </div>
   </section>
 
-  <section class="profile-section" *ngIf="!isLoading && hasSoloClinic">
-    <div class="alert alert-info mb-0 small">
-      <i class="bi bi-house-heart me-1"></i>
-      You own your clinic. Additional affiliations at other hospitals aren't required &mdash;
-      a hospital that wants to affiliate with you will send a request that the platform admin
-      will review.
-    </div>
-  </section>
-
   <section class="profile-section" *ngIf="!isLoading && practices.length">
     <h6 class="section-title"><i class="bi bi-list-ul"></i>Your practices ({{ practices.length }})</h6>
 
@@ -130,6 +121,7 @@
           <div class="col-md-4">
             <div class="detail-label">Consultation fee</div>
             <div class="detail-value">₹{{ p.consultationFee }}</div>
+            <small class="text-muted">Set by system admin</small>
           </div>
           <div class="col-md-4">
             <div class="detail-label">Platform commission</div>
@@ -151,13 +143,10 @@
         <!-- Edit mode -->
         <form *ngIf="editingId === p.id" [formGroup]="editForm" (ngSubmit)="submitEdit(p)">
           <div class="row">
-            <div class="col-md-6 mb-3">
-              <label class="form-label">Consultation Fee (₹) <span class="text-danger">*</span></label>
-              <input type="number" class="form-control" formControlName="consultationFee" min="0" />
-            </div>
-            <div class="col-md-6 mb-3">
+            <div class="col-md-12 mb-3">
               <label class="form-label">Notes</label>
               <input type="text" class="form-control" formControlName="notes" />
+              <small class="text-muted">To change the consultation fee, contact the platform admin.</small>
             </div>
           </div>
           <button type="submit" class="btn btn-primary btn-sm me-2" [disabled]="isSaving || editForm.invalid">Save</button>
@@ -167,7 +156,7 @@
 
       <div class="practice-card-actions" *ngIf="editingId !== p.id">
         <button type="button" class="btn btn-sm btn-outline-primary" (click)="startEdit(p)" [disabled]="isSaving || p.status !== 'active'">
-          <i class="bi bi-pencil me-1"></i>Edit fee
+          <i class="bi bi-pencil me-1"></i>Edit notes
         </button>
         <button type="button" class="btn btn-sm btn-outline-primary" (click)="toggleAvailability(p)"
                 *ngIf="p.status === 'active'" [disabled]="isSaving">

@@ -29,6 +29,9 @@ export class HospitalBookingComponent implements OnInit {
   couponSuccess = '';
   isValidatingCoupon = false;
 
+  applicableCoupons: any[] = [];
+  isLoadingCoupons = false;
+
   isLoading = false;
   isSubmitting = false;
   error = '';
@@ -83,6 +86,7 @@ export class HospitalBookingComponent implements OnInit {
       next: (res: any) => {
         this.hospital = res?.data ?? res;
         this.isLoading = false;
+        this.loadApplicableCoupons();
       },
       error: () => {
         this.error = 'Could not load hospital.';
@@ -101,6 +105,36 @@ export class HospitalBookingComponent implements OnInit {
 
   getMinDate(): string {
     return new Date().toISOString().split('T')[0];
+  }
+
+  loadApplicableCoupons(): void {
+    if (!this.hospitalId) return;
+    this.isLoadingCoupons = true;
+    const amount = this.consultationFee;
+    this.couponService.getCoupons().subscribe({
+      next: (res: any) => {
+        const list = res?.data || [];
+        this.applicableCoupons = list.filter((c: any) => {
+          if (!c?.isActive) return false;
+          if (c.minAmount && amount > 0 && amount < c.minAmount) return false;
+          const hospitalIds: any[] = c.hospitalIds || [];
+          if (hospitalIds.length > 0) {
+            return hospitalIds.includes(this.hospitalId);
+          }
+          return true;
+        });
+        this.isLoadingCoupons = false;
+      },
+      error: () => {
+        this.applicableCoupons = [];
+        this.isLoadingCoupons = false;
+      }
+    });
+  }
+
+  selectCoupon(code: string): void {
+    this.couponInput = code;
+    this.applyCoupon();
   }
 
   applyCoupon(): void {

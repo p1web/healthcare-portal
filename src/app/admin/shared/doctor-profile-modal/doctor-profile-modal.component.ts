@@ -58,7 +58,6 @@ export class DoctorProfileModalComponent implements OnChanges {
   practiceStatusLabel(status: string): string {
     const map: Record<string, string> = {
       active: 'Active',
-      pending_admin_approval: 'Pending admin',
       pending_hospital_approval: 'Pending hospital',
       rejected: 'Rejected',
       inactive: 'Inactive'
@@ -69,7 +68,6 @@ export class DoctorProfileModalComponent implements OnChanges {
   practiceStatusBadge(status: string): string {
     switch (status) {
       case 'active': return 'bg-success';
-      case 'pending_admin_approval': return 'bg-warning text-dark';
       case 'pending_hospital_approval': return 'bg-warning text-dark';
       case 'rejected': return 'bg-danger';
       default: return 'bg-secondary';

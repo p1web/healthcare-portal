@@ -89,6 +89,22 @@ export class AdminService {
     return this.http.delete(`${this.apiUrl}/delete-specialization/${specializationId}`);
   }
 
+  getQualifications(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/qualifications`);
+  }
+
+  addQualification(data: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/add-qualification`, data);
+  }
+
+  updateQualification(id: number, data: any): Observable<any> {
+    return this.http.put(`${this.apiUrl}/update-qualification/${id}`, data);
+  }
+
+  deleteQualification(id: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/delete-qualification/${id}`);
+  }
+
   // --- Coupon Categories ---
   getCouponCategories(filters: any = {}): Observable<any> {
     return this.http.get(`${this.apiUrl}/coupon-categories`, { params: filters });
@@ -156,10 +172,6 @@ export class AdminService {
 
   updatePractice(id: number, body: any): Observable<any> {
     return this.http.put(`${this.apiUrl}/practices/${id}`, body);
-  }
-
-  reviewPractice(id: number, action: 'approve' | 'reject', reason?: string): Observable<any> {
-    return this.http.patch(`${this.apiUrl}/practices/${id}/review`, { action, reason });
   }
 
   getCommissionSettings(): Observable<any> {

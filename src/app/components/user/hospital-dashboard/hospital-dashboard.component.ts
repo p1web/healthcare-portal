@@ -44,8 +44,4 @@ export class HospitalDashboardComponent implements OnInit {
       error: () => { this.isLoading = false; }
     });
   }
-
-  get topDoctors() {
-    return (this.summary?.perDoctor || []).slice(0, 5);
-  }
 }

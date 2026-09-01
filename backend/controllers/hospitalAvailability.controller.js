@@ -62,6 +62,7 @@ exports.getMyAvailability = async (req, res) => {
       success: true,
       data: {
         acceptsBookings: hospital.acceptsBookings !== false,
+        version: hospital.availabilityVersion || 0,
         slots: rows.map(formatSlot)
       }
     });
@@ -71,11 +72,42 @@ exports.getMyAvailability = async (req, res) => {
   }
 };
 
-// Full replace: whatever the client sends is the new schedule.
+async function currentSnapshot(hospital) {
+  const rows = await HospitalAvailability.findAll({
+    where: { hospitalProfileId: hospital.id },
+    order: [['dayOfWeek', 'ASC']]
+  });
+  return {
+    acceptsBookings: hospital.acceptsBookings !== false,
+    version: hospital.availabilityVersion || 0,
+    slots: rows.map(formatSlot)
+  };
+}
+
+// Full replace: whatever the client sends is the new schedule. expectedVersion
+// (optional) triggers an optimistic-concurrency check.
 exports.replaceMyAvailability = async (req, res) => {
   const t = await sequelize.transaction();
   try {
     const hospital = await requireOwnedHospital(req.user.id);
+
+    if (req.body?.expectedVersion !== undefined && req.body?.expectedVersion !== null) {
+      const expected = Number(req.body.expectedVersion);
+      if (!Number.isInteger(expected) || expected < 0) {
+        await t.rollback();
+        return res.status(400).json({ success: false, message: 'expectedVersion must be a non-negative integer' });
+      }
+      if (expected !== (hospital.availabilityVersion || 0)) {
+        await t.rollback();
+        return res.status(409).json({
+          success: false,
+          code: 'STALE_AVAILABILITY',
+          message: 'Someone else updated hospital hours since you loaded the page. Showing the latest settings.',
+          currentData: await currentSnapshot(hospital)
+        });
+      }
+    }
+
     const slots = validateAvailabilityPayload(req.body?.availability);
     await HospitalAvailability.destroy({
       where: { hospitalProfileId: hospital.id },
@@ -93,12 +125,10 @@ exports.replaceMyAvailability = async (req, res) => {
         { transaction: t }
       );
     }
+    hospital.availabilityVersion = (hospital.availabilityVersion || 0) + 1;
+    await hospital.save({ transaction: t });
     await t.commit();
-    const rows = await HospitalAvailability.findAll({
-      where: { hospitalProfileId: hospital.id },
-      order: [['dayOfWeek', 'ASC']]
-    });
-    return res.json({ success: true, data: rows.map(formatSlot) });
+    return res.json({ success: true, data: await currentSnapshot(hospital) });
   } catch (error) {
     if (!t.finished) await t.rollback();
     console.error('Replace hospital availability error:', error);
@@ -139,9 +169,30 @@ exports.setAcceptsBookings = async (req, res) => {
     if (typeof value !== 'boolean') {
       return res.status(400).json({ success: false, message: 'acceptsBookings must be true or false' });
     }
+    if (req.body?.expectedVersion !== undefined && req.body?.expectedVersion !== null) {
+      const expected = Number(req.body.expectedVersion);
+      if (!Number.isInteger(expected) || expected < 0) {
+        return res.status(400).json({ success: false, message: 'expectedVersion must be a non-negative integer' });
+      }
+      if (expected !== (hospital.availabilityVersion || 0)) {
+        return res.status(409).json({
+          success: false,
+          code: 'STALE_AVAILABILITY',
+          message: 'Someone else updated hospital hours since you loaded the page. Showing the latest settings.',
+          currentData: await currentSnapshot(hospital)
+        });
+      }
+    }
     hospital.acceptsBookings = value;
+    hospital.availabilityVersion = (hospital.availabilityVersion || 0) + 1;
     await hospital.save();
-    return res.json({ success: true, data: { acceptsBookings: hospital.acceptsBookings } });
+    return res.json({
+      success: true,
+      data: {
+        acceptsBookings: hospital.acceptsBookings,
+        version: hospital.availabilityVersion
+      }
+    });
   } catch (error) {
     console.error('Set accepts_bookings error:', error);
     return res.status(error.statusCode || 500).json({ success: false, message: error.message || 'Failed to update' });

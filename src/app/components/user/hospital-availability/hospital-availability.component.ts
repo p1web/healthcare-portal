@@ -17,6 +17,7 @@ export class HospitalAvailabilityComponent implements OnInit {
   form!: FormGroup;
   feeForm!: FormGroup;
   acceptsBookings = true;
+  currentVersion = 0;
   acceptsToggleBusy = false;
   isLoading = false;
   isSaving = false;
@@ -90,21 +91,7 @@ export class HospitalAvailabilityComponent implements OnInit {
     this.error = '';
     this.svc.listMine().subscribe({
       next: (res) => {
-        this.acceptsBookings = res.data?.acceptsBookings !== false;
-        const slots = res.data?.slots || [];
-        this.slots.controls.forEach((ctrl, day) => {
-          const row = slots.find(r => r.dayOfWeek === day);
-          if (row) {
-            ctrl.patchValue({
-              dayOfWeek: day,
-              isAvailable: true,
-              startTime: row.startTime,
-              endTime: row.endTime
-            }, { emitEvent: false });
-          } else {
-            ctrl.patchValue({ isAvailable: false, startTime: '09:00', endTime: '17:00' }, { emitEvent: false });
-          }
-        });
+        this.applyServerState(res.data);
         this.isLoading = false;
       },
       error: (err) => {
@@ -112,6 +99,33 @@ export class HospitalAvailabilityComponent implements OnInit {
         this.isLoading = false;
       }
     });
+  }
+
+  private applyServerState(data: { acceptsBookings?: boolean; version?: number; slots?: HospitalAvailabilitySlot[] } | undefined): void {
+    if (!data) return;
+    this.acceptsBookings = data.acceptsBookings !== false;
+    this.currentVersion = Number(data.version) || 0;
+    const slots = data.slots || [];
+    this.slots.controls.forEach((ctrl, day) => {
+      const row = slots.find(r => r.dayOfWeek === day);
+      if (row) {
+        ctrl.patchValue({
+          dayOfWeek: day,
+          isAvailable: true,
+          startTime: row.startTime,
+          endTime: row.endTime
+        }, { emitEvent: false });
+      } else {
+        ctrl.patchValue({ isAvailable: false, startTime: '09:00', endTime: '17:00' }, { emitEvent: false });
+      }
+    });
+  }
+
+  private handleStaleError(err: any): boolean {
+    if (err?.error?.code !== 'STALE_AVAILABILITY') return false;
+    if (err.error.currentData) this.applyServerState(err.error.currentData);
+    this.error = err.error.message || 'Someone else updated hospital hours. The latest version is now shown.';
+    return true;
   }
 
   get hasAnyEnabledDay(): boolean {
@@ -123,9 +137,10 @@ export class HospitalAvailabilityComponent implements OnInit {
     this.acceptsToggleBusy = true;
     this.error = '';
     this.success = '';
-    this.svc.setAcceptsBookings(next).subscribe({
+    this.svc.setAcceptsBookings(next, this.currentVersion).subscribe({
       next: (res) => {
         this.acceptsBookings = res.data.acceptsBookings;
+        this.currentVersion = Number(res.data.version) || this.currentVersion + 1;
         this.acceptsToggleBusy = false;
         this.success = this.acceptsBookings
           ? 'Bookings enabled. Patients can now book at your hospital.'
@@ -133,6 +148,7 @@ export class HospitalAvailabilityComponent implements OnInit {
       },
       error: (err) => {
         this.acceptsToggleBusy = false;
+        if (this.handleStaleError(err)) return;
         this.error = err?.error?.message || 'Failed to update';
       }
     });
@@ -148,13 +164,15 @@ export class HospitalAvailabilityComponent implements OnInit {
       return;
     }
     this.isSaving = true;
-    this.svc.replaceMine(enabled).subscribe({
-      next: () => {
+    this.svc.replaceMine(enabled, this.currentVersion).subscribe({
+      next: (res) => {
+        this.applyServerState(res.data);
         this.isSaving = false;
         this.success = 'Hours saved. Patients will only be able to book within these windows.';
       },
       error: (err) => {
         this.isSaving = false;
+        if (this.handleStaleError(err)) return;
         this.error = err?.error?.message || 'Failed to save hours';
       }
     });

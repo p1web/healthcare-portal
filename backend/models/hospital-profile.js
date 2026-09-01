@@ -158,6 +158,12 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: true,
       field: 'accepts_bookings'
     },
+    availabilityVersion: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+      field: 'availability_version'
+    },
     operatingHours: {
       type: DataTypes.STRING(100),
       allowNull: true,

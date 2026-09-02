@@ -52,6 +52,11 @@ export class HospitalStaffComponent implements OnInit {
 
   ngOnInit(): void {
     this.form = this.buildForm();
+    this.form.get('isBookable')?.valueChanges.subscribe(value => {
+      if (value && this.availability.length === 0) {
+        this.addAvailability();
+      }
+    });
     this.loadMasters();
     this.loadDepartments();
     this.load();
@@ -181,9 +186,20 @@ export class HospitalStaffComponent implements OnInit {
   submit(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
+      this.error = this.describeInvalidFields();
       return;
     }
     const raw = this.form.value;
+    const isBookable = !!raw.isBookable;
+    const slots = (raw.availability || []).filter((slot: any) => slot.isAvailable !== false);
+    if (isBookable && slots.length === 0) {
+      this.error = 'Add at least one weekly time before making this doctor bookable.';
+      return;
+    }
+    if (isBookable && this.consultationFeeMode === 'PER_DOCTOR' && !(Number(raw.consultationFee) > 0)) {
+      this.error = 'Enter a consultation fee greater than zero for this doctor.';
+      return;
+    }
     const payload: HospitalStaffPayload = {
       name: String(raw.name).trim(),
       specialization: raw.specialization ? String(raw.specialization).trim() : null,
@@ -195,7 +211,7 @@ export class HospitalStaffComponent implements OnInit {
       avatarUrl: raw.avatarUrl ? String(raw.avatarUrl).trim() : null,
       departmentId: Number(raw.departmentId),
       consultationFee: raw.consultationFee === null || raw.consultationFee === '' ? null : Number(raw.consultationFee),
-      isBookable: !!raw.isBookable,
+      isBookable,
       isActive: !!raw.isActive,
       displayOrder: Number(raw.displayOrder) || 0,
       availability: (raw.availability || []).map((slot: any) => ({
@@ -223,6 +239,28 @@ export class HospitalStaffComponent implements OnInit {
         this.error = err?.error?.message || 'Failed to save';
       }
     });
+  }
+
+  private describeInvalidFields(): string {
+    const labels: Record<string, string> = {
+      name: 'doctor name',
+      departmentId: 'department',
+      consultationFee: 'consultation fee',
+      experienceYears: 'experience years',
+      email: 'email'
+    };
+    const invalid: string[] = [];
+    Object.entries(this.form.controls).forEach(([key, control]) => {
+      if (control.invalid && key !== 'availability') {
+        invalid.push(labels[key] || key);
+      }
+    });
+    if (this.availability.invalid) {
+      invalid.push('weekly availability rows');
+    }
+    return invalid.length
+      ? `Please fix these fields: ${invalid.join(', ')}.`
+      : 'Some fields are still invalid. Please review the form and try again.';
   }
 
   remove(member: HospitalStaffMember): void {

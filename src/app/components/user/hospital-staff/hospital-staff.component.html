@@ -196,6 +196,9 @@
             <i class="bi bi-plus-lg me-1"></i>Add time
           </button>
         </div>
+        <div class="text-muted small mb-2" *ngIf="!availability.length">
+          Add at least one weekly time before making this doctor bookable.
+        </div>
         <div class="availability-row" *ngFor="let slot of availability.controls; let index = index" [formGroupName]="index">
           <select class="form-select" formControlName="dayOfWeek" aria-label="Day">
             <option *ngFor="let day of days; let dayIndex = index" [ngValue]="dayIndex">{{ day }}</option>
@@ -207,6 +210,10 @@
             <i class="bi bi-trash"></i>
           </button>
         </div>
+      </div>
+
+      <div class="alert alert-danger mb-3" *ngIf="error">
+        <i class="bi bi-exclamation-triangle me-2"></i>{{ error }}
       </div>
 
       <div class="form-actions">

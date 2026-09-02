@@ -38,6 +38,7 @@ export class HospitalBookingComponent implements OnInit {
   error = '';
 
   readonly days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  readonly apiHost = 'http://localhost:3000';
 
   constructor(
     private route: ActivatedRoute,
@@ -112,6 +113,15 @@ export class HospitalBookingComponent implements OnInit {
     return this.selectedDoctor.availability
       .map(slot => `${this.days[slot.dayOfWeek]} ${slot.startTime}-${slot.endTime}`)
       .join(' · ');
+  }
+
+  avatarUrl(url: string | null | undefined): string | null {
+    if (!url) return null;
+    return url.startsWith('http') ? url : `${this.apiHost}${url}`;
+  }
+
+  formatSlot(slot: { dayOfWeek: number; startTime: string; endTime: string }): string {
+    return `${this.days[slot.dayOfWeek]} ${slot.startTime}–${slot.endTime}`;
   }
 
   goToLogin(): void {

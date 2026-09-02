@@ -163,21 +163,31 @@
           </div>
 
           <div class="booking-card sidebar-card" *ngIf="selectedDepartment">
-            <h4><i class="bi bi-people-fill me-2"></i>{{ selectedDepartment.name }} doctors</h4>
-            <p class="text-muted small mb-2" *ngIf="selectedDepartment.description">{{ selectedDepartment.description }}</p>
-            <div class="staff-preview">
-              <div class="staff-preview-item" *ngFor="let doctor of doctorsInDepartment">
-                <div class="staff-preview-avatar">
-                  <img *ngIf="doctor.avatarUrl" [src]="doctor.avatarUrl" [alt]="doctor.name" />
-                  <span *ngIf="!doctor.avatarUrl">{{ (doctor.name || 'D').charAt(0) }}</span>
-                </div>
-                <div>
-                  <strong>{{ doctor.name }}</strong>
-                  <div class="small text-muted">
-                    <span *ngIf="doctor.specialization">{{ doctor.specialization }}</span>
-                    <span *ngIf="doctor.experienceYears !== null"> · {{ doctor.experienceYears }} yrs</span>
-                    <span> · ₹{{ doctor.effectiveConsultationFee | number:'1.2-2' }}</span>
+            <h4 class="mb-2"><i class="bi bi-people-fill me-2"></i>{{ selectedDepartment.name }} doctors</h4>
+            <p class="text-muted small mb-3" *ngIf="selectedDepartment.description">{{ selectedDepartment.description }}</p>
+            <div class="doctor-list">
+              <div class="doctor-card" *ngFor="let doctor of doctorsInDepartment"
+                   [class.selected]="selectedDoctor?.id === doctor.id">
+                <div class="doctor-header">
+                  <div class="doctor-avatar">
+                    <img *ngIf="avatarUrl(doctor.avatarUrl) as url" [src]="url" [alt]="doctor.name" />
+                    <span *ngIf="!doctor.avatarUrl">{{ (doctor.name || 'D').charAt(0) }}</span>
                   </div>
+                  <div class="doctor-info">
+                    <div class="doctor-name">{{ doctor.name }}</div>
+                    <div class="doctor-meta" *ngIf="doctor.specialization || doctor.qualification">
+                      <span *ngIf="doctor.specialization">{{ doctor.specialization }}</span>
+                      <span *ngIf="doctor.qualification">· {{ doctor.qualification }}</span>
+                    </div>
+                    <div class="doctor-meta" *ngIf="doctor.experienceYears !== null">
+                      <i class="bi bi-briefcase me-1"></i>{{ doctor.experienceYears }} yrs experience
+                    </div>
+                  </div>
+                  <div class="doctor-fee">₹{{ doctor.effectiveConsultationFee | number:'1.0-0' }}</div>
+                </div>
+                <div class="availability-chips" *ngIf="doctor.availability?.length">
+                  <span class="availability-label"><i class="bi bi-clock-history me-1"></i>Available</span>
+                  <span class="availability-chip" *ngFor="let slot of doctor.availability">{{ formatSlot(slot) }}</span>
                 </div>
               </div>
             </div>

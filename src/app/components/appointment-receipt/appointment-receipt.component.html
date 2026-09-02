@@ -144,7 +144,7 @@
       your booking number <strong>{{ receipt.bookingNumber }}</strong>.
     </div>
 
-    <div class="internal-breakdown small text-muted mt-3" *ngIf="receipt.platformCommission > 0">
+    <div class="internal-breakdown small text-muted mt-3" *ngIf="canSeeInternalBreakdown && receipt.platformCommission > 0">
       <div><strong>Internal breakdown</strong> (for provider records)</div>
       <div>Platform commission: ₹{{ receipt.platformCommission | number:'1.2-2' }}</div>
       <div *ngIf="receipt.bookingType === 'doctor'">Doctor payout: ₹{{ receipt.doctorPayout | number:'1.2-2' }}</div>

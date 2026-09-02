@@ -2,6 +2,7 @@ import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AppointmentService } from '../../services/appointment.service';
+import { AuthService } from '../../services/auth.service';
 import { AppointmentReceipt } from '../../models/appointment.model';
 
 @Component({
@@ -21,8 +22,14 @@ export class AppointmentReceiptComponent implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
-    private appointmentService: AppointmentService
+    private appointmentService: AppointmentService,
+    private authService: AuthService
   ) {}
+
+  get canSeeInternalBreakdown(): boolean {
+    const role = this.authService.getUserRole?.();
+    return role === 'hospital' || role === 'doctor' || role === 'admin';
+  }
 
   ngOnInit(): void {
     this.appointmentId = Number(this.route.snapshot.paramMap.get('id'));

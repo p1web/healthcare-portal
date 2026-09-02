@@ -289,9 +289,18 @@ Invoice fields should reuse hospital legal name, address, tax identifier, and ot
 
 ## Verification
 
+All verification runs through Docker Compose. Ensure `postgres`, `backend`, and `frontend` services are running.
+
 ### Frontend
 
-Add focused tests for:
+Focused tests exist for the new services and the affected components. Run inside the frontend container:
+
+```powershell
+docker compose exec frontend npx --no-install ng build --configuration=development
+docker compose exec frontend npx --no-install ng test --watch=false
+```
+
+Coverage focus:
 
 - Pricing-mode controls
 - Department-dependent doctor filtering
@@ -300,35 +309,42 @@ Add focused tests for:
 - Coupon revalidation after doctor changes
 - Appointment request payload
 
-Run:
-
-```powershell
-npm test
-npm run build
-```
-
 ### Backend
 
-Add integration checks for:
+Two PowerShell verification scripts drive Docker-hosted checks:
 
-- Department and doctor ownership
-- Both pricing modes
-- Missing or invalid doctor-specific fees
-- Inactive and non-bookable doctors
-- Cross-hospital identifiers
-- Mixed provider payload rejection
-- Doctor availability and double-booking conflicts
-- Fee-change conflict response
-- Coupon and price snapshots
-- Hospital-only appointment lifecycle permissions
-- Hospital-branded receipt fields
+```powershell
+./scripts/verify-hospital-managed-doctor-migration.ps1
+./scripts/verify-hospital-managed-doctor-api.ps1
+```
 
-The backend currently has no automated test script. Add a focused verification script consistent with the existing `scripts/verify-*.ps1` checks and run it against a migrated disposable database.
+The migration script uses a disposable database and confirms:
+
+- All migrations apply forward.
+- The phase 1 migration reverses cleanly.
+- Migrating forward again restores the expected columns, tables, indexes, and constraints.
+
+The API script hits the running backend and confirms:
+
+- Hospital-owned endpoints require authentication.
+- Pricing mode changes reject invalid values and enforce a positive standard fee.
+- The public booking-options endpoint responds for a valid hospital and rejects an unknown hospital id.
+- Hospital doctor listing includes the pricing block returned by the backend.
+
+Additional manual acceptance:
+
+- Cross-hospital identifiers rejected.
+- Mixed doctor and hospital-managed provider payloads rejected.
+- Doctor availability and double-booking conflicts.
+- Fee-change conflict response.
+- Coupon and price snapshots on the appointment.
+- Hospital-only appointment lifecycle permissions.
+- Hospital-branded receipt fields showing consulting doctor and department.
 
 ### Migrations and Acceptance
 
-- Run migrations forward on a disposable database.
-- Validate General department and staff backfill counts.
+- Run migrations forward on a disposable database using the migration script above.
+- Validate the General department and staff backfill counts in the development database.
 - Validate indexes and constraints.
-- Run down migrations and then migrate forward again.
+- Run down migrations and then migrate forward again through the same script.
 - Manually verify both pricing modes from hospital configuration through patient booking, hospital completion, and receipt generation.

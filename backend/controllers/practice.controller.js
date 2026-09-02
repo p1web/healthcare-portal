@@ -1,9 +1,11 @@
 'use strict';
 
 const {
+  Department,
   DoctorPractice,
   DoctorProfile,
   HospitalProfile,
+  HospitalStaff,
   User,
   Specialization,
   Appointment,
@@ -438,11 +440,15 @@ exports.getHospitalSummary = async (req, res) => {
 
     const appointments = await Appointment.findAll({
       where: { hospitalProfileId: hospital.id },
-      include: [{
-        model: DoctorProfile,
-        as: 'doctorProfile',
-        include: [{ model: User, as: 'user', attributes: ['id', 'name'] }]
-      }],
+      include: [
+        {
+          model: DoctorProfile,
+          as: 'doctorProfile',
+          include: [{ model: User, as: 'user', attributes: ['id', 'name'] }]
+        },
+        { model: HospitalStaff, as: 'hospitalStaff', attributes: ['id', 'name'], required: false },
+        { model: Department, as: 'department', attributes: ['id', 'name'], required: false }
+      ],
       order: [['appointmentDate', 'DESC'], ['appointmentTime', 'DESC']]
     });
 
@@ -469,12 +475,13 @@ exports.getHospitalSummary = async (req, res) => {
       const isEarning = ['confirmed', 'completed'].includes(row.status);
       if (isEarning) {
         totals.completedAppointments += row.status === 'completed' ? 1 : 0;
-        // Patient pays original_price; commission + payout already reflect that.
         totals.grossRevenue += num(row.originalPrice);
         totals.platformCommissionCharged += num(row.platformRevenueAmount);
         if (row.doctorProfileId) {
           totals.doctorPayout += num(row.doctorPayoutAmount);
         } else {
+          // Hospital-managed and hospital-direct bookings both retain the doctor_payout amount
+          // as the hospital's net revenue after platform commission.
           totals.hospitalRetention += num(row.doctorPayoutAmount);
         }
       }
@@ -486,12 +493,29 @@ exports.getHospitalSummary = async (req, res) => {
         totals.upcomingAppointments++;
       }
 
-      const docKey = row.doctorProfileId != null ? row.doctorProfileId : 'hospital-direct';
+      let docKey;
+      let doctorName;
+      let providerType;
+      if (row.doctorProfileId) {
+        docKey = `doctor:${row.doctorProfileId}`;
+        doctorName = row.doctorProfile?.user?.name || `Doctor #${row.doctorProfileId}`;
+        providerType = 'doctor';
+      } else if (row.hospitalStaffId) {
+        docKey = `staff:${row.hospitalStaffId}`;
+        doctorName = row.hospitalStaff?.name || `Hospital doctor #${row.hospitalStaffId}`;
+        providerType = 'hospital-managed';
+      } else {
+        docKey = 'hospital-direct';
+        doctorName = 'Hospital walk-ins';
+        providerType = 'hospital';
+      }
       if (!perDoctor.has(docKey)) {
         perDoctor.set(docKey, {
           doctorProfileId: row.doctorProfileId || null,
-          doctorName: row.doctorProfile?.user?.name
-            || (row.doctorProfileId == null ? 'Hospital walk-ins' : `Doctor #${row.doctorProfileId}`),
+          hospitalStaffId: row.hospitalStaffId || null,
+          departmentName: row.department?.name || null,
+          providerType,
+          doctorName,
           appointmentCount: 0,
           commissionCharged: 0
         });

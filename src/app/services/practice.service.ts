@@ -127,7 +127,10 @@ export interface HospitalSummary {
     hospitalRetention: number;
   };
   perDoctor: {
-    doctorProfileId: number;
+    doctorProfileId: number | null;
+    hospitalStaffId: number | null;
+    departmentName: string | null;
+    providerType: 'doctor' | 'hospital-managed' | 'hospital';
     doctorName: string;
     appointmentCount: number;
     commissionCharged: number;

@@ -13,6 +13,12 @@ export interface AppointmentHistory extends Appointment {
   doctorName: string;
   specialization?: string | null;
   hospital?: string | null;
+  hospitalStaffId?: number | null;
+  hospitalStaffName?: string | null;
+  departmentId?: number | null;
+  departmentName?: string | null;
+  isHospitalBooking?: boolean;
+  isHospitalManagedBooking?: boolean;
   status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'rejected';
   createdAt: string;
   rejectionReason?: string | null;
@@ -76,7 +82,7 @@ export interface AdminAppointment extends DoctorAppointment {
 
 export interface AppointmentReceipt {
   bookingNumber: string;
-  bookingType?: 'doctor' | 'hospital';
+  bookingType?: 'doctor' | 'hospital' | 'hospital-managed';
   paymentMode: 'online' | 'offline';
   paymentStatus: 'paid' | 'pending' | 'failed' | 'refunded';
   paidAt: string | null;
@@ -91,6 +97,9 @@ export interface AppointmentReceipt {
   specialization: string | null;
   hospitalName: string | null;
   hospitalCity: string | null;
+  providerName: string | null;
+  consultingDoctorName: string | null;
+  departmentName: string | null;
   originalPrice: number | null;
   discountAmount: number;
   netCostAfterCashback: number | null;
@@ -102,4 +111,5 @@ export interface AppointmentReceipt {
   cashbackTransactionId: string | null;
   platformCommission: number;
   doctorPayout: number;
+  hospitalNetAmount: number;
 }

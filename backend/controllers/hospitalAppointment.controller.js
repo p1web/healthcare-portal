@@ -3,8 +3,10 @@
 const { Op } = require('sequelize');
 const {
   Appointment,
+  Department,
   DoctorProfile,
   HospitalProfile,
+  HospitalStaff,
   Specialization,
   User
 } = require('../models');
@@ -16,6 +18,20 @@ const doctorInclude = {
     { model: User, as: 'user', attributes: ['id', 'name'] },
     { model: Specialization, as: 'specialization', attributes: ['id', 'name'] }
   ]
+};
+
+const hospitalStaffInclude = {
+  model: HospitalStaff,
+  as: 'hospitalStaff',
+  attributes: ['id', 'name', 'specialization'],
+  required: false
+};
+
+const departmentInclude = {
+  model: Department,
+  as: 'department',
+  attributes: ['id', 'name'],
+  required: false
 };
 
 const patientInclude = {
@@ -39,6 +55,7 @@ function num(v) { return (v === null || v === undefined) ? 0 : parseFloat(v); }
 
 function formatHospitalAppointment(a) {
   const v = a.toJSON ? a.toJSON() : a;
+  const consultingDoctorName = v.hospitalStaff?.name || null;
   return {
     id: v.id,
     bookingNumber: v.bookingNumber || null,
@@ -47,9 +64,14 @@ function formatHospitalAppointment(a) {
     patientEmail: v.patient?.email || v.email,
     patientPhone: v.patient?.phone || v.phone,
     doctorProfileId: v.doctorProfileId || null,
-    doctorName: v.doctorProfile?.user?.name || null,
-    specialization: v.doctorProfile?.specialization?.name || null,
+    doctorName: v.doctorProfile?.user?.name || consultingDoctorName || null,
+    specialization: v.doctorProfile?.specialization?.name || v.hospitalStaff?.specialization || null,
+    hospitalStaffId: v.hospitalStaffId || null,
+    hospitalStaffName: consultingDoctorName,
+    departmentId: v.departmentId || null,
+    departmentName: v.department?.name || null,
     isHospitalBooking: !v.doctorProfileId,
+    isHospitalManagedBooking: !!v.hospitalStaffId,
     date: v.appointmentDate,
     time: v.appointmentTime,
     reason: v.reason || null,
@@ -98,7 +120,7 @@ exports.listAppointments = async (req, res) => {
     }
     const appointments = await Appointment.findAll({
       where,
-      include: [doctorInclude, patientInclude],
+      include: [doctorInclude, patientInclude, hospitalStaffInclude, departmentInclude],
       order: [['appointmentDate', 'DESC'], ['appointmentTime', 'DESC']]
     });
     return res.json({ success: true, data: appointments.map(formatHospitalAppointment) });
@@ -113,7 +135,7 @@ exports.confirmAppointment = async (req, res) => {
     const hospital = await requireHospital(req.user.id);
     const appointment = await Appointment.findOne({
       where: { id: req.params.id, hospitalProfileId: hospital.id },
-      include: [doctorInclude, patientInclude]
+      include: [doctorInclude, patientInclude, hospitalStaffInclude, departmentInclude]
     });
     if (!appointment) return res.status(404).json({ success: false, message: 'Appointment not found' });
     if (appointment.status !== 'pending') {
@@ -137,7 +159,7 @@ exports.completeAppointment = async (req, res) => {
     const hospital = await requireHospital(req.user.id);
     const appointment = await Appointment.findOne({
       where: { id: req.params.id, hospitalProfileId: hospital.id },
-      include: [doctorInclude, patientInclude]
+      include: [doctorInclude, patientInclude, hospitalStaffInclude, departmentInclude]
     });
     if (!appointment) return res.status(404).json({ success: false, message: 'Appointment not found' });
     if (appointment.status !== 'confirmed') {
@@ -192,7 +214,7 @@ exports.rejectAppointment = async (req, res) => {
     }
     const appointment = await Appointment.findOne({
       where: { id: req.params.id, hospitalProfileId: hospital.id },
-      include: [doctorInclude, patientInclude]
+      include: [doctorInclude, patientInclude, hospitalStaffInclude, departmentInclude]
     });
     if (!appointment) return res.status(404).json({ success: false, message: 'Appointment not found' });
     if (appointment.status !== 'pending') {

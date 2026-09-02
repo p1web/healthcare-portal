@@ -94,6 +94,8 @@
                     <strong>{{ appointment.doctorName }}</strong>
                     <small *ngIf="appointment.specialization">{{ appointment.specialization }}</small>
                     <small *ngIf="appointment.hospital">{{ appointment.hospital }}</small>
+                    <small *ngIf="appointment.departmentName">{{ appointment.departmentName }}</small>
+                    <span *ngIf="appointment.isHospitalManagedBooking" class="badge bg-info-subtle text-info small mt-1">Hospital doctor</span>
                   </div>
                 </div>
               </td>

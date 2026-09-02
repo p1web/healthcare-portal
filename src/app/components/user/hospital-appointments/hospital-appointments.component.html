@@ -71,6 +71,8 @@
               <ng-container *ngIf="a.doctorName; else hospitalOnly">
                 <div>{{ a.doctorName }}</div>
                 <small class="text-muted" *ngIf="a.specialization">{{ a.specialization }}</small>
+                <div class="small text-muted" *ngIf="a.departmentName">{{ a.departmentName }}</div>
+                <span class="badge bg-info-subtle text-info small" *ngIf="a.isHospitalManagedBooking">Hospital doctor</span>
               </ng-container>
               <ng-template #hospitalOnly>
                 <span class="badge bg-info">Hospital booking</span>

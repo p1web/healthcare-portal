@@ -52,8 +52,20 @@
 
     <div class="section-title">Appointment</div>
     <div class="grid-2">
-      <ng-container *ngIf="receipt.bookingType !== 'hospital'">
+      <ng-container *ngIf="receipt.bookingType === 'doctor'">
         <div><span class="label">Doctor</span><span>{{ receipt.doctorName || '—' }}</span></div>
+        <div><span class="label">Specialization</span><span>{{ receipt.specialization || '—' }}</span></div>
+      </ng-container>
+      <ng-container *ngIf="receipt.bookingType === 'hospital-managed'">
+        <div>
+          <span class="label">Provider</span>
+          <span><i class="bi bi-hospital me-1"></i>{{ receipt.hospitalName || 'Hospital' }}</span>
+        </div>
+        <div>
+          <span class="label">Consulting doctor</span>
+          <span>{{ receipt.consultingDoctorName || '—' }}</span>
+        </div>
+        <div><span class="label">Department</span><span>{{ receipt.departmentName || '—' }}</span></div>
         <div><span class="label">Specialization</span><span>{{ receipt.specialization || '—' }}</span></div>
       </ng-container>
       <ng-container *ngIf="receipt.bookingType === 'hospital'">
@@ -130,6 +142,13 @@
       Payment is <strong>pending</strong>. Please pay
       ₹{{ receipt.amountPayable | number:'1.2-2' }} at the hospital reception desk and quote
       your booking number <strong>{{ receipt.bookingNumber }}</strong>.
+    </div>
+
+    <div class="internal-breakdown small text-muted mt-3" *ngIf="receipt.platformCommission > 0">
+      <div><strong>Internal breakdown</strong> (for provider records)</div>
+      <div>Platform commission: ₹{{ receipt.platformCommission | number:'1.2-2' }}</div>
+      <div *ngIf="receipt.bookingType === 'doctor'">Doctor payout: ₹{{ receipt.doctorPayout | number:'1.2-2' }}</div>
+      <div *ngIf="receipt.bookingType !== 'doctor'">Hospital net revenue: ₹{{ receipt.hospitalNetAmount | number:'1.2-2' }}</div>
     </div>
 
     <div class="footer">

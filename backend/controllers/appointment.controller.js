@@ -33,6 +33,20 @@ const hospitalInclude = {
   attributes: ['id', 'hospitalName', 'hospitalKind', 'hospitalCity', 'hospitalState']
 };
 
+const hospitalStaffInclude = {
+  model: HospitalStaff,
+  as: 'hospitalStaff',
+  attributes: ['id', 'name', 'specialization', 'qualification'],
+  required: false
+};
+
+const departmentInclude = {
+  model: Department,
+  as: 'department',
+  attributes: ['id', 'name'],
+  required: false
+};
+
 const patientInclude = {
   model: User,
   as: 'patient',
@@ -54,16 +68,25 @@ function formatAppointment(appointment) {
   const value = appointment.toJSON();
   const numeric = (v) => (v !== null && v !== undefined) ? parseFloat(v) : 0;
   const withHospital = !!value.hospitalProfileId;
+  const isHospitalManaged = !!value.hospitalStaffId;
+  const consultingDoctorName = value.hospitalStaff?.name || null;
+  const departmentName = value.department?.name || null;
   return {
     id: value.id,
     doctorId: value.doctorProfileId,
     doctorName: value.doctorProfile?.user?.name
+      || consultingDoctorName
       || (withHospital && !value.doctorProfileId ? (value.hospitalProfile?.hospitalName || 'Hospital') : 'Doctor'),
-    specialization: value.doctorProfile?.specialization?.name || null,
+    specialization: value.doctorProfile?.specialization?.name || value.hospitalStaff?.specialization || null,
     hospital: value.hospitalProfile?.hospitalName || null,
     hospitalProfileId: value.hospitalProfileId || null,
+    hospitalStaffId: value.hospitalStaffId || null,
+    hospitalStaffName: consultingDoctorName,
+    departmentId: value.departmentId || null,
+    departmentName,
     practiceId: value.practiceId || null,
     isHospitalBooking: withHospital && !value.doctorProfileId,
+    isHospitalManagedBooking: isHospitalManaged,
     date: value.appointmentDate,
     time: value.appointmentTime,
     reason: value.reason,
@@ -430,7 +453,7 @@ exports.createAppointment = async (req, res) => {
     }
 
     const createdAppointment = await Appointment.findByPk(appointment.id, {
-      include: [doctorInclude, hospitalInclude]
+      include: [doctorInclude, hospitalInclude, hospitalStaffInclude, departmentInclude]
     });
     return res.status(201).json({
       success: true,
@@ -497,7 +520,7 @@ exports.getPatientAppointments = async (req, res) => {
 
     const appointments = await Appointment.findAll({
       where,
-      include: [doctorInclude, hospitalInclude],
+      include: [doctorInclude, hospitalInclude, hospitalStaffInclude, departmentInclude],
       order: [
         ['appointmentDate', 'DESC'],
         ['appointmentTime', 'DESC']
@@ -593,7 +616,7 @@ exports.cancelAppointment = async (req, res) => {
     }
     await appointment.save();
 
-    const refreshed = await Appointment.findByPk(appointment.id, { include: [doctorInclude, hospitalInclude] });
+    const refreshed = await Appointment.findByPk(appointment.id, { include: [doctorInclude, hospitalInclude, hospitalStaffInclude, departmentInclude] });
     return res.json({
       success: true,
       message: 'Appointment cancelled successfully',
@@ -700,7 +723,7 @@ exports.getPatientAnalytics = async (req, res) => {
   try {
     const appointments = await Appointment.findAll({
       where: { patientId: req.user.id },
-      include: [doctorInclude, hospitalInclude],
+      include: [doctorInclude, hospitalInclude, hospitalStaffInclude, departmentInclude],
       order: [['appointmentDate', 'DESC'], ['appointmentTime', 'DESC']]
     });
 
@@ -1038,7 +1061,7 @@ exports.payAppointment = async (req, res) => {
     appointment.paymentTransactionId = 'MOCK-' + require('crypto').randomBytes(6).toString('hex').toUpperCase();
     await appointment.save();
 
-    const refreshed = await Appointment.findByPk(id, { include: [doctorInclude, hospitalInclude] });
+    const refreshed = await Appointment.findByPk(id, { include: [doctorInclude, hospitalInclude, hospitalStaffInclude, departmentInclude] });
     return res.json({
       success: true,
       message: 'Payment successful',
@@ -1122,7 +1145,7 @@ exports.getAppointmentReceipt = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Invalid appointment id' });
     }
     const appointment = await Appointment.findByPk(id, {
-      include: [doctorInclude, hospitalInclude, patientInclude]
+      include: [doctorInclude, hospitalInclude, patientInclude, hospitalStaffInclude, departmentInclude]
     });
     if (!appointment) {
       return res.status(404).json({ success: false, message: 'Appointment not found' });
@@ -1139,8 +1162,18 @@ exports.getAppointmentReceipt = async (req, res) => {
     const originalPrice = value.originalPrice !== null ? parseFloat(value.originalPrice) : null;
     const discountAmount = value.discountAmount !== null ? parseFloat(value.discountAmount) : 0;
     const netCostAfterCashback = value.finalPrice !== null ? parseFloat(value.finalPrice) : null;
-    const bookingType = value.doctorProfileId ? 'doctor' : 'hospital';
+    const isHospitalManaged = !!value.hospitalStaffId;
+    const bookingType = isHospitalManaged
+      ? 'hospital-managed'
+      : (value.doctorProfileId ? 'doctor' : 'hospital');
     const hospitalName = value.hospitalProfile?.hospitalName || null;
+    const consultingDoctorName = value.hospitalStaff?.name || null;
+    const departmentName = value.department?.name || null;
+    const providerName = bookingType === 'doctor'
+      ? (value.doctorProfile?.user?.name || 'Doctor')
+      : hospitalName;
+    const platformCommission = value.platformRevenueAmount !== null ? parseFloat(value.platformRevenueAmount) : 0;
+    const providerNetAmount = value.doctorPayoutAmount !== null ? parseFloat(value.doctorPayoutAmount) : 0;
     return res.json({
       success: true,
       data: {
@@ -1155,25 +1188,26 @@ exports.getAppointmentReceipt = async (req, res) => {
         patientName: value.patient?.name || value.patientName,
         patientEmail: value.patient?.email || value.email,
         patientPhone: value.patient?.phone || value.phone,
-        doctorName: value.doctorProfile?.user?.name || (bookingType === 'hospital' ? hospitalName : null),
-        specialization: value.doctorProfile?.specialization?.name || null,
+        doctorName: bookingType === 'doctor' ? (value.doctorProfile?.user?.name || null) : null,
+        specialization: value.doctorProfile?.specialization?.name || value.hospitalStaff?.specialization || null,
         hospitalName,
         hospitalCity: value.hospitalProfile?.hospitalCity || null,
+        providerName,
+        consultingDoctorName,
+        departmentName,
         appointmentStatus: value.status,
         originalPrice,
         discountAmount,
         netCostAfterCashback,
-        // Patient always pays the full consultation fee upfront.
         amountPayable: originalPrice,
         couponCode: value.couponCode || null,
         cashbackAmount: discountAmount,
         cashbackStatus: value.cashbackStatus || 'none',
         cashbackIssuedAt: value.cashbackIssuedAt || null,
         cashbackTransactionId: value.cashbackTransactionId || null,
-        platformCommission: value.platformRevenueAmount !== null ? parseFloat(value.platformRevenueAmount) : 0,
-        // For a hospital-direct booking this is the hospital's retention (fee - commission),
-        // not a doctor payout. The frontend labels it accordingly.
-        doctorPayout: value.doctorPayoutAmount !== null ? parseFloat(value.doctorPayoutAmount) : 0
+        platformCommission,
+        doctorPayout: bookingType === 'doctor' ? providerNetAmount : 0,
+        hospitalNetAmount: bookingType === 'doctor' ? 0 : providerNetAmount
       }
     });
   } catch (error) {

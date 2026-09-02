@@ -12,7 +12,12 @@ export interface HospitalAppointmentRow {
   doctorProfileId: number | null;
   doctorName: string | null;
   specialization: string | null;
+  hospitalStaffId: number | null;
+  hospitalStaffName: string | null;
+  departmentId: number | null;
+  departmentName: string | null;
   isHospitalBooking: boolean;
+  isHospitalManagedBooking: boolean;
   date: string;
   time: string | null;
   reason: string | null;

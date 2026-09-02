@@ -10,6 +10,7 @@ const staffAvatarUpload = createImageUpload('staff-avatars');
 
 // Public — sitting doctors listed on the hospital detail page.
 router.get('/hospitals/:hospitalId/staff', staffCtrl.publicListStaffForHospital);
+router.get('/hospitals/:hospitalId/booking-options', staffCtrl.getHospitalBookingOptions);
 
 // Hospital owner CRUD.
 router.get('/hospital/staff', authenticate, authorize('hospital'), staffCtrl.listStaff);

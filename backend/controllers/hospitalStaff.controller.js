@@ -341,3 +341,78 @@ exports.uploadStaffAvatar = async (req, res) => {
 };
 
 exports.formatStaff = formatStaff;
+
+exports.getHospitalBookingOptions = async (req, res) => {
+  try {
+    const hospitalProfileId = Number(req.params.hospitalId);
+    if (!Number.isInteger(hospitalProfileId) || hospitalProfileId <= 0) {
+      return res.status(400).json({ success: false, message: 'Invalid hospital id' });
+    }
+    const hospital = await HospitalProfile.findByPk(hospitalProfileId);
+    if (!hospital) {
+      return res.status(404).json({ success: false, message: 'Hospital not found' });
+    }
+    const departments = await Department.findAll({
+      where: { hospitalProfileId, isActive: true },
+      include: [{
+        model: HospitalStaff,
+        as: 'doctors',
+        where: { isActive: true, isBookable: true },
+        required: true,
+        include: [{ model: HospitalStaffAvailability, as: 'availability', where: { isAvailable: true }, required: false }]
+      }],
+      order: [['name', 'ASC'], [{ model: HospitalStaff, as: 'doctors' }, 'displayOrder', 'ASC']]
+    });
+
+    const standardFee = Number(hospital.defaultConsultationFee) || 0;
+    const feeMode = hospital.consultationFeeMode || 'STANDARD';
+
+    const data = departments
+      .map((department) => {
+        const doctors = (department.doctors || [])
+          .filter(doctor => (doctor.availability || []).length > 0)
+          .map(doctor => ({
+            id: doctor.id,
+            name: doctor.name,
+            specialization: doctor.specialization || null,
+            qualification: doctor.qualification || null,
+            experienceYears: doctor.experienceYears === null || doctor.experienceYears === undefined
+              ? null
+              : Number(doctor.experienceYears),
+            avatarUrl: doctor.avatarUrl || null,
+            effectiveConsultationFee: feeMode === 'PER_DOCTOR'
+              ? Number(doctor.consultationFee) || 0
+              : standardFee,
+            availability: (doctor.availability || [])
+              .map(slot => ({
+                dayOfWeek: Number(slot.dayOfWeek),
+                startTime: String(slot.startTime).slice(0, 5),
+                endTime: String(slot.endTime).slice(0, 5)
+              }))
+              .sort((a, b) => a.dayOfWeek - b.dayOfWeek || a.startTime.localeCompare(b.startTime))
+          }));
+        return {
+          id: department.id,
+          name: department.name,
+          description: department.description || null,
+          doctors
+        };
+      })
+      .filter(department => department.doctors.length > 0);
+
+    return res.json({
+      success: true,
+      data: {
+        hospitalId: hospital.id,
+        hospitalName: hospital.hospitalName,
+        acceptsBookings: hospital.acceptsBookings !== false,
+        consultationFeeMode: feeMode,
+        defaultConsultationFee: standardFee,
+        departments: data
+      }
+    });
+  } catch (error) {
+    console.error('Hospital booking options error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to load booking options' });
+  }
+};

@@ -2,12 +2,15 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { HospitalService } from '../../services/hospital.service';
 import { AppointmentService } from '../../services/appointment.service';
 import { AuthService } from '../../services/auth.service';
 import { CouponService } from '../../services/coupon.service';
-import { HospitalStaffMember, HospitalStaffService } from '../../services/hospital-staff.service';
-import { HospitalAvailabilityService } from '../../services/hospital-availability.service';
+import {
+  BookingDepartment,
+  BookingDoctor,
+  HospitalBookingOptions,
+  HospitalBookingOptionsService
+} from '../../services/hospital-booking-options.service';
 
 @Component({
   standalone: true,
@@ -18,9 +21,7 @@ import { HospitalAvailabilityService } from '../../services/hospital-availabilit
 })
 export class HospitalBookingComponent implements OnInit {
   hospitalId!: number;
-  hospital: any = null;
-  staff: HospitalStaffMember[] = [];
-  acceptsBookings = true;
+  options: HospitalBookingOptions | null = null;
   form!: FormGroup;
 
   couponInput = '';
@@ -36,13 +37,13 @@ export class HospitalBookingComponent implements OnInit {
   isSubmitting = false;
   error = '';
 
+  readonly days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private fb: FormBuilder,
-    private hospitalService: HospitalService,
-    private staffService: HospitalStaffService,
-    private availabilityService: HospitalAvailabilityService,
+    private bookingOptionsService: HospitalBookingOptionsService,
     private appointmentService: AppointmentService,
     private authService: AuthService,
     private couponService: CouponService
@@ -55,16 +56,46 @@ export class HospitalBookingComponent implements OnInit {
       return;
     }
     this.form = this.fb.group({
+      departmentId: [null as number | null, Validators.required],
+      hospitalStaffId: [null as number | null, Validators.required],
       reason: [''],
       date: ['', Validators.required],
       time: ['', Validators.required],
       paymentMode: ['online', Validators.required]
     });
+    this.form.get('departmentId')?.valueChanges.subscribe(() => {
+      this.form.patchValue({ hospitalStaffId: null }, { emitEvent: false });
+      this.removeCoupon();
+      this.autoSelectDoctor();
+      this.loadApplicableCoupons();
+    });
+    this.form.get('hospitalStaffId')?.valueChanges.subscribe(() => {
+      this.removeCoupon();
+      this.loadApplicableCoupons();
+    });
     this.load();
   }
 
+  get departments(): BookingDepartment[] {
+    return this.options?.departments || [];
+  }
+
+  get selectedDepartment(): BookingDepartment | null {
+    const id = Number(this.form?.value.departmentId);
+    return this.departments.find(department => department.id === id) || null;
+  }
+
+  get doctorsInDepartment(): BookingDoctor[] {
+    return this.selectedDepartment?.doctors || [];
+  }
+
+  get selectedDoctor(): BookingDoctor | null {
+    const id = Number(this.form?.value.hospitalStaffId);
+    return this.doctorsInDepartment.find(doctor => doctor.id === id) || null;
+  }
+
   get consultationFee(): number {
-    return Number(this.hospital?.consultationFee || this.hospital?.defaultConsultationFee || 0);
+    return this.selectedDoctor?.effectiveConsultationFee ?? this.options?.defaultConsultationFee ?? 0;
   }
 
   get isPatient(): boolean {
@@ -72,8 +103,23 @@ export class HospitalBookingComponent implements OnInit {
     return role === 'patient';
   }
 
+  get acceptsBookings(): boolean {
+    return this.options?.acceptsBookings !== false;
+  }
+
+  get availabilitySummary(): string {
+    if (!this.selectedDoctor?.availability?.length) return 'No weekly hours listed';
+    return this.selectedDoctor.availability
+      .map(slot => `${this.days[slot.dayOfWeek]} ${slot.startTime}-${slot.endTime}`)
+      .join(' · ');
+  }
+
   goToLogin(): void {
     this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } });
+  }
+
+  getMinDate(): string {
+    return new Date().toISOString().split('T')[0];
   }
 
   private load(): void {
@@ -82,29 +128,30 @@ export class HospitalBookingComponent implements OnInit {
       return;
     }
     this.isLoading = true;
-    this.hospitalService.getHospitalById(this.hospitalId).subscribe({
-      next: (res: any) => {
-        this.hospital = res?.data ?? res;
+    this.bookingOptionsService.getBookingOptions(this.hospitalId).subscribe({
+      next: (res) => {
+        this.options = res?.data || null;
         this.isLoading = false;
+        this.autoSelectSingletons();
         this.loadApplicableCoupons();
       },
       error: () => {
-        this.error = 'Could not load hospital.';
+        this.error = 'Could not load booking options for this hospital.';
         this.isLoading = false;
       }
     });
-    this.staffService.listPublic(this.hospitalId).subscribe({
-      next: (res) => { this.staff = res.data || []; },
-      error: () => { this.staff = []; }
-    });
-    this.availabilityService.listPublic(this.hospitalId).subscribe({
-      next: (res) => { this.acceptsBookings = res.data?.acceptsBookings !== false; },
-      error: () => { this.acceptsBookings = true; }
-    });
   }
 
-  getMinDate(): string {
-    return new Date().toISOString().split('T')[0];
+  private autoSelectSingletons(): void {
+    if (this.departments.length === 1) {
+      this.form.patchValue({ departmentId: this.departments[0].id });
+    }
+  }
+
+  private autoSelectDoctor(): void {
+    if (this.doctorsInDepartment.length === 1) {
+      this.form.patchValue({ hospitalStaffId: this.doctorsInDepartment[0].id }, { emitEvent: false });
+    }
   }
 
   loadApplicableCoupons(): void {
@@ -114,13 +161,11 @@ export class HospitalBookingComponent implements OnInit {
     this.couponService.getCoupons().subscribe({
       next: (res: any) => {
         const list = res?.data || [];
-        this.applicableCoupons = list.filter((c: any) => {
-          if (!c?.isActive) return false;
-          if (c.minAmount && amount > 0 && amount < c.minAmount) return false;
-          const hospitalIds: any[] = c.hospitalIds || [];
-          if (hospitalIds.length > 0) {
-            return hospitalIds.includes(this.hospitalId);
-          }
+        this.applicableCoupons = list.filter((coupon: any) => {
+          if (!coupon?.isActive) return false;
+          if (coupon.minAmount && amount > 0 && amount < coupon.minAmount) return false;
+          const hospitalIds: any[] = coupon.hospitalIds || [];
+          if (hospitalIds.length > 0) return hospitalIds.includes(this.hospitalId);
           return true;
         });
         this.isLoadingCoupons = false;
@@ -145,8 +190,12 @@ export class HospitalBookingComponent implements OnInit {
       this.couponError = 'Enter a coupon code first.';
       return;
     }
+    if (!this.selectedDoctor) {
+      this.couponError = 'Please choose a doctor before applying a coupon.';
+      return;
+    }
     if (this.consultationFee <= 0) {
-      this.couponError = 'Hospital has not set a consultation fee yet.';
+      this.couponError = 'This doctor does not have a consultation fee configured yet.';
       return;
     }
     this.isValidatingCoupon = true;
@@ -159,7 +208,7 @@ export class HospitalBookingComponent implements OnInit {
             discountAmount: Number(res.data.discountAmount || 0),
             finalAmount: Number(res.data.finalAmount || this.consultationFee)
           };
-          this.couponSuccess = `Coupon applied — ₹${this.appliedCoupon.discountAmount} will be issued as cashback after the appointment.`;
+          this.couponSuccess = `Coupon applied — ₹${this.appliedCoupon.discountAmount} will be credited as cashback after the appointment.`;
         } else {
           this.couponError = res?.message || 'Coupon could not be applied.';
           this.appliedCoupon = null;
@@ -185,7 +234,7 @@ export class HospitalBookingComponent implements OnInit {
       this.goToLogin();
       return;
     }
-    if (this.form.invalid) {
+    if (this.form.invalid || !this.selectedDoctor || !this.selectedDepartment) {
       this.form.markAllAsTouched();
       return;
     }
@@ -197,6 +246,8 @@ export class HospitalBookingComponent implements OnInit {
     this.isSubmitting = true;
     const payload: any = {
       hospitalId: this.hospitalId,
+      departmentId: this.selectedDepartment?.id,
+      hospitalStaffId: this.selectedDoctor?.id,
       date: this.form.value.date,
       time: this.form.value.time,
       reason: this.form.value.reason || null,
@@ -211,6 +262,7 @@ export class HospitalBookingComponent implements OnInit {
         const booked = res?.data;
         this.form.reset({ paymentMode: 'online' });
         this.removeCoupon();
+        this.load();
         if (!booked?.id) return;
         if (booked.paymentMode === 'online' && booked.paymentStatus !== 'paid') {
           this.router.navigate(['/appointments', booked.id, 'pay']);
@@ -221,29 +273,23 @@ export class HospitalBookingComponent implements OnInit {
       error: (err) => {
         this.isSubmitting = false;
         const code = err?.error?.code;
-        const currentFee = Number(err?.error?.currentFee);
-        if (code === 'FEE_CHANGED' && Number.isFinite(currentFee)) {
-          this.handleFeeChange(currentFee, Number(err?.error?.previousFee));
+        if (code === 'FEE_CHANGED') {
+          const currentFee = Number(err?.error?.currentFee);
+          if (Number.isFinite(currentFee) && this.selectedDoctor) {
+            this.selectedDoctor.effectiveConsultationFee = currentFee;
+          }
+          this.removeCoupon();
+          if (confirm(`The consultation fee changed to \u20b9${Number(err?.error?.currentFee).toFixed(2)}. Continue booking at the new fee?`)) {
+            this.submitBooking(currentFee);
+          }
+          return;
+        }
+        if (code === 'SLOT_TAKEN') {
+          this.error = 'This slot was just booked. Please choose a different time.';
           return;
         }
         this.error = err?.error?.message || 'Failed to book appointment.';
       }
     });
-  }
-
-  private handleFeeChange(currentFee: number, previousFee: number): void {
-    // Update the local price the user sees so any subsequent submit uses the new value.
-    if (this.hospital) {
-      this.hospital = { ...this.hospital, defaultConsultationFee: currentFee, consultationFee: currentFee };
-    }
-    // Coupon min-amount rule may no longer hold; drop it and let the user re-apply.
-    const droppedCoupon = this.appliedCoupon?.code || null;
-    this.removeCoupon();
-
-    const priceLine = `The consultation fee changed from \u20b9${previousFee.toFixed(2)} to \u20b9${currentFee.toFixed(2)}.`;
-    const couponLine = droppedCoupon ? `\nCoupon ${droppedCoupon} was removed; please re-apply if it still qualifies.` : '';
-    if (confirm(`${priceLine}${couponLine}\n\nContinue booking at the new price?`)) {
-      this.submitBooking(currentFee);
-    }
   }
 }

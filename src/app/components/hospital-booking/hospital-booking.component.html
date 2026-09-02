@@ -10,16 +10,45 @@
 
     <div *ngIf="error && !isLoading" class="alert alert-danger">{{ error }}</div>
 
-    <ng-container *ngIf="!isLoading && hospital">
+    <ng-container *ngIf="!isLoading && options">
       <div class="row g-4">
         <div class="col-lg-7">
           <div class="booking-card">
             <div class="booking-head">
               <h2><i class="bi bi-calendar-plus me-2"></i>Book Appointment</h2>
-              <p class="text-muted mb-0">{{ hospital.name || hospital.hospitalName }}</p>
+              <p class="text-muted mb-0">{{ options.hospitalName }}</p>
             </div>
 
-            <form [formGroup]="form" (ngSubmit)="onSubmit()" class="booking-form">
+            <div class="alert alert-warning" *ngIf="!departments.length">
+              <i class="bi bi-info-circle me-2"></i>
+              This hospital has not published any bookable doctors yet. Please check back later.
+            </div>
+
+            <form *ngIf="departments.length" [formGroup]="form" (ngSubmit)="onSubmit()" class="booking-form">
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label class="form-label fw-semibold">Department <span class="text-danger">*</span></label>
+                  <select class="form-select" formControlName="departmentId">
+                    <option [ngValue]="null">Select a department</option>
+                    <option *ngFor="let department of departments" [ngValue]="department.id">{{ department.name }}</option>
+                  </select>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label class="form-label fw-semibold">Doctor <span class="text-danger">*</span></label>
+                  <select class="form-select" formControlName="hospitalStaffId" [attr.disabled]="!selectedDepartment ? true : null">
+                    <option [ngValue]="null">
+                      {{ selectedDepartment ? 'Select a doctor' : 'Choose a department first' }}
+                    </option>
+                    <option *ngFor="let doctor of doctorsInDepartment" [ngValue]="doctor.id">
+                      {{ doctor.name }}<span *ngIf="doctor.specialization"> · {{ doctor.specialization }}</span>
+                    </option>
+                  </select>
+                  <small class="text-muted d-block mt-1" *ngIf="selectedDoctor">
+                    <i class="bi bi-clock me-1"></i>{{ availabilitySummary }}
+                  </small>
+                </div>
+              </div>
+
               <div class="row">
                 <div class="col-md-6 mb-3">
                   <label class="form-label fw-semibold">Date <span class="text-danger">*</span></label>
@@ -41,9 +70,9 @@
                 <div class="input-group">
                   <input type="text" class="form-control" [(ngModel)]="couponInput"
                          [ngModelOptions]="{ standalone: true }" placeholder="e.g. HEALTH20"
-                         [disabled]="!!appliedCoupon" />
+                         [disabled]="!!appliedCoupon || !selectedDoctor" />
                   <button *ngIf="!appliedCoupon" type="button" class="btn btn-outline-primary"
-                          (click)="applyCoupon()" [disabled]="isValidatingCoupon">
+                          (click)="applyCoupon()" [disabled]="isValidatingCoupon || !selectedDoctor">
                     {{ isValidatingCoupon ? 'Checking...' : 'Apply' }}
                   </button>
                   <button *ngIf="appliedCoupon" type="button" class="btn btn-outline-danger"
@@ -57,47 +86,46 @@
                 </div>
               </div>
 
-              <div class="pricing-summary" *ngIf="consultationFee > 0">
+              <div class="pricing-summary" *ngIf="selectedDoctor && consultationFee > 0">
                 <div class="d-flex justify-content-between">
-                  <span class="text-muted">Consultation Fee</span>
-                  <span>₹{{ consultationFee }}</span>
+                  <span class="text-muted">Consultation fee</span>
+                  <span>₹{{ consultationFee | number:'1.2-2' }}</span>
                 </div>
                 <hr class="my-2" />
                 <div class="d-flex justify-content-between fw-bold fs-6">
                   <span>Amount to pay</span>
-                  <span>₹{{ consultationFee }}</span>
+                  <span>₹{{ consultationFee | number:'1.2-2' }}</span>
                 </div>
                 <div class="cashback-hint mt-2" *ngIf="appliedCoupon">
                   <i class="bi bi-gift me-1"></i>
-                  <strong>Cashback ₹{{ appliedCoupon.discountAmount }}</strong>
+                  <strong>Cashback ₹{{ appliedCoupon.discountAmount | number:'1.2-2' }}</strong>
                   (coupon <code>{{ appliedCoupon.code }}</code>) will be credited within 24 hours
                   after the hospital marks your appointment complete.
                 </div>
               </div>
 
               <div class="mb-3 mt-3">
-                <label class="form-label fw-semibold">Payment Method</label>
+                <label class="form-label fw-semibold">Payment method</label>
                 <div class="btn-group w-100" role="group">
                   <input type="radio" class="btn-check" formControlName="paymentMode" id="hbPayOnline" value="online" />
                   <label class="btn btn-outline-primary" for="hbPayOnline">
-                    <i class="bi bi-credit-card me-1"></i>Pay Online Now
+                    <i class="bi bi-credit-card me-1"></i>Pay online now
                   </label>
                   <input type="radio" class="btn-check" formControlName="paymentMode" id="hbPayOffline" value="offline" />
                   <label class="btn btn-outline-primary" for="hbPayOffline">
-                    <i class="bi bi-cash-stack me-1"></i>Pay at Hospital
+                    <i class="bi bi-cash-stack me-1"></i>Pay at hospital
                   </label>
                 </div>
               </div>
 
               <div class="alert alert-warning mb-3" *ngIf="!acceptsBookings">
                 <i class="bi bi-shop me-2"></i>
-                <strong>This hospital is not accepting new bookings at the moment.</strong>
-                Please check back later or contact them directly.
+                <strong>This hospital is not accepting new bookings right now.</strong>
               </div>
 
               <button type="submit" class="btn btn-primary btn-lg w-100 py-3"
-                      [disabled]="isSubmitting || !acceptsBookings">
-                <span *ngIf="!isSubmitting"><i class="bi bi-check-circle me-2"></i>Confirm Appointment</span>
+                      [disabled]="isSubmitting || !acceptsBookings || form.invalid">
+                <span *ngIf="!isSubmitting"><i class="bi bi-check-circle me-2"></i>Confirm appointment</span>
                 <span *ngIf="isSubmitting"><span class="spinner-border spinner-border-sm me-2"></span>Booking...</span>
               </button>
 
@@ -110,18 +138,13 @@
 
         <div class="col-lg-5">
           <div class="booking-card coupons-card mb-3">
-            <h4 class="text-success mb-3">
-              <i class="bi bi-tags-fill me-2"></i>Available Offers
-            </h4>
-
+            <h4 class="text-success mb-3"><i class="bi bi-tags-fill me-2"></i>Available offers</h4>
             <div *ngIf="isLoadingCoupons" class="text-center text-muted py-3">
               <span class="spinner-border spinner-border-sm me-2"></span>Loading offers...
             </div>
-
             <div *ngIf="!isLoadingCoupons && !applicableCoupons.length" class="text-muted small text-center py-3">
               No offers currently available for this hospital.
             </div>
-
             <div *ngIf="!isLoadingCoupons && applicableCoupons.length" class="coupon-list">
               <div *ngFor="let c of applicableCoupons" class="coupon-item"
                    [class.selected]="appliedCoupon?.code === c.code"
@@ -139,32 +162,23 @@
             </div>
           </div>
 
-          <div class="booking-card sidebar-card">
-            <h4><i class="bi bi-hospital me-2"></i>{{ hospital.name || hospital.hospitalName }}</h4>
-            <p class="text-muted small mb-2" *ngIf="hospital.location || hospital.address">
-              <i class="bi bi-geo-alt me-1"></i>{{ hospital.location || hospital.address }}
-            </p>
-            <p class="text-muted small mb-3" *ngIf="hospital.phone">
-              <i class="bi bi-telephone me-1"></i>{{ hospital.phone }}
-            </p>
-
-            <div class="staff-preview" *ngIf="staff.length">
-              <h6 class="mt-3 mb-2"><i class="bi bi-people-fill me-1"></i>Doctors at this hospital</h6>
-              <div class="staff-preview-item" *ngFor="let m of staff.slice(0, 5)">
+          <div class="booking-card sidebar-card" *ngIf="selectedDepartment">
+            <h4><i class="bi bi-people-fill me-2"></i>{{ selectedDepartment.name }} doctors</h4>
+            <p class="text-muted small mb-2" *ngIf="selectedDepartment.description">{{ selectedDepartment.description }}</p>
+            <div class="staff-preview">
+              <div class="staff-preview-item" *ngFor="let doctor of doctorsInDepartment">
                 <div class="staff-preview-avatar">
-                  <img *ngIf="m.avatarUrl" [src]="m.avatarUrl" [alt]="m.name" />
-                  <span *ngIf="!m.avatarUrl">{{ (m.name || 'D').charAt(0) }}</span>
+                  <img *ngIf="doctor.avatarUrl" [src]="doctor.avatarUrl" [alt]="doctor.name" />
+                  <span *ngIf="!doctor.avatarUrl">{{ (doctor.name || 'D').charAt(0) }}</span>
                 </div>
                 <div>
-                  <strong>{{ m.name }}</strong>
+                  <strong>{{ doctor.name }}</strong>
                   <div class="small text-muted">
-                    <span *ngIf="m.specialization">{{ m.specialization }}</span>
-                    <span *ngIf="m.experienceYears !== null"> · {{ m.experienceYears }} yrs</span>
+                    <span *ngIf="doctor.specialization">{{ doctor.specialization }}</span>
+                    <span *ngIf="doctor.experienceYears !== null"> · {{ doctor.experienceYears }} yrs</span>
+                    <span> · ₹{{ doctor.effectiveConsultationFee | number:'1.2-2' }}</span>
                   </div>
                 </div>
-              </div>
-              <div class="small text-muted mt-2" *ngIf="staff.length > 5">
-                +{{ staff.length - 5 }} more &mdash; see full list on the hospital page.
               </div>
             </div>
           </div>

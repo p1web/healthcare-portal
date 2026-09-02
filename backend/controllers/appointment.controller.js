@@ -1,9 +1,12 @@
 const {
   Appointment,
+  Department,
   DoctorAvailability,
   DoctorProfile,
   DoctorPractice,
   HospitalProfile,
+  HospitalStaff,
+  HospitalStaffAvailability,
   Specialization,
   User,
   Coupon,
@@ -131,12 +134,27 @@ async function getDoctorProfile(userId) {
 
 exports.createAppointment = async (req, res) => {
   try {
-    const { doctorId, hospitalId, practiceId, date, time, reason, couponCode, paymentMode, expectedFee } = req.body;
+    const {
+      doctorId,
+      hospitalId,
+      practiceId,
+      hospitalStaffId,
+      departmentId,
+      date,
+      time,
+      reason,
+      couponCode,
+      paymentMode,
+      expectedFee
+    } = req.body;
     if ((!doctorId && !hospitalId) || !date || !time) {
       return res.status(400).json({ success: false, message: 'Doctor or hospital, plus date and time, are required' });
     }
     if (doctorId && hospitalId) {
       return res.status(400).json({ success: false, message: 'Pick either a doctor or a hospital, not both' });
+    }
+    if (doctorId && (hospitalStaffId || departmentId)) {
+      return res.status(400).json({ success: false, message: 'Doctor bookings cannot include a hospital doctor selection' });
     }
     const mode = paymentMode === 'online' ? 'online' : 'offline';
 
@@ -155,6 +173,8 @@ exports.createAppointment = async (req, res) => {
     let doctorProfileForRow = null;
     let practice = null;
     let hospitalForBooking = null;
+    let hospitalStaffForRow = null;
+    let departmentForRow = null;
     let originalPrice = 0;
 
     if (doctorId) {
@@ -254,7 +274,75 @@ exports.createAppointment = async (req, res) => {
       }
 
       hospitalForBooking = hospital;
-      originalPrice = parseFloat(hospital.defaultConsultationFee) || 0;
+
+      const bookableCount = await HospitalStaff.count({
+        where: { hospitalProfileId: hospital.id, isActive: true, isBookable: true }
+      });
+
+      if (hospitalStaffId || departmentId) {
+        const staffIdNum = Number(hospitalStaffId);
+        const deptIdNum = Number(departmentId);
+        if (!Number.isInteger(staffIdNum) || staffIdNum <= 0 || !Number.isInteger(deptIdNum) || deptIdNum <= 0) {
+          return res.status(400).json({ success: false, message: 'Select a department and a doctor for this hospital' });
+        }
+        const staff = await HospitalStaff.findOne({
+          where: { id: staffIdNum, hospitalProfileId: hospital.id },
+          include: [{ model: Department, as: 'department', required: false }]
+        });
+        if (!staff || !staff.isActive || !staff.isBookable) {
+          return res.status(400).json({ success: false, message: 'Selected doctor is not available for booking' });
+        }
+        if (staff.departmentId !== deptIdNum || !staff.department || !staff.department.isActive) {
+          return res.status(400).json({ success: false, message: 'Selected doctor does not belong to the chosen department' });
+        }
+        const staffSlot = await HospitalStaffAvailability.findOne({
+          where: {
+            hospitalStaffId: staff.id,
+            dayOfWeek: appointmentDate.getDay(),
+            isAvailable: true
+          }
+        });
+        if (!staffSlot) {
+          return res.status(400).json({ success: false, message: 'Doctor is not available on the selected day' });
+        }
+        const staffStart = String(staffSlot.startTime).slice(0, 5);
+        const staffEnd = String(staffSlot.endTime).slice(0, 5);
+        if (time < staffStart || time > staffEnd) {
+          return res.status(400).json({
+            success: false,
+            message: `Doctor is available between ${staffStart} and ${staffEnd} on the selected day`
+          });
+        }
+        const conflict = await Appointment.findOne({
+          where: {
+            hospitalStaffId: staff.id,
+            appointmentDate: date,
+            appointmentTime: time,
+            status: { [Op.in]: ['pending', 'confirmed'] }
+          }
+        });
+        if (conflict) {
+          return res.status(409).json({
+            success: false,
+            code: 'SLOT_TAKEN',
+            message: 'This time slot is already booked. Please choose another slot.'
+          });
+        }
+        hospitalStaffForRow = staff;
+        departmentForRow = staff.department;
+        originalPrice = hospital.consultationFeeMode === 'PER_DOCTOR'
+          ? (Number(staff.consultationFee) || 0)
+          : (parseFloat(hospital.defaultConsultationFee) || 0);
+      } else {
+        if (bookableCount > 0) {
+          return res.status(400).json({
+            success: false,
+            code: 'DOCTOR_REQUIRED',
+            message: 'Please choose a department and doctor to book at this hospital'
+          });
+        }
+        originalPrice = parseFloat(hospital.defaultConsultationFee) || 0;
+      }
     }
 
     // Fee-change guard: if the client sent the fee it saw and it no longer matches
@@ -312,6 +400,8 @@ exports.createAppointment = async (req, res) => {
           finalPrice,
           practiceId: practice ? practice.id : null,
           hospitalProfileId: hospitalForBooking.id,
+          hospitalStaffId: hospitalStaffForRow ? hospitalStaffForRow.id : null,
+          departmentId: departmentForRow ? departmentForRow.id : null,
           platformRevenueAmount: commission.platformRevenue,
           doctorPayoutAmount: commission.doctorPayout,
           paymentMode: mode,

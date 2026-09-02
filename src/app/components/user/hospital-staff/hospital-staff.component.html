@@ -2,8 +2,8 @@
   <div class="profile-header">
     <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
       <div>
-        <h2 class="mb-1"><i class="bi bi-people-fill me-2"></i>Sitting Doctors</h2>
-        <p class="mb-0 text-white-50">Doctors employed at your hospital, shown on your public hospital page.</p>
+        <h2 class="mb-1"><i class="bi bi-people-fill me-2"></i>Hospital Doctors</h2>
+        <p class="mb-0 text-white-50">Manage departments, consultation fees, and doctor availability.</p>
       </div>
       <div class="d-flex gap-2">
         <button type="button" class="btn btn-light" (click)="openAdd()" [disabled]="isSaving">
@@ -23,8 +23,73 @@
     <div class="alert alert-success mb-0"><i class="bi bi-check-circle me-2"></i>{{ success }}</div>
   </div>
 
+  <section class="profile-section">
+    <h6 class="section-title"><i class="bi bi-currency-rupee"></i>Consultation pricing</h6>
+    <div class="pricing-controls">
+      <div class="btn-group" role="group" aria-label="Consultation fee mode">
+        <input type="radio" class="btn-check" name="feeMode" id="standardFee" value="STANDARD"
+               [(ngModel)]="consultationFeeMode" />
+        <label class="btn btn-outline-primary" for="standardFee">Standard fee</label>
+        <input type="radio" class="btn-check" name="feeMode" id="doctorFee" value="PER_DOCTOR"
+               [(ngModel)]="consultationFeeMode" />
+        <label class="btn btn-outline-primary" for="doctorFee">Doctor-specific fees</label>
+      </div>
+      <div class="standard-fee" *ngIf="consultationFeeMode === 'STANDARD'">
+        <label class="form-label" for="defaultConsultationFee">Standard consultation fee</label>
+        <div class="input-group">
+          <span class="input-group-text">₹</span>
+          <input id="defaultConsultationFee" type="number" class="form-control"
+                 [(ngModel)]="defaultConsultationFee" min="0.01" step="0.01" />
+        </div>
+      </div>
+      <button type="button" class="btn btn-primary" (click)="savePricing()" [disabled]="pricingSaving">
+        <span *ngIf="pricingSaving" class="spinner-border spinner-border-sm me-1"></span>Save pricing
+      </button>
+    </div>
+  </section>
+
+  <section class="profile-section">
+    <h6 class="section-title"><i class="bi bi-diagram-3"></i>Departments</h6>
+    <div class="department-list" *ngIf="departments.length">
+      <div class="department-row" *ngFor="let department of departments">
+        <div>
+          <strong>{{ department.name }}</strong>
+          <span class="text-muted small ms-2">{{ department.doctorCount }} doctors</span>
+          <span class="badge bg-secondary ms-2" *ngIf="!department.isActive">Inactive</span>
+        </div>
+        <div class="d-flex gap-1">
+          <button type="button" class="btn btn-sm btn-outline-primary" title="Rename department"
+                  (click)="renameDepartment(department)"><i class="bi bi-pencil"></i></button>
+          <button type="button" class="btn btn-sm btn-outline-secondary"
+                  [title]="department.isActive ? 'Deactivate department' : 'Activate department'"
+                  (click)="toggleDepartment(department)">
+            <i class="bi" [ngClass]="department.isActive ? 'bi-eye-slash' : 'bi-eye'"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="row align-items-end mt-3">
+      <div class="col-md-4 mb-2">
+        <label class="form-label" for="newDepartmentName">Department name</label>
+        <input id="newDepartmentName" type="text" class="form-control" [(ngModel)]="newDepartmentName"
+               maxlength="255" placeholder="Cardiology" />
+      </div>
+      <div class="col-md-6 mb-2">
+        <label class="form-label" for="newDepartmentDescription">Description</label>
+        <input id="newDepartmentDescription" type="text" class="form-control"
+               [(ngModel)]="newDepartmentDescription" placeholder="Optional" />
+      </div>
+      <div class="col-md-2 mb-2">
+        <button type="button" class="btn btn-outline-primary w-100" (click)="addDepartment()"
+                [disabled]="departmentSaving || !newDepartmentName.trim()">
+          <i class="bi bi-plus-lg" title="Add department"></i>
+        </button>
+      </div>
+    </div>
+  </section>
+
   <section class="profile-section" *ngIf="showForm">
-    <h6 class="section-title"><i class="bi bi-person-plus"></i>{{ editingId ? 'Edit staff member' : 'Add a doctor' }}</h6>
+    <h6 class="section-title"><i class="bi bi-person-plus"></i>{{ editingId ? 'Edit doctor' : 'Add a doctor' }}</h6>
     <form [formGroup]="form" (ngSubmit)="submit()">
       <div class="row">
         <div class="col-md-6 mb-3">
@@ -37,6 +102,26 @@
             <option value="">Select a specialization</option>
             <option *ngFor="let s of specializations" [value]="s.name">{{ s.name }}</option>
           </select>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Department <span class="text-danger">*</span></label>
+          <select class="form-select" formControlName="departmentId">
+            <option [ngValue]="null">Select a department</option>
+            <option *ngFor="let department of activeDepartments" [ngValue]="department.id">{{ department.name }}</option>
+          </select>
+        </div>
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Consultation fee</label>
+          <div class="input-group">
+            <span class="input-group-text">₹</span>
+            <input type="number" class="form-control" formControlName="consultationFee" min="0.01" step="0.01"
+                   [required]="consultationFeeMode === 'PER_DOCTOR'" [readonly]="consultationFeeMode === 'STANDARD'" />
+          </div>
+          <small class="text-muted" *ngIf="consultationFeeMode === 'STANDARD'">
+            Standard fee of ₹{{ defaultConsultationFee | number:'1.2-2' }} applies.
+          </small>
         </div>
       </div>
       <div class="row">
@@ -93,9 +178,35 @@
           </div>
         </div>
       </div>
-      <div class="mb-3 form-check">
-        <input type="checkbox" class="form-check-input" id="staffActive" formControlName="isActive" />
-        <label class="form-check-label" for="staffActive">Active (visible on public page)</label>
+      <div class="row mb-3">
+        <div class="col-md-6 form-check form-switch ps-5">
+          <input type="checkbox" class="form-check-input" id="staffActive" formControlName="isActive" />
+          <label class="form-check-label" for="staffActive">Active on public page</label>
+        </div>
+        <div class="col-md-6 form-check form-switch ps-5">
+          <input type="checkbox" class="form-check-input" id="staffBookable" formControlName="isBookable" />
+          <label class="form-check-label" for="staffBookable">Available for patient booking</label>
+        </div>
+      </div>
+
+      <div class="availability-editor mb-3" formArrayName="availability">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <label class="form-label mb-0">Weekly availability</label>
+          <button type="button" class="btn btn-sm btn-outline-primary" (click)="addAvailability()">
+            <i class="bi bi-plus-lg me-1"></i>Add time
+          </button>
+        </div>
+        <div class="availability-row" *ngFor="let slot of availability.controls; let index = index" [formGroupName]="index">
+          <select class="form-select" formControlName="dayOfWeek" aria-label="Day">
+            <option *ngFor="let day of days; let dayIndex = index" [ngValue]="dayIndex">{{ day }}</option>
+          </select>
+          <input type="time" class="form-control" formControlName="startTime" aria-label="Start time" />
+          <span class="text-muted">to</span>
+          <input type="time" class="form-control" formControlName="endTime" aria-label="End time" />
+          <button type="button" class="btn btn-outline-danger" title="Remove time" (click)="removeAvailability(index)">
+            <i class="bi bi-trash"></i>
+          </button>
+        </div>
       </div>
 
       <div class="form-actions">
@@ -117,7 +228,7 @@
   <section class="profile-section" *ngIf="!isLoading && !staff.length">
     <div class="text-center py-4">
       <i class="bi bi-people display-5 text-muted"></i>
-      <p class="mt-3 mb-1 text-muted">No sitting doctors yet.</p>
+      <p class="mt-3 mb-1 text-muted">No hospital doctors yet.</p>
       <button class="btn btn-primary mt-2" (click)="openAdd()"><i class="bi bi-plus-lg me-1"></i>Add your first doctor</button>
     </div>
   </section>
@@ -135,6 +246,7 @@
             <div>
               <h5 class="mb-0">{{ m.name }}</h5>
               <p class="text-muted small mb-1">
+                <span>{{ departmentName(m.departmentId) }}</span>
                 <span *ngIf="m.specialization">{{ m.specialization }}</span>
                 <span *ngIf="m.qualification"> · {{ m.qualification }}</span>
                 <span *ngIf="m.experienceYears !== null"> · {{ m.experienceYears }} yrs exp</span>
@@ -149,6 +261,13 @@
             <div *ngIf="m.email"><i class="bi bi-envelope me-1"></i>{{ m.email }}</div>
           </div>
           <p *ngIf="m.bio" class="staff-bio small text-muted mt-2 mb-0">{{ m.bio }}</p>
+          <div class="doctor-booking-meta mt-2">
+            <span class="badge" [ngClass]="m.isBookable ? 'bg-primary' : 'bg-light text-dark'">
+              {{ m.isBookable ? 'Bookable' : 'Not bookable' }}
+            </span>
+            <span class="small fw-semibold">₹{{ m.effectiveConsultationFee | number:'1.2-2' }}</span>
+            <span class="small text-muted">{{ m.availability.length }} weekly slots</span>
+          </div>
           <div class="staff-actions mt-2">
             <button type="button" class="btn btn-sm btn-outline-primary me-2" (click)="openEdit(m)">
               <i class="bi bi-pencil me-1"></i>Edit

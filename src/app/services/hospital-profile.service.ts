@@ -19,6 +19,16 @@ export class HospitalProfileService {
     return this.http.put(this.apiUrl, data);
   }
 
+  updateConsultationPricing(
+    consultationFeeMode: 'STANDARD' | 'PER_DOCTOR',
+    defaultConsultationFee: number
+  ): Observable<any> {
+    return this.http.patch('http://localhost:3000/api/hospital/consultation-fee', {
+      consultationFeeMode,
+      defaultConsultationFee
+    });
+  }
+
   uploadDocuments(files: File[]): Observable<any> {
     const formData = new FormData();
     files.forEach(file => formData.append('documents', file));

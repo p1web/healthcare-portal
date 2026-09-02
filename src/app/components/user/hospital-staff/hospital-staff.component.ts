@@ -1,10 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HospitalStaffMember, HospitalStaffPayload, HospitalStaffService } from '../../../services/hospital-staff.service';
 import { SpecializationService, Specializations } from '../../../services/specialization.service';
 import { QualificationService, Qualification } from '../../../services/qualification.service';
 import { ImageUploadService } from '../../../services/image-upload.service';
+import { Department, DepartmentService } from '../../../services/department.service';
+import { HospitalProfileService } from '../../../services/hospital-profile.service';
 import { forkJoin } from 'rxjs';
 
 @Component({
@@ -16,6 +18,7 @@ import { forkJoin } from 'rxjs';
 })
 export class HospitalStaffComponent implements OnInit {
   staff: HospitalStaffMember[] = [];
+  departments: Department[] = [];
   specializations: Specializations[] = [];
   qualifications: Qualification[] = [];
   isLoading = false;
@@ -25,6 +28,13 @@ export class HospitalStaffComponent implements OnInit {
   readonly apiHost = 'http://localhost:3000';
   error = '';
   success = '';
+  consultationFeeMode: 'STANDARD' | 'PER_DOCTOR' = 'STANDARD';
+  defaultConsultationFee = 500;
+  pricingSaving = false;
+  newDepartmentName = '';
+  newDepartmentDescription = '';
+  departmentSaving = false;
+  readonly days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
   form!: FormGroup;
   editingId: number | null = null;
@@ -35,12 +45,15 @@ export class HospitalStaffComponent implements OnInit {
     private staffService: HospitalStaffService,
     private specializationService: SpecializationService,
     private qualificationService: QualificationService,
-    private imageUploadService: ImageUploadService
+    private imageUploadService: ImageUploadService,
+    private departmentService: DepartmentService,
+    private hospitalProfileService: HospitalProfileService
   ) {}
 
   ngOnInit(): void {
     this.form = this.buildForm();
     this.loadMasters();
+    this.loadDepartments();
     this.load();
   }
 
@@ -70,8 +83,36 @@ export class HospitalStaffComponent implements OnInit {
       email: ['', [Validators.email]],
       bio: [''],
       avatarUrl: [''],
+      departmentId: [null as number | null, Validators.required],
+      consultationFee: [null as number | null, Validators.min(0.01)],
+      isBookable: [false],
       isActive: [true],
-      displayOrder: [0]
+      displayOrder: [0],
+      availability: this.fb.array([])
+    });
+  }
+
+  get availability(): FormArray {
+    return this.form.get('availability') as FormArray;
+  }
+
+  addAvailability(slot?: { dayOfWeek: number; startTime: string; endTime: string; isAvailable: boolean }): void {
+    this.availability.push(this.fb.group({
+      dayOfWeek: [slot?.dayOfWeek ?? 1, [Validators.required, Validators.min(0), Validators.max(6)]],
+      startTime: [(slot?.startTime || '09:00').slice(0, 5), Validators.required],
+      endTime: [(slot?.endTime || '17:00').slice(0, 5), Validators.required],
+      isAvailable: [slot?.isAvailable !== false]
+    }));
+  }
+
+  removeAvailability(index: number): void {
+    this.availability.removeAt(index);
+  }
+
+  loadDepartments(): void {
+    this.departmentService.listMine().subscribe({
+      next: (response) => this.departments = response.data || [],
+      error: (err) => this.error = err?.error?.message || 'Failed to load departments'
     });
   }
 
@@ -81,6 +122,8 @@ export class HospitalStaffComponent implements OnInit {
     this.staffService.listMine().subscribe({
       next: (res) => {
         this.staff = res.data || [];
+        this.consultationFeeMode = res.pricing?.consultationFeeMode || 'STANDARD';
+        this.defaultConsultationFee = Number(res.pricing?.defaultConsultationFee) || 0;
         this.isLoading = false;
       },
       error: (err) => {
@@ -96,8 +139,12 @@ export class HospitalStaffComponent implements OnInit {
     this.form.reset({
       name: '', specialization: '', qualification: '', experienceYears: null,
       phone: '', email: '', bio: '', avatarUrl: '',
+      departmentId: this.activeDepartments.length === 1 ? this.activeDepartments[0].id : null,
+      consultationFee: null, isBookable: false,
       isActive: true, displayOrder: 0
     });
+    this.availability.clear();
+    this.addAvailability();
     this.success = '';
     this.error = '';
   }
@@ -114,9 +161,14 @@ export class HospitalStaffComponent implements OnInit {
       email: member.email || '',
       bio: member.bio || '',
       avatarUrl: member.avatarUrl || '',
+      departmentId: member.departmentId,
+      consultationFee: member.consultationFee,
+      isBookable: member.isBookable,
       isActive: member.isActive,
       displayOrder: member.displayOrder
     });
+    this.availability.clear();
+    (member.availability || []).forEach(slot => this.addAvailability(slot));
     this.success = '';
     this.error = '';
   }
@@ -141,8 +193,17 @@ export class HospitalStaffComponent implements OnInit {
       email: raw.email ? String(raw.email).trim() : null,
       bio: raw.bio ? String(raw.bio).trim() : null,
       avatarUrl: raw.avatarUrl ? String(raw.avatarUrl).trim() : null,
+      departmentId: Number(raw.departmentId),
+      consultationFee: raw.consultationFee === null || raw.consultationFee === '' ? null : Number(raw.consultationFee),
+      isBookable: !!raw.isBookable,
       isActive: !!raw.isActive,
-      displayOrder: Number(raw.displayOrder) || 0
+      displayOrder: Number(raw.displayOrder) || 0,
+      availability: (raw.availability || []).map((slot: any) => ({
+        dayOfWeek: Number(slot.dayOfWeek),
+        startTime: slot.startTime,
+        endTime: slot.endTime,
+        isAvailable: !!slot.isAvailable
+      }))
     };
     this.isSaving = true;
     this.error = '';
@@ -152,7 +213,7 @@ export class HospitalStaffComponent implements OnInit {
     req.subscribe({
       next: () => {
         this.isSaving = false;
-        this.success = this.editingId ? 'Staff member updated.' : 'Staff member added.';
+        this.success = this.editingId ? 'Doctor updated.' : 'Doctor added.';
         this.showForm = false;
         this.editingId = null;
         this.load();
@@ -175,6 +236,78 @@ export class HospitalStaffComponent implements OnInit {
       error: (err) => {
         this.error = err?.error?.message || 'Failed to remove staff';
       }
+    });
+  }
+
+  get activeDepartments(): Department[] {
+    return this.departments.filter(department => department.isActive);
+  }
+
+  departmentName(id: number | null): string {
+    return this.departments.find(department => department.id === id)?.name || 'Unassigned';
+  }
+
+  savePricing(): void {
+    if (this.consultationFeeMode === 'STANDARD' && !(this.defaultConsultationFee > 0)) {
+      this.error = 'Enter a standard consultation fee greater than zero.';
+      return;
+    }
+    this.pricingSaving = true;
+    this.error = '';
+    this.hospitalProfileService.updateConsultationPricing(
+      this.consultationFeeMode,
+      this.defaultConsultationFee
+    ).subscribe({
+      next: () => {
+        this.pricingSaving = false;
+        this.success = 'Consultation pricing updated.';
+        this.load();
+      },
+      error: (err) => {
+        this.pricingSaving = false;
+        this.error = err?.error?.message || 'Failed to update consultation pricing';
+      }
+    });
+  }
+
+  addDepartment(): void {
+    const name = this.newDepartmentName.trim();
+    if (!name) return;
+    this.departmentSaving = true;
+    this.departmentService.create({ name, description: this.newDepartmentDescription.trim() || null }).subscribe({
+      next: () => {
+        this.departmentSaving = false;
+        this.newDepartmentName = '';
+        this.newDepartmentDescription = '';
+        this.success = 'Department added.';
+        this.loadDepartments();
+      },
+      error: (err) => {
+        this.departmentSaving = false;
+        this.error = err?.error?.message || 'Failed to add department';
+      }
+    });
+  }
+
+  renameDepartment(department: Department): void {
+    const name = prompt('Department name', department.name)?.trim();
+    if (!name || name === department.name) return;
+    this.departmentService.update(department.id, { name }).subscribe({
+      next: () => {
+        this.success = 'Department updated.';
+        this.loadDepartments();
+      },
+      error: (err) => this.error = err?.error?.message || 'Failed to update department'
+    });
+  }
+
+  toggleDepartment(department: Department): void {
+    this.departmentService.update(department.id, { isActive: !department.isActive }).subscribe({
+      next: () => {
+        this.success = `Department ${department.isActive ? 'deactivated' : 'activated'}.`;
+        this.loadDepartments();
+      },
+      error: (err) => this.error = err?.error?.message || 'Failed to update department'
     });
   }
 

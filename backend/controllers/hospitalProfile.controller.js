@@ -1,6 +1,6 @@
 // controllers/hospitalProfile.controller.js
 const { Op } = require('sequelize');
-const { User, HospitalProfile, Specialty, sequelize } = require('../models');
+const { User, HospitalProfile, HospitalStaff, Specialty, sequelize } = require('../models');
 const { applyUserBasicUpdates } = require('../utils/userBasicUpdate');
 const {
   buildSubmittedReviewReset,
@@ -338,12 +338,50 @@ exports.submitForReview = async (req, res) => {
   }
 };
 
-// PATCH /api/hospital/consultation-fee — retained for legacy clients; the fee
-// is now managed by the system admin, so any write attempt is rejected.
 exports.updateConsultationFee = async (req, res) => {
-  return res.status(403).json({
-    success: false,
-    message: 'Consultation fee is managed by the system admin. Please contact support to change it.'
-  });
+  try {
+    const profile = await HospitalProfile.findOne({ where: { userId: req.user.id } });
+    if (!profile) {
+      return res.status(404).json({ success: false, message: 'Hospital profile not found' });
+    }
+
+    const mode = String(req.body?.consultationFeeMode || '').trim().toUpperCase();
+    const defaultFee = Number(req.body?.defaultConsultationFee);
+    if (!['STANDARD', 'PER_DOCTOR'].includes(mode)) {
+      return res.status(400).json({ success: false, message: 'Invalid consultation fee mode' });
+    }
+    if (mode === 'STANDARD' && (!Number.isFinite(defaultFee) || defaultFee <= 0)) {
+      return res.status(400).json({ success: false, message: 'Standard consultation fee must be greater than zero' });
+    }
+    if (mode === 'PER_DOCTOR') {
+      const bookableDoctors = await HospitalStaff.findAll({
+        where: { hospitalProfileId: profile.id, isActive: true, isBookable: true },
+        attributes: ['id', 'name', 'consultationFee']
+      });
+      const missingFees = bookableDoctors.filter(doctor => !(Number(doctor.consultationFee) > 0));
+      if (missingFees.length) {
+        return res.status(409).json({
+          success: false,
+          message: 'Set a consultation fee for every bookable doctor before enabling Doctor-specific fees',
+          data: { incompleteDoctorIds: missingFees.map(doctor => doctor.id) }
+        });
+      }
+    }
+
+    const updates = { consultationFeeMode: mode };
+    if (mode === 'STANDARD') updates.defaultConsultationFee = defaultFee;
+    await profile.update(updates);
+    return res.json({
+      success: true,
+      message: 'Consultation pricing updated',
+      data: {
+        consultationFeeMode: profile.consultationFeeMode,
+        defaultConsultationFee: Number(profile.defaultConsultationFee)
+      }
+    });
+  } catch (error) {
+    console.error('Update consultation pricing error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to update consultation pricing' });
+  }
 };
 

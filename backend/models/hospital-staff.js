@@ -8,6 +8,18 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'hospital_profile_id',
         as: 'hospital'
       });
+      HospitalStaff.belongsTo(models.Department, {
+        foreignKey: 'department_id',
+        as: 'department'
+      });
+      HospitalStaff.hasMany(models.HospitalStaffAvailability, {
+        foreignKey: 'hospital_staff_id',
+        as: 'availability'
+      });
+      HospitalStaff.hasMany(models.Appointment, {
+        foreignKey: 'hospital_staff_id',
+        as: 'appointments'
+      });
     }
   }
 
@@ -17,6 +29,11 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       allowNull: false,
       field: 'hospital_profile_id'
+    },
+    departmentId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      field: 'department_id'
     },
     name: { type: DataTypes.STRING(255), allowNull: false },
     specialization: { type: DataTypes.STRING(255), allowNull: true },
@@ -33,6 +50,18 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING(500),
       allowNull: true,
       field: 'avatar_url'
+    },
+    consultationFee: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: true,
+      validate: { min: 0.01 },
+      field: 'consultation_fee'
+    },
+    isBookable: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      field: 'is_bookable'
     },
     isActive: {
       type: DataTypes.BOOLEAN,

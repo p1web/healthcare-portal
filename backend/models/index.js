@@ -24,6 +24,8 @@ const DoctorPractice = require("./doctor-practice")(sequelize, DataTypes);
 const PlatformCommissionSettings = require("./platform-commission-settings")(sequelize, DataTypes);
 const HospitalStaff = require("./hospital-staff")(sequelize, DataTypes);
 const HospitalAvailability = require("./hospital-availability")(sequelize, DataTypes);
+const Department = require("./department")(sequelize, DataTypes);
+const HospitalStaffAvailability = require("./hospital-staff-availability")(sequelize, DataTypes);
 
 
 // Run associations
@@ -33,7 +35,7 @@ DoctorAvailability.associate({ DoctorProfile, DoctorPractice });
 Coupon.associate({ CouponCategory, HospitalProfile, CouponUsage });
 CouponCategory.associate({ Coupon });
 CouponUsage.associate({ Coupon });
-Appointment.associate({ DoctorProfile, User, Coupon, DoctorPractice, HospitalProfile });
+Appointment.associate({ DoctorProfile, User, Coupon, DoctorPractice, HospitalProfile, HospitalStaff, Department });
 
 // User associations
 User.associate({ PatientProfile, DoctorProfile, HospitalProfile });
@@ -41,13 +43,15 @@ User.associate({ PatientProfile, DoctorProfile, HospitalProfile });
 // Profile associations
 PatientProfile.associate({ User, PatientAllergy, PatientMedicalCondition });
 DoctorProfile.associate({ User, Specialization, DoctorAvailability, Appointment, DoctorPractice });
-HospitalProfile.associate({ User, Coupon, DoctorPractice, HospitalStaff, HospitalAvailability });
+HospitalProfile.associate({ User, Coupon, DoctorPractice, HospitalStaff, HospitalAvailability, Department });
 PatientAllergy.associate({ PatientProfile });
 PatientMedicalCondition.associate({ PatientProfile });
 DoctorPractice.associate({ DoctorProfile, HospitalProfile, DoctorAvailability, Appointment });
 PlatformCommissionSettings.associate({ User });
-HospitalStaff.associate({ HospitalProfile });
+HospitalStaff.associate({ HospitalProfile, Department, HospitalStaffAvailability, Appointment });
 HospitalAvailability.associate({ HospitalProfile });
+Department.associate({ HospitalProfile, HospitalStaff, Appointment });
+HospitalStaffAvailability.associate({ HospitalStaff });
 
 
 module.exports = {
@@ -73,5 +77,7 @@ module.exports = {
   DoctorPractice,
   PlatformCommissionSettings,
   HospitalStaff,
-  HospitalAvailability
+  HospitalAvailability,
+  Department,
+  HospitalStaffAvailability
 };

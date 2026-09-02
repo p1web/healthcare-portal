@@ -24,6 +24,18 @@ module.exports = (sequelize, DataTypes) => {
           as: 'hospitalProfile'
         });
       }
+      if (models.HospitalStaff) {
+        Appointment.belongsTo(models.HospitalStaff, {
+          foreignKey: 'hospital_staff_id',
+          as: 'hospitalStaff'
+        });
+      }
+      if (models.Department) {
+        Appointment.belongsTo(models.Department, {
+          foreignKey: 'department_id',
+          as: 'department'
+        });
+      }
       if (models.Coupon) {
         Appointment.belongsTo(models.Coupon.unscoped(), {
           foreignKey: 'coupon_id',
@@ -120,6 +132,16 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       allowNull: true,
       field: 'hospital_profile_id'
+    },
+    hospitalStaffId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      field: 'hospital_staff_id'
+    },
+    departmentId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      field: 'department_id'
     },
     platformRevenueAmount: {
       type: DataTypes.DECIMAL(10, 2),

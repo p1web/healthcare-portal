@@ -35,6 +35,13 @@ module.exports = (sequelize, DataTypes) => {
         });
       }
 
+      if (models.Department) {
+        HospitalProfile.hasMany(models.Department, {
+          foreignKey: 'hospital_profile_id',
+          as: 'departments'
+        });
+      }
+
       HospitalProfile.belongsToMany(models.Coupon, {
         through: 'coupon_hospitals',
         foreignKey: 'hospital_id',
@@ -151,6 +158,12 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       defaultValue: 500.00,
       field: 'default_consultation_fee'
+    },
+    consultationFeeMode: {
+      type: DataTypes.ENUM('STANDARD', 'PER_DOCTOR'),
+      allowNull: false,
+      defaultValue: 'STANDARD',
+      field: 'consultation_fee_mode'
     },
     acceptsBookings: {
       type: DataTypes.BOOLEAN,

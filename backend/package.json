@@ -2,6 +2,9 @@
   "name": "healthcare-backend",
   "version": "1.0.0",
   "description": "Healthcare Portal Backend API",
+  "engines": {
+    "node": "22.22.3"
+  },
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

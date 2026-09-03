@@ -1,6 +1,9 @@
 {
   "name": "healthcare-portal",
   "version": "0.0.0",
+  "engines": {
+    "node": "22.22.3"
+  },
   "scripts": {
     "ng": "ng",
     "start": "ng serve --host 0.0.0.0 --port 4200 --poll=2000",

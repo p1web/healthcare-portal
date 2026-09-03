@@ -3,6 +3,7 @@ import { Component, EventEmitter, Input, OnChanges, Output } from '@angular/core
 import { FormsModule } from '@angular/forms';
 import { ProfileReviewStatus, User } from '../../../models/user.model';
 import { AdminService } from '../../../services/admin.service';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-admin-doctor-profile-modal',
@@ -195,7 +196,7 @@ export class DoctorProfileModalComponent implements OnChanges {
   }
 
   documentUrl(url: string): string {
-    return /^https?:\/\//i.test(url) ? url : `http://localhost:3000${url}`;
+    return /^https?:\/\//i.test(url) ? url : `${environment.apiHost}${url}`;
   }
 
   updateAccountStatus(): void {

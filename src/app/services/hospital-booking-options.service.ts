@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface BookingAvailabilitySlot {
   dayOfWeek: number;
@@ -37,7 +38,7 @@ export interface HospitalBookingOptions {
 
 @Injectable({ providedIn: 'root' })
 export class HospitalBookingOptionsService {
-  private readonly apiBase = 'http://localhost:3000/api';
+  private readonly apiBase = environment.apiUrl;
 
   constructor(private http: HttpClient) {}
 

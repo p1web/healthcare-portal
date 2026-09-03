@@ -41,7 +41,9 @@
 <ng-container *ngIf="!isLoading && !loadError && hospital as h">
 
   <!-- Hero -->
-  <section class="hospital-hero">
+  <section class="hospital-hero"
+           [class.has-banner]="hospitalImageUrl(h.bannerImage)"
+           [style.background-image]="hospitalImageUrl(h.bannerImage) ? 'linear-gradient(135deg, rgba(65,84,241,0.85) 0%, rgba(123,92,255,0.75) 55%, rgba(16,179,198,0.75) 100%), url(' + hospitalImageUrl(h.bannerImage) + ')' : null">
     <div class="container position-relative">
 
       <button type="button" class="hero-back-btn" (click)="goBack()">
@@ -53,7 +55,10 @@
         <div class="col-lg-8">
           <div class="hero-identity">
             <div class="hero-logo" aria-hidden="true">
-              <i class="bi bi-hospital"></i>
+              <img *ngIf="hospitalImageUrl(h.profileImage || h.image) as logoUrl"
+                   [src]="logoUrl" [alt]="h.name + ' logo'"
+                   class="hero-logo-img" />
+              <i *ngIf="!hospitalImageUrl(h.profileImage || h.image)" class="bi bi-hospital"></i>
             </div>
             <div class="hero-identity-text">
               <span class="hero-eyebrow" *ngIf="h.emergencyAvailable">

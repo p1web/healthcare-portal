@@ -11,6 +11,7 @@ import {
   HospitalBookingOptions,
   HospitalBookingOptionsService
 } from '../../services/hospital-booking-options.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
   standalone: true,
@@ -38,7 +39,7 @@ export class HospitalBookingComponent implements OnInit {
   error = '';
 
   readonly days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  readonly apiHost = 'http://localhost:3000';
+  readonly apiHost = environment.apiHost;
 
   constructor(
     private route: ActivatedRoute,

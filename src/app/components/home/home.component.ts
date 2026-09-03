@@ -7,6 +7,7 @@ import { DoctorService } from '../../services/doctor.service';
 import { Hospital } from '../../models/hospital.model';
 import { Doctor, DoctorAvailabilitySlot } from '../../models/doctor.model';
 import { SpecializationService, Specializations } from '../../services/specialization.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-home',
@@ -163,6 +164,14 @@ export class HomeComponent implements OnInit {
   getDoctorInitial(name: string): string {
     const parts = name.split(' ');
     return parts.length > 1 ? parts[1][0] : parts[0][0];
+  }
+
+  readonly apiHost = environment.apiHost;
+  doctorImageUrl(doctor: any): string | null {
+    const img = doctor?.image;
+    if (!img || typeof img !== 'string') return null;
+    if (img.includes('placeholder')) return null;
+    return img.startsWith('http') ? img : `${this.apiHost}${img}`;
   }
 
   formatAvailabilitySlot(slot: DoctorAvailabilitySlot): string {

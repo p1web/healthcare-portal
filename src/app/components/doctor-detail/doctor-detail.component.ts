@@ -8,6 +8,7 @@ import { AuthService } from '../../services/auth.service';
 import { CouponService } from '../../services/coupon.service';
 import { PracticeService, Practice } from '../../services/practice.service';
 import { Doctor, DoctorAvailabilitySlot } from '../../models/doctor.model';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-doctor-detail',
@@ -202,7 +203,7 @@ export class DoctorDetailComponent implements OnInit {
     return parts.length > 1 ? parts[1][0] : parts[0][0];
   }
 
-  readonly apiHost = 'http://localhost:3000';
+  readonly apiHost = environment.apiHost;
   doctorImageUrl(): string | null {
     const img = this.doctor?.image;
     if (!img || typeof img !== 'string') return null;

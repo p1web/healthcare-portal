@@ -4,6 +4,7 @@ import { FormArray, FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Va
 import { HttpClient } from '@angular/common/http';
 import { HospitalAvailabilityService, HospitalAvailabilitySlot } from '../../../services/hospital-availability.service';
 import { HospitalProfileService } from '../../../services/hospital-profile.service';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   standalone: true,
@@ -72,7 +73,7 @@ export class HospitalAvailabilityComponent implements OnInit {
     if (this.feeForm.invalid) { this.feeError = 'Please enter a valid fee.'; return; }
     this.isSavingFee = true;
     this.http.patch<any>(
-      'http://localhost:3000/api/hospital/consultation-fee',
+      `${environment.apiUrl}/hospital/consultation-fee`,
       { defaultConsultationFee: Number(this.feeForm.value.defaultConsultationFee) }
     ).subscribe({
       next: () => {

@@ -7,6 +7,7 @@ import type { ProfileReviewStatus } from '../../../models/user.model';
 import { AuthService } from '../../../services/auth.service';
 import { HospitalProfileService } from '../../../services/hospital-profile.service';
 import { Specialty, SpecialtyService } from '../../../services/specialty.service';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   standalone: true,
@@ -26,6 +27,27 @@ export class HospitalProfileComponent implements OnInit {
   success: string = '';
   loading: boolean = false;
 
+  readonly imageRules = {
+    logo: {
+      label: 'Profile / Logo',
+      description: 'Shown next to your hospital name on the public listing.',
+      maxSizeLabel: '2 MB',
+      dimensionsLabel: '200×200px – 2048×2048px',
+      aspectLabel: 'square (about 1:1)',
+      accept: 'image/jpeg,image/png,image/webp'
+    },
+    banner: {
+      label: 'Banner',
+      description: 'Wide hero image shown on your public detail page.',
+      maxSizeLabel: '5 MB',
+      dimensionsLabel: '1200×300px – 3840×1440px',
+      aspectLabel: 'wide (between 2:1 and 6:1)',
+      accept: 'image/jpeg,image/png,image/webp'
+    }
+  };
+  imageBusy: { logo: boolean; banner: boolean } = { logo: false, banner: false };
+  imageError: { logo: string; banner: string } = { logo: '', banner: '' };
+  readonly imageSlots: Array<'logo' | 'banner'> = ['logo', 'banner'];
   // Multi-step wizard state
   currentStep = 1;
   readonly stepDefs: { label: string; icon: string; groupPath: 'basic' | 'hospital' | null; controlNames: string[] }[] = [
@@ -57,6 +79,12 @@ export class HospitalProfileComponent implements OnInit {
       icon: 'bi-heart-pulse',
       groupPath: 'hospital',
       controlNames: ['bio', 'specialtyIds', 'emergencyServices', 'ambulanceServices']
+    },
+    {
+      label: 'Public Images',
+      icon: 'bi-image',
+      groupPath: null,
+      controlNames: []
     },
     {
       label: 'Verification Documents',
@@ -487,5 +515,120 @@ export class HospitalProfileComponent implements OnInit {
     const month = String(d.getMonth() + 1).padStart(2, '0');
     const day = String(d.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
+  }
+
+  // -----------------------------------------------------------------
+  // Public profile & banner image uploads (require admin approval to
+  // appear on the public listing / detail pages).
+  // -----------------------------------------------------------------
+  readonly apiHost = environment.apiHost;
+
+  get profileImageUrl(): string | null { return this.buildImageUrl(this.user?.hospitalProfile?.profileImageUrl); }
+  get profileImagePublished(): boolean { return !!this.user?.hospitalProfile?.profileImagePublished; }
+
+  get bannerImageUrl(): string | null { return this.buildImageUrl(this.user?.hospitalProfile?.bannerImageUrl); }
+  get bannerImagePublished(): boolean { return !!this.user?.hospitalProfile?.bannerImagePublished; }
+
+  hasImage(slot: 'logo' | 'banner'): boolean {
+    return slot === 'logo' ? !!this.profileImageUrl : !!this.bannerImageUrl;
+  }
+
+  isImagePublished(slot: 'logo' | 'banner'): boolean {
+    return slot === 'logo' ? this.profileImagePublished : this.bannerImagePublished;
+  }
+
+  imageStatusBadgeClass(slot: 'logo' | 'banner'): string {
+    if (!this.hasImage(slot)) return 'badge bg-secondary';
+    return this.isImagePublished(slot) ? 'badge bg-success' : 'badge bg-secondary';
+  }
+
+  imageStatusLabel(slot: 'logo' | 'banner'): string {
+    if (!this.hasImage(slot)) return 'Not uploaded';
+    return this.isImagePublished(slot) ? 'Published — Visible publicly' : 'Unpublished — Hidden from public pages';
+  }
+
+  private buildImageUrl(url?: string | null): string | null {
+    if (!url) return null;
+    return /^https?:\/\//i.test(url) ? url : `${this.apiHost}${url}`;
+  }
+
+  onPublicImageSelected(slot: 'logo' | 'banner', event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) return;
+    this.imageError[slot] = '';
+    this.imageBusy[slot] = true;
+
+    this.hospitalProfileService.uploadPublicImage(slot, file).subscribe({
+      next: (response: any) => {
+        this.imageBusy[slot] = false;
+        this.patchImageSlot(slot, {
+          url: response?.data?.url,
+          published: !!response?.data?.published
+        });
+        this.success = response?.message || 'Image uploaded. Turn on Publish when you are ready.';
+      },
+      error: (err) => {
+        this.imageBusy[slot] = false;
+        this.imageError[slot] = err.error?.message || 'Image upload failed. Please try again.';
+      }
+    });
+  }
+
+  removePublicImage(slot: 'logo' | 'banner'): void {
+    this.imageError[slot] = '';
+    this.imageBusy[slot] = true;
+    this.hospitalProfileService.removePublicImage(slot).subscribe({
+      next: (response: any) => {
+        this.imageBusy[slot] = false;
+        this.patchImageSlot(slot, { url: null, published: false });
+        this.success = response?.message || 'Image removed.';
+      },
+      error: (err) => {
+        this.imageBusy[slot] = false;
+        this.imageError[slot] = err.error?.message || 'Failed to remove image.';
+      }
+    });
+  }
+
+  togglePublicImagePublished(slot: 'logo' | 'banner', event: Event): void {
+    const desired = (event.target as HTMLInputElement).checked;
+    this.imageError[slot] = '';
+    this.imageBusy[slot] = true;
+    this.hospitalProfileService.setPublicImagePublished(slot, desired).subscribe({
+      next: (response: any) => {
+        this.imageBusy[slot] = false;
+        this.patchImageSlot(slot, {
+          url: slot === 'logo' ? this.user?.hospitalProfile?.profileImageUrl ?? null : this.user?.hospitalProfile?.bannerImageUrl ?? null,
+          published: !!response?.data?.published
+        });
+        this.success = response?.message || (desired ? 'Image published.' : 'Image unpublished.');
+      },
+      error: (err) => {
+        this.imageBusy[slot] = false;
+        (event.target as HTMLInputElement).checked = !desired;
+        this.imageError[slot] = err.error?.message || 'Failed to update publish state.';
+      }
+    });
+  }
+
+  private patchImageSlot(
+    slot: 'logo' | 'banner',
+    update: { url: string | null; published: boolean }
+  ): void {
+    if (!this.user) return;
+    const profile = this.user.hospitalProfile || {};
+    const patched = { ...profile } as any;
+    if (slot === 'logo') {
+      patched.profileImageUrl = update.url;
+      patched.profileImagePublished = update.published;
+      patched.profileImageUploadedAt = update.url ? new Date().toISOString() : null;
+    } else {
+      patched.bannerImageUrl = update.url;
+      patched.bannerImagePublished = update.published;
+      patched.bannerImageUploadedAt = update.url ? new Date().toISOString() : null;
+    }
+    this.user = { ...this.user, hospitalProfile: patched };
   }
 }

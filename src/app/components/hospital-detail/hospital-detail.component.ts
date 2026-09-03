@@ -5,6 +5,7 @@ import { HospitalService } from '../../services/hospital.service';
 import { HospitalStaffMember, HospitalStaffService } from '../../services/hospital-staff.service';
 import { AuthService } from '../../services/auth.service';
 import { Hospital } from '../../models/hospital.model';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-hospital-detail',
@@ -18,7 +19,7 @@ export class HospitalDetailComponent implements OnInit {
   staff: HospitalStaffMember[] = [];
   isLoading = true;
   loadError = '';
-  readonly apiHost = 'http://localhost:3000';
+  readonly apiHost = environment.apiHost;
 
   constructor(
     private route: ActivatedRoute,
@@ -99,5 +100,10 @@ export class HospitalDetailComponent implements OnInit {
   staffAvatarUrl(url?: string | null): string | null {
     if (!url) return null;
     return url.startsWith('http') ? url : `${this.apiHost}${url}`;
+  }
+
+  hospitalImageUrl(url?: string | null): string | null {
+    if (!url) return null;
+    return /^https?:\/\//i.test(url) ? url : `${this.apiHost}${url}`;
   }
 }

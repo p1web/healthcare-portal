@@ -1,4 +1,6 @@
 // controllers/hospitalProfile.controller.js
+const path = require('path');
+const fs = require('fs');
 const { Op } = require('sequelize');
 const { User, HospitalProfile, HospitalStaff, Specialty, sequelize } = require('../models');
 const { applyUserBasicUpdates } = require('../utils/userBasicUpdate');
@@ -8,6 +10,11 @@ const {
   canEditProfile,
   getMissingRequiredFields
 } = require('../utils/providerReview');
+const {
+  IMAGE_RULES,
+  validateHospitalImageFile,
+  safeUnlink
+} = require('../middleware/hospitalImage.middleware');
 
 const HOSPITAL_REQUIRED_FIELDS = [
   'hospitalName', 'hospitalEmail', 'hospitalPhone',
@@ -382,6 +389,191 @@ exports.updateConsultationFee = async (req, res) => {
   } catch (error) {
     console.error('Update consultation pricing error:', error);
     return res.status(500).json({ success: false, message: 'Failed to update consultation pricing' });
+  }
+};
+
+// -----------------------------------------------------------------------------
+// Public profile & banner image uploads
+// -----------------------------------------------------------------------------
+
+const IMAGE_SLOT_FIELDS = {
+  profile: {
+    urlField: 'profileImageUrl',
+    publishedField: 'profileImagePublished',
+    uploadedAtField: 'profileImageUploadedAt'
+  },
+  banner: {
+    urlField: 'bannerImageUrl',
+    publishedField: 'bannerImagePublished',
+    uploadedAtField: 'bannerImageUploadedAt'
+  }
+};
+
+function absoluteUploadPath(relativeUrl) {
+  return path.join(__dirname, '..', String(relativeUrl || '').replace(/^\//, ''));
+}
+
+async function handleImageUpload(slot, req, res) {
+  const fields = IMAGE_SLOT_FIELDS[slot];
+  const rules = IMAGE_RULES[slot];
+  const file = req.file;
+
+  if (!file) {
+    return res.status(400).json({ success: false, message: 'No image uploaded' });
+  }
+
+  const validation = validateHospitalImageFile(slot, file.path);
+  if (!validation.ok) {
+    return res.status(400).json({ success: false, message: validation.message });
+  }
+
+  const userId = req.user.id;
+  const profile = await HospitalProfile.findOne({ where: { userId } });
+  if (!profile) {
+    safeUnlink(file.path);
+    return res.status(404).json({ success: false, message: 'Hospital profile not found. Complete your profile first.' });
+  }
+
+  const previousUrl = profile[fields.urlField];
+  const relativeUrl = `/uploads/${rules.subfolder}/${userId}/${file.filename}`;
+
+  // A fresh upload always starts unpublished so the hospital can preview it first.
+  await profile.update({
+    [fields.urlField]: relativeUrl,
+    [fields.publishedField]: false,
+    [fields.uploadedAtField]: new Date()
+  });
+
+  if (previousUrl && previousUrl.startsWith(`/uploads/${rules.subfolder}/${userId}/`)) {
+    safeUnlink(absoluteUploadPath(previousUrl));
+  }
+
+  return res.json({
+    success: true,
+    message: `${slot === 'banner' ? 'Banner' : 'Profile'} image uploaded. Toggle "Publish" to make it visible on public pages.`,
+    data: {
+      slot,
+      url: relativeUrl,
+      published: false,
+      uploadedAt: profile[fields.uploadedAtField],
+      dimensions: validation.dimensions
+    }
+  });
+}
+
+async function handleImageRemove(slot, req, res) {
+  const fields = IMAGE_SLOT_FIELDS[slot];
+  const rules = IMAGE_RULES[slot];
+  const userId = req.user.id;
+
+  const profile = await HospitalProfile.findOne({ where: { userId } });
+  if (!profile) {
+    return res.status(404).json({ success: false, message: 'Hospital profile not found' });
+  }
+
+  const previousUrl = profile[fields.urlField];
+  await profile.update({
+    [fields.urlField]: null,
+    [fields.publishedField]: false,
+    [fields.uploadedAtField]: null
+  });
+
+  if (previousUrl && previousUrl.startsWith(`/uploads/${rules.subfolder}/${userId}/`)) {
+    safeUnlink(absoluteUploadPath(previousUrl));
+  }
+
+  return res.json({
+    success: true,
+    message: `${slot === 'banner' ? 'Banner' : 'Profile'} image removed`
+  });
+}
+
+async function handleImagePublish(slot, req, res) {
+  const fields = IMAGE_SLOT_FIELDS[slot];
+  const desired = req.body?.published;
+  if (typeof desired !== 'boolean') {
+    return res.status(400).json({ success: false, message: '`published` must be true or false' });
+  }
+
+  const profile = await HospitalProfile.findOne({ where: { userId: req.user.id } });
+  if (!profile) {
+    return res.status(404).json({ success: false, message: 'Hospital profile not found' });
+  }
+
+  if (desired && !profile[fields.urlField]) {
+    return res.status(400).json({ success: false, message: `Upload a ${slot} image before publishing` });
+  }
+
+  await profile.update({ [fields.publishedField]: desired });
+
+  return res.json({
+    success: true,
+    message: desired
+      ? `${slot === 'banner' ? 'Banner' : 'Profile'} image is now visible on public pages`
+      : `${slot === 'banner' ? 'Banner' : 'Profile'} image has been unpublished`,
+    data: { slot, published: desired }
+  });
+}
+
+// POST /api/hospital/profile/logo-image
+exports.uploadProfileImage = async (req, res) => {
+  try {
+    return await handleImageUpload('profile', req, res);
+  } catch (err) {
+    console.error('Error uploading hospital profile image:', err);
+    if (req.file) safeUnlink(req.file.path);
+    return res.status(500).json({ success: false, message: err.message || 'Profile image upload failed' });
+  }
+};
+
+// DELETE /api/hospital/profile/logo-image
+exports.removeProfileImage = async (req, res) => {
+  try {
+    return await handleImageRemove('profile', req, res);
+  } catch (err) {
+    console.error('Error removing hospital profile image:', err);
+    return res.status(500).json({ success: false, message: err.message || 'Failed to remove profile image' });
+  }
+};
+
+// PATCH /api/hospital/profile/logo-image/publish
+exports.setProfileImagePublished = async (req, res) => {
+  try {
+    return await handleImagePublish('profile', req, res);
+  } catch (err) {
+    console.error('Error publishing hospital profile image:', err);
+    return res.status(500).json({ success: false, message: err.message || 'Failed to update publish state' });
+  }
+};
+
+// POST /api/hospital/profile/banner-image
+exports.uploadBannerImage = async (req, res) => {
+  try {
+    return await handleImageUpload('banner', req, res);
+  } catch (err) {
+    console.error('Error uploading hospital banner image:', err);
+    if (req.file) safeUnlink(req.file.path);
+    return res.status(500).json({ success: false, message: err.message || 'Banner image upload failed' });
+  }
+};
+
+// DELETE /api/hospital/profile/banner-image
+exports.removeBannerImage = async (req, res) => {
+  try {
+    return await handleImageRemove('banner', req, res);
+  } catch (err) {
+    console.error('Error removing hospital banner image:', err);
+    return res.status(500).json({ success: false, message: err.message || 'Failed to remove banner image' });
+  }
+};
+
+// PATCH /api/hospital/profile/banner-image/publish
+exports.setBannerImagePublished = async (req, res) => {
+  try {
+    return await handleImagePublish('banner', req, res);
+  } catch (err) {
+    console.error('Error publishing hospital banner image:', err);
+    return res.status(500).json({ success: false, message: err.message || 'Failed to update publish state' });
   }
 };
 

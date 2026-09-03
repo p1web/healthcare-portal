@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface PracticeHospital {
   id: number;
@@ -54,7 +55,7 @@ export interface CreateSoloClinicRequest {
 
 @Injectable({ providedIn: 'root' })
 export class PracticeService {
-  private apiBase = 'http://localhost:3000/api';
+  private apiBase = environment.apiUrl;
 
   constructor(private http: HttpClient) {}
 

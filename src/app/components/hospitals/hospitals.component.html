@@ -168,10 +168,13 @@
 
   <!-- Grid View -->
   <div *ngIf="viewMode === 'grid'" class="row g-4">
-    <div *ngFor="let hospital of pagedHospitals" class="col-lg-6">
+    <div *ngFor="let hospital of pagedHospitals" class="col-lg-4 col-md-6">
       <div class="card hospital-card h-100 shadow-sm border-0">
         <div class="position-relative">
-          <div class="hospital-image-placeholder bg-gradient-primary">
+          <img *ngIf="hospitalImageUrl(hospital) as imageUrl" [src]="imageUrl"
+               class="hospital-image"
+               [alt]="hospital.name + ' logo'" />
+          <div *ngIf="!hospitalImageUrl(hospital)" class="hospital-image-placeholder bg-gradient-primary">
             <i class="bi bi-hospital fs-1 text-white"></i>
           </div>
           <span *ngIf="hospital.discount" class="position-absolute top-0 end-0 m-3 badge bg-success">
@@ -270,7 +273,10 @@
         <div class="card-body">
           <div class="row align-items-center">
             <div class="col-md-2">
-              <div class="hospital-image-placeholder-small bg-gradient-primary">
+              <img *ngIf="hospitalImageUrl(hospital) as imageUrl" [src]="imageUrl"
+                   class="hospital-image-small"
+                   [alt]="hospital.name + ' logo'" />
+              <div *ngIf="!hospitalImageUrl(hospital)" class="hospital-image-placeholder-small bg-gradient-primary">
                 <i class="bi bi-hospital fs-3 text-white"></i>
               </div>
             </div>

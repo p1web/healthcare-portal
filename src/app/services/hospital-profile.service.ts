@@ -1,13 +1,16 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
+
+export type HospitalImageSlot = 'logo' | 'banner';
 
 @Injectable({
   providedIn: 'root'
 })
 export class HospitalProfileService {
 
-  private apiUrl = 'http://localhost:3000/api/hospital/profile';
+  private apiUrl = `${environment.apiUrl}/hospital/profile`;
 
   constructor(private http: HttpClient) {}
 
@@ -23,7 +26,7 @@ export class HospitalProfileService {
     consultationFeeMode: 'STANDARD' | 'PER_DOCTOR',
     defaultConsultationFee: number
   ): Observable<any> {
-    return this.http.patch('http://localhost:3000/api/hospital/consultation-fee', {
+    return this.http.patch(`${environment.apiUrl}/hospital/consultation-fee`, {
       consultationFeeMode,
       defaultConsultationFee
     });
@@ -37,5 +40,19 @@ export class HospitalProfileService {
 
   submitForReview(): Observable<any> {
     return this.http.post(`${this.apiUrl}/submit`, {});
+  }
+
+  uploadPublicImage(slot: HospitalImageSlot, file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('image', file);
+    return this.http.post(`${this.apiUrl}/${slot}-image`, formData);
+  }
+
+  removePublicImage(slot: HospitalImageSlot): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${slot}-image`);
+  }
+
+  setPublicImagePublished(slot: HospitalImageSlot, published: boolean): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/${slot}-image/publish`, { published });
   }
 }

@@ -424,7 +424,18 @@
 }
 
 .doctor-avatar {
+  width: 90px;
+  height: 90px;
+  overflow: hidden;
   transition: transform 0.3s ease;
+}
+
+.doctor-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
 }
 
 .doctor-card:hover .doctor-avatar {

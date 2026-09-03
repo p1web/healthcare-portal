@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { PatientAllergy, PatientMedicalCondition } from '../models/patient-medical-record.model';
+import { environment } from '../../environments/environment';
 
 interface ApiResponse<T> {
   success: boolean;
@@ -14,7 +15,7 @@ interface ApiResponse<T> {
 })
 export class PatientMedicalRecordService {
 
-  private apiUrl = 'http://localhost:3000/api/patient';
+  private apiUrl = `${environment.apiUrl}/patient`;
 
   constructor(private http: HttpClient) {}
 

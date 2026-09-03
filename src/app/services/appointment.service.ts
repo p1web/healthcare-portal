@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Appointment, AppointmentHistory, AppointmentReceipt, DoctorAppointment } from '../models/appointment.model';
+import { environment } from '../../environments/environment';
 
 export interface DoctorAnalytics {
   totals: {
@@ -60,7 +61,7 @@ export interface PatientAnalytics {
   providedIn: 'root'
 })
 export class AppointmentService {
-  private apiUrl = 'http://localhost:3000/api/appointments';
+  private apiUrl = `${environment.apiUrl}/appointments`;
 
   constructor(private http: HttpClient) {}
 

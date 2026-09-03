@@ -2,20 +2,22 @@
 //
 // Factory for image-only multer middleware. Files land under
 // backend/uploads/<subfolder>/<userId>/, only JPG/PNG/WEBP are accepted, and
-// a single file <= 5 MB per request is enforced.
+// a single file per request is enforced (default 5 MB, override via options).
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
 const UPLOAD_ROOT = path.join(__dirname, '..', 'uploads');
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+const DEFAULT_MAX_BYTES = 5 * 1024 * 1024;
 
 function fileFilter(req, file, cb) {
   if (ALLOWED_MIME_TYPES.includes(file.mimetype)) return cb(null, true);
   return cb(new Error('Only JPG, PNG, and WEBP images are allowed'));
 }
 
-function createImageUpload(subfolder) {
+function createImageUpload(subfolder, options = {}) {
+  const maxBytes = Number.isFinite(options.maxBytes) ? options.maxBytes : DEFAULT_MAX_BYTES;
   const storage = multer.diskStorage({
     destination: (req, file, cb) => {
       const dir = path.join(UPLOAD_ROOT, subfolder, String(req.user.id));
@@ -28,8 +30,9 @@ function createImageUpload(subfolder) {
     }
   });
 
-  return multer({ storage, fileFilter, limits: { fileSize: 5 * 1024 * 1024, files: 1 } });
+  return multer({ storage, fileFilter, limits: { fileSize: maxBytes, files: 1 } });
 }
 
 module.exports = createImageUpload('profile-images');
 module.exports.createImageUpload = createImageUpload;
+module.exports.ALLOWED_IMAGE_MIME_TYPES = ALLOWED_MIME_TYPES;

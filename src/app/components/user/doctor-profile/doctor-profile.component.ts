@@ -9,6 +9,7 @@ import { DoctorProfileService } from '../../../services/doctor-profile.service';
 import { ImageUploadService } from '../../../services/image-upload.service';
 import { SpecializationService, Specializations } from '../../../services/specialization.service';
 import { PracticeService, Practice } from '../../../services/practice.service';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   standalone: true,
@@ -29,7 +30,7 @@ export class DoctorProfileComponent implements OnInit {
   isSubmittingReview: boolean = false;
   isUploadingAvatar = false;
   avatarError = '';
-  readonly apiHost = 'http://localhost:3000';
+  readonly apiHost = environment.apiHost;
   error: string = '';
   success: string = '';
   loading: boolean = false;

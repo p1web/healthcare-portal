@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface HospitalStaffMember {
   id: number;
@@ -49,7 +50,7 @@ export type HospitalStaffPayload = Omit<
 
 @Injectable({ providedIn: 'root' })
 export class HospitalStaffService {
-  private apiBase = 'http://localhost:3000/api';
+  private apiBase = environment.apiUrl;
 
   constructor(private http: HttpClient) {}
 

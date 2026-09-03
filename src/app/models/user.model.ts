@@ -121,6 +121,12 @@ export interface HospitalProfile {
   lastVerifiedAt?: string | null;
   createdAt?: string;
   updatedAt?: string;
+  profileImageUrl?: string | null;
+  profileImagePublished?: boolean;
+  profileImageUploadedAt?: string | null;
+  bannerImageUrl?: string | null;
+  bannerImagePublished?: boolean;
+  bannerImageUploadedAt?: string | null;
 }
 
 

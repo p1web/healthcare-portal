@@ -3,6 +3,7 @@ import { Component, EventEmitter, Input, OnChanges, Output } from '@angular/core
 import { FormsModule } from '@angular/forms';
 import { ProfileReviewStatus, User } from '../../../models/user.model';
 import { AdminService } from '../../../services/admin.service';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-admin-hospital-profile-modal',
@@ -23,6 +24,9 @@ export class HospitalProfileModalComponent implements OnChanges {
   reviewComments = '';
   busy = false;
   errorMessage = '';
+
+  readonly apiHost = environment.apiHost;
+  readonly imageSlots: Array<'profile' | 'banner'> = ['profile', 'banner'];
 
   constructor(private adminService: AdminService) {}
 
@@ -144,7 +148,7 @@ export class HospitalProfileModalComponent implements OnChanges {
   }
 
   documentUrl(url: string): string {
-    return /^https?:\/\//i.test(url) ? url : `http://localhost:3000${url}`;
+    return /^https?:\/\//i.test(url) ? url : `${environment.apiHost}${url}`;
   }
 
   updateAccountStatus(): void {
@@ -187,4 +191,37 @@ export class HospitalProfileModalComponent implements OnChanges {
     this.busy = false;
     this.errorMessage = error.error?.message || fallback;
   }
+
+  // ---------------------------------------------------------------
+  // Hospital media (profile / banner image) preview helpers
+  // ---------------------------------------------------------------
+  imageUrl(url?: string | null): string | null {
+    if (!url) return null;
+    return /^https?:\/\//i.test(url) ? url : `${this.apiHost}${url}`;
+  }
+
+  imageUrlFor(slot: 'profile' | 'banner'): string | null {
+    const key = slot === 'profile' ? 'profileImageUrl' : 'bannerImageUrl';
+    return this.imageUrl(this.hospitalProfile?.[key] ?? this.hospitalProfile?.[snakeKey(key)]);
+  }
+
+  isImagePublished(slot: 'profile' | 'banner'): boolean {
+    const key = slot === 'profile' ? 'profileImagePublished' : 'bannerImagePublished';
+    return !!(this.hospitalProfile?.[key] ?? this.hospitalProfile?.[snakeKey(key)]);
+  }
+
+  imageStatusBadgeClass(slot: 'profile' | 'banner'): string {
+    if (!this.imageUrlFor(slot)) return 'badge bg-secondary';
+    return this.isImagePublished(slot) ? 'badge bg-success' : 'badge bg-secondary';
+  }
+
+  imageStatusLabel(slot: 'profile' | 'banner'): string {
+    if (!this.imageUrlFor(slot)) return 'Not uploaded';
+    return this.isImagePublished(slot) ? 'Published' : 'Unpublished';
+  }
+}
+
+// Some backend responses expose snake_case columns; keep read-side tolerant.
+function snakeKey(key: string): string {
+  return key.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
 }

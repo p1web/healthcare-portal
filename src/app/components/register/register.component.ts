@@ -4,6 +4,7 @@ import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, Validatio
 import { Router, RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { of } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-register',
@@ -68,7 +69,7 @@ export class RegisterComponent {
       };
 
       // Mock API call - replace with actual API
-      this.http.post('http://localhost:3000/api/auth/register', registerData).subscribe({
+      this.http.post(`${environment.apiUrl}/auth/register`, registerData).subscribe({
       // of({ success: true, message: 'Registration successful!', userId: 1 }).subscribe({
         next: (response: any) => {
           this.isSubmitting = false;

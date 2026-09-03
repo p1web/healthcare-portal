@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface HospitalAppointmentRow {
   id: number;
@@ -42,7 +43,7 @@ export interface HospitalAppointmentRow {
 
 @Injectable({ providedIn: 'root' })
 export class HospitalAppointmentService {
-  private apiBase = 'http://localhost:3000/api/hospital/appointments';
+  private apiBase = `${environment.apiUrl}/hospital/appointments`;
 
   constructor(private http: HttpClient) {}
 
@@ -69,7 +70,7 @@ export class HospitalAppointmentService {
   cancel(id: number): Observable<{ success: boolean; message: string; data: unknown }> {
     // Uses the shared /api/appointments/:id/cancel endpoint (authorized for hospital role).
     return this.http.patch<{ success: boolean; message: string; data: unknown }>(
-      `http://localhost:3000/api/appointments/${id}/cancel`,
+      `${environment.apiUrl}/appointments/${id}/cancel`,
       {}
     );
   }

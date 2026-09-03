@@ -8,6 +8,7 @@ import { ImageUploadService } from '../../../services/image-upload.service';
 import { Department, DepartmentService } from '../../../services/department.service';
 import { HospitalProfileService } from '../../../services/hospital-profile.service';
 import { forkJoin } from 'rxjs';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   standalone: true,
@@ -25,7 +26,7 @@ export class HospitalStaffComponent implements OnInit {
   isSaving = false;
   isUploadingAvatar = false;
   avatarError = '';
-  readonly apiHost = 'http://localhost:3000';
+  readonly apiHost = environment.apiHost;
   error = '';
   success = '';
   consultationFeeMode: 'STANDARD' | 'PER_DOCTOR' = 'STANDARD';

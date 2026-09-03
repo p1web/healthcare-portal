@@ -7,6 +7,7 @@ import { SpecializationService, Specializations } from '../../services/specializ
 import { HospitalService } from '../../services/hospital.service';
 import { Doctor, DoctorAvailabilitySlot } from '../../models/doctor.model';
 import { Hospital } from '../../models/hospital.model';
+import { environment } from '../../../environments/environment';
 
 
 @Component({
@@ -340,7 +341,7 @@ export class DoctorsComponent implements OnInit {
     return parts.length > 1 ? parts[1][0] : parts[0][0];
   }
 
-  readonly apiHost = 'http://localhost:3000';
+  readonly apiHost = environment.apiHost;
   doctorImageUrl(doctor: any): string | null {
     const img = doctor?.image;
     if (!img || typeof img !== 'string') return null;

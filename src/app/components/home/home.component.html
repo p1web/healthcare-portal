@@ -267,7 +267,8 @@
               <div class="card-header bg-light text-center py-4 border-0">
                 <div
                   class="doctor-avatar rounded-circle bg-gradient-purple text-white mx-auto mb-3 d-flex align-items-center justify-content-center shadow-sm">
-                  <span class="fs-3 fw-bold">{{ getDoctorInitial(doctor.name) }}</span>
+                  <img *ngIf="doctorImageUrl(doctor) as url" [src]="url" [alt]="doctor.name" class="doctor-avatar-img" />
+                  <span *ngIf="!doctorImageUrl(doctor)" class="fs-3 fw-bold">{{ getDoctorInitial(doctor.name) }}</span>
                 </div>
                 <h5 class="fw-bold mb-1 text-truncate" [title]="doctor.name">{{ doctor.name }}</h5>
                 <span class="badge bg-primary bg-opacity-10 text-primary fw-normal">

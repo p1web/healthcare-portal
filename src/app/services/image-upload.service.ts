@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export type ImageUploadFlag = 'doctor-avatar' | 'staff-avatar';
 
@@ -19,8 +20,8 @@ interface ImageUploadResponse {
 @Injectable({ providedIn: 'root' })
 export class ImageUploadService {
   private readonly endpoints: Record<ImageUploadFlag, string> = {
-    'doctor-avatar': 'http://localhost:3000/api/doctor/profile/avatar',
-    'staff-avatar': 'http://localhost:3000/api/hospital/staff-avatar'
+    'doctor-avatar': `${environment.apiUrl}/doctor/profile/avatar`,
+    'staff-avatar': `${environment.apiUrl}/hospital/staff-avatar`
   };
 
   constructor(private http: HttpClient) {}

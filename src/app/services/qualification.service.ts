@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface Qualification {
   id: number;
@@ -10,7 +11,7 @@ export interface Qualification {
 
 @Injectable({ providedIn: 'root' })
 export class QualificationService {
-  private apiUrl = 'http://localhost:3000/api/qualifications';
+  private apiUrl = `${environment.apiUrl}/qualifications`;
 
   constructor(private http: HttpClient) {}
 

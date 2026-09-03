@@ -259,6 +259,38 @@ module.exports = (sequelize, DataTypes) => {
         const rawValue = this.getDataValue('verificationDocuments');
         return rawValue ? (Array.isArray(rawValue) ? rawValue : JSON.parse(rawValue)) : [];
       }
+    },
+    profileImageUrl: {
+      type: DataTypes.STRING(500),
+      allowNull: true,
+      field: 'profile_image_url'
+    },
+    profileImagePublished: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      field: 'profile_image_published'
+    },
+    profileImageUploadedAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      field: 'profile_image_uploaded_at'
+    },
+    bannerImageUrl: {
+      type: DataTypes.STRING(500),
+      allowNull: true,
+      field: 'banner_image_url'
+    },
+    bannerImagePublished: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      field: 'banner_image_published'
+    },
+    bannerImageUploadedAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      field: 'banner_image_uploaded_at'
     }
   }, {
     sequelize,

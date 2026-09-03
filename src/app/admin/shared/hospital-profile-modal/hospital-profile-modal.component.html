@@ -42,6 +42,33 @@
           </div>
         </section>
 
+        <section class="profile-section">
+          <h6><i class="bi bi-image"></i> Public Images</h6>
+          <p class="text-muted small mb-3">
+            Images the hospital has uploaded. Only images the hospital has switched to
+            <strong>Published</strong> appear on the public listing and detail pages.
+          </p>
+
+          <div class="row g-3">
+            <div class="col-md-6" *ngFor="let slot of imageSlots">
+              <div class="border rounded p-3 h-100">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                  <strong>{{ slot === 'profile' ? 'Profile / Logo' : 'Banner' }}</strong>
+                  <span [ngClass]="imageStatusBadgeClass(slot)">{{ imageStatusLabel(slot) }}</span>
+                </div>
+
+                <div class="bg-light border rounded d-flex align-items-center justify-content-center"
+                     [style.min-height.px]="slot === 'banner' ? 90 : 140">
+                  <img *ngIf="imageUrlFor(slot) as previewUrl" [src]="previewUrl"
+                       [alt]="slot + ' preview'"
+                       class="img-fluid" style="max-height: 180px; object-fit: contain;" />
+                  <span *ngIf="!imageUrlFor(slot)" class="text-muted small">No image uploaded</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <section class="profile-section" *ngIf="hospitalProfile.specialties?.length">
           <h6><i class="bi bi-heart-pulse"></i> Specialties</h6>
           <div class="specialty-list">

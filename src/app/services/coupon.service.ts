@@ -2,12 +2,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { Coupon } from '../models/coupon.model';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CouponService {
-  private apiUrl = 'http://localhost:3000/api/coupons';
+  private apiUrl = `${environment.apiUrl}/coupons`;
 
   // Mock data for development
   private mockCoupons: Coupon[] = [

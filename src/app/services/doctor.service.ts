@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { Doctor } from '../models/doctor.model';
+import { environment } from '../../environments/environment';
 
 export interface PatientSnapshotAllergy {
   id: number;
@@ -63,8 +64,8 @@ export interface PatientSnapshot {
   providedIn: 'root'
 })
 export class DoctorService {
-  private apiUrl = 'http://localhost:3000/api/doctors'; // Replace with your API
-  private doctorApiBase = 'http://localhost:3000/api/doctor';
+  private apiUrl = `${environment.apiUrl}/doctors`;
+  private doctorApiBase = `${environment.apiUrl}/doctor`;
 
   constructor(private http: HttpClient) {}
 

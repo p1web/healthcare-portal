@@ -295,7 +295,7 @@
           <li class="list-group-item d-flex justify-content-between align-items-center"
             *ngFor="let doc of uploadedDoctorDocuments">
             {{ doc.name }}
-            <a class="btn btn-sm btn-outline-secondary" [href]="'http://localhost:3000' + doc.url" target="_blank">View</a>
+            <a class="btn btn-sm btn-outline-secondary" [href]="apiHost + doc.url" target="_blank">View</a>
           </li>
         </ul>
         <p class="text-muted" *ngIf="!uploadedDoctorDocuments.length">No documents uploaded yet.</p>

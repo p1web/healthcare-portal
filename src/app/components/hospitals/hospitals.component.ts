@@ -7,6 +7,7 @@ import { SpecialtyService } from '../../services/specialty.service';
 import { AuthService } from '../../services/auth.service';
 
 import { Hospital } from '../../models/hospital.model';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-hospitals',
@@ -215,5 +216,11 @@ export class HospitalsComponent implements OnInit {
       return;
     }
     this.router.navigateByUrl(target);
+  }
+
+  hospitalImageUrl(hospital: Hospital): string | null {
+    const raw = hospital.profileImage || hospital.image;
+    if (!raw) return null;
+    return /^https?:\/\//i.test(raw) ? raw : `${environment.apiHost}${raw}`;
   }
 }

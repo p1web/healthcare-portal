@@ -195,6 +195,12 @@ module.exports = {
           reviewNotes: profile.reviewNotes,
           rejectionReason: profile.rejectionReason,
           verificationDocuments: profile.verificationDocuments,
+          profileImageUrl: profile.profileImageUrl,
+          profileImagePublished: !!profile.profileImagePublished,
+          profileImageUploadedAt: profile.profileImageUploadedAt,
+          bannerImageUrl: profile.bannerImageUrl,
+          bannerImagePublished: !!profile.bannerImagePublished,
+          bannerImageUploadedAt: profile.bannerImageUploadedAt,
           createdAt: profile.createdAt,
           specialties: specialties.map(specialty => ({
             ...specialty,

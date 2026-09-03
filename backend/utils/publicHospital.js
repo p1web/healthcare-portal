@@ -42,6 +42,8 @@ async function findPublicHospitalProfiles(options = {}) {
 
 function formatPublicHospital({ profile, specialties }) {
   const data = profile.toJSON();
+  const publishedProfileImage = data.profileImagePublished ? data.profileImageUrl : null;
+  const publishedBannerImage = data.bannerImagePublished ? data.bannerImageUrl : null;
   return {
     id: data.id,
     name: data.hospitalName,
@@ -62,7 +64,9 @@ function formatPublicHospital({ profile, specialties }) {
     specialties: specialties.map(specialty => specialty.name),
     facilities: [],
     accreditations: [],
-    image: data.user?.profileImage || null,
+    image: publishedProfileImage || data.user?.profileImage || null,
+    profileImage: publishedProfileImage,
+    bannerImage: publishedBannerImage,
     images: [],
     registrationNumber: data.registrationNumber,
     hospitalType: data.hospitalType,

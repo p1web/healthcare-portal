@@ -32,6 +32,13 @@
   overflow: hidden;
 }
 
+.hospital-hero.has-banner {
+  background-color: #4154f1;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
 .hospital-hero::before {
   content: "";
   position: absolute;
@@ -104,6 +111,14 @@
   font-size: 1.75rem;
   color: #ffffff;
   box-shadow: 0 12px 24px -12px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+}
+
+.hero-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .hero-identity-text { min-width: 0; }

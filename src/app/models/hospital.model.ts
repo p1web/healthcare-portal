@@ -11,6 +11,8 @@ export interface Hospital {
   emergencyContactNumber?: string;
   website?: string;
   image?: string;
+  profileImage?: string | null;
+  bannerImage?: string | null;
   description?: string;
   facilities?: string[];
   beds?: number;

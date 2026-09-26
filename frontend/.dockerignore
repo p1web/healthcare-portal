@@ -3,7 +3,7 @@
 # ====================
 # File: .dockerignore
 node_modules
-dist
+# dist
 .angular
 .git
 .gitignore

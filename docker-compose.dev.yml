@@ -1,5 +1,4 @@
 services:
-  # PostgreSQL Database
   postgres:
     image: postgres:16-alpine
     container_name: healthcare-postgres
@@ -19,7 +18,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-  # Node.js Backend API
+
   backend:
     build:
       context: ./backend
@@ -34,7 +33,7 @@ services:
       DB_NAME: healthcare_db
       DB_USER: healthcare_user
       DB_PASSWORD: healthcare_pass
-      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+      JWT_SECRET: dev-secret
       CORS_ORIGIN: http://localhost:3001
     ports:
       - "3000:3000"
@@ -47,10 +46,10 @@ services:
     networks:
       - healthcare-network
     command: npm run dev
-  # Angular Frontend
+
   frontend:
     build:
-      context: .
+      context: ./frontend
       dockerfile: Dockerfile
     container_name: healthcare-frontend
     restart: unless-stopped
@@ -59,7 +58,7 @@ services:
     ports:
       - "3001:4200"
     volumes:
-      - .:/app
+      - ./frontend:/app
       - /app/node_modules
     depends_on:
       - backend
@@ -67,7 +66,6 @@ services:
       - healthcare-network
     command: npm start
 
-  # pgAdmin (Optional - for database management)
   pgadmin:
     image: dpage/pgadmin4:latest
     container_name: healthcare-pgadmin

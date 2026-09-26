@@ -7,7 +7,7 @@ import { HospitalAppointmentRow, HospitalAppointmentService } from '../../../ser
 @Component({
   standalone: true,
   selector: 'app-hospital-appointments',
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule],
   templateUrl: './hospital-appointments.component.html',
   styleUrl: './hospital-appointments.component.css'
 })

@@ -161,4 +161,10 @@ export class AppointmentHistoryComponent implements OnInit {
     for (let p = from; p <= to; p++) pages.push(p);
     return pages;
   }
+
+  getDoctorInitial(name?: string): string {
+    if (!name) return 'D';
+    const cleaned = name.replace(/^(dr\.?|doctor)\s+/i, '').trim();
+    return (cleaned || name).charAt(0).toUpperCase() || 'D';
+  }
 }

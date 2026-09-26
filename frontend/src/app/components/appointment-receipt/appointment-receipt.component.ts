@@ -24,7 +24,7 @@ export class AppointmentReceiptComponent implements OnInit {
     private route: ActivatedRoute,
     private appointmentService: AppointmentService,
     private authService: AuthService
-  ) {}
+  ) { }
 
   get canSeeInternalBreakdown(): boolean {
     const role = this.authService.getUserRole?.();
@@ -83,16 +83,18 @@ export class AppointmentReceiptComponent implements OnInit {
     if (!this.receiptBody || this.isDownloading) return;
     this.isDownloading = true;
     try {
-      const html2canvasMod = await import('html2canvas');
-      const jsPdfMod = await import('jspdf');
-      const html2canvas = html2canvasMod.default;
-      const { jsPDF } = jsPdfMod;
+      // @ts-ignore
+      const html2canvasMod: any = await import('html2canvas');
+      // @ts-ignore
+      const jsPdfMod: any = await import('jspdf');
+      const html2canvas = html2canvasMod.default || html2canvasMod;
+      const jsPDFClass = jsPdfMod.jsPDF || jsPdfMod.default || jsPdfMod;
       const canvas = await html2canvas(this.receiptBody.nativeElement, {
         scale: 2,
         backgroundColor: '#ffffff'
       });
       const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
+      const pdf = new jsPDFClass({ orientation: 'portrait', unit: 'pt', format: 'a4' });
       const pageWidth = pdf.internal.pageSize.getWidth();
       const imgWidth = pageWidth - 40;
       const imgHeight = (canvas.height * imgWidth) / canvas.width;

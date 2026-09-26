@@ -72,9 +72,17 @@ app.use('/api', departmentRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
+  res.json({
+    status: 'OK',
     message: 'Healthcare Portal API is running',
+    timestamp: new Date().toISOString()
+  });
+});
+
+app.get('/health', (req, res) => {
+  res.json({
+    status: 'OK',
+    message: 'Healthcare Portal Backend is healthy',
     timestamp: new Date().toISOString()
   });
 });

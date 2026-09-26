@@ -88,7 +88,7 @@
               <td>
                 <div class="doctor-cell">
                   <div class="doctor-avatar">
-                    {{ appointment.doctorName?.charAt(3)?.toUpperCase() || 'D' }}
+                    {{ getDoctorInitial(appointment.doctorName) }}
                   </div>
                   <div>
                     <strong>{{ appointment.doctorName }}</strong>

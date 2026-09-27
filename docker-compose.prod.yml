@@ -39,9 +39,11 @@ services:
       NODE_ENV: production
     ports:
       - "80:80"
+      - "443:443"
     volumes:
       - ./frontend/dist/healthcare-portal:/usr/share/nginx/html:ro
       - ./frontend/nginx.conf:/etc/nginx/nginx.conf:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
     networks:
       - healthcare-network
     depends_on:

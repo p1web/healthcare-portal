@@ -2,23 +2,12 @@
   <div class="container">
 
     <a class="navbar-brand hc-brand" routerLink="/" (click)="closeMobileMenu()">
-      <span class="hc-brand-mark" aria-hidden="true">
-        <i class="bi bi-heart-pulse-fill"></i>
-      </span>
-      <span class="hc-brand-text">
-        <span class="hc-brand-name">HealthConnect</span>
-        <span class="hc-brand-tagline d-none d-lg-inline">Trusted care, made simple</span>
-      </span>
+      <img src="assets/images/tsc-logo.png" alt="TooSmartCare Logo" class="hc-brand-logo" />
     </a>
 
-    <button
-      class="navbar-toggler hc-toggler"
-      type="button"
-      (click)="toggleMobileMenu()"
-      [attr.aria-expanded]="mobileMenuOpen"
-      aria-controls="navbarNav"
-      aria-label="Toggle navigation"
-    >
+
+    <button class="navbar-toggler hc-toggler" type="button" (click)="toggleMobileMenu()"
+      [attr.aria-expanded]="mobileMenuOpen" aria-controls="navbarNav" aria-label="Toggle navigation">
       <i class="bi" [ngClass]="mobileMenuOpen ? 'bi-x-lg' : 'bi-list'"></i>
     </button>
 
@@ -26,30 +15,26 @@
       <ul class="navbar-nav ms-auto align-items-lg-center hc-nav-list">
 
         <li class="nav-item">
-          <a class="nav-link hc-nav-link" routerLink="/"
-             routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}"
-             (click)="closeMobileMenu()">
+          <a class="nav-link hc-nav-link" routerLink="/" routerLinkActive="active"
+            [routerLinkActiveOptions]="{exact: true}" (click)="closeMobileMenu()">
             <i class="bi bi-house-door"></i>
             <span>Home</span>
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link hc-nav-link" routerLink="/hospitals"
-             routerLinkActive="active" (click)="closeMobileMenu()">
+          <a class="nav-link hc-nav-link" routerLink="/hospitals" routerLinkActive="active" (click)="closeMobileMenu()">
             <i class="bi bi-hospital"></i>
             <span>Hospitals</span>
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link hc-nav-link" routerLink="/doctors"
-             routerLinkActive="active" (click)="closeMobileMenu()">
+          <a class="nav-link hc-nav-link" routerLink="/doctors" routerLinkActive="active" (click)="closeMobileMenu()">
             <i class="bi bi-person-badge"></i>
             <span>Doctors</span>
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link hc-nav-link" routerLink="/coupons"
-             routerLinkActive="active" (click)="closeMobileMenu()">
+          <a class="nav-link hc-nav-link" routerLink="/coupons" routerLinkActive="active" (click)="closeMobileMenu()">
             <i class="bi bi-tag"></i>
             <span>Coupons</span>
           </a>
@@ -57,8 +42,7 @@
 
         <ng-container *ngIf="currentUser$ | async as currentUser; else guestActions">
           <li class="nav-item dropdown hc-user-menu ms-lg-3 mt-2 mt-lg-0">
-            <button class="hc-user-trigger" type="button"
-                    data-bs-toggle="dropdown" aria-expanded="false">
+            <button class="hc-user-trigger" type="button" data-bs-toggle="dropdown" aria-expanded="false">
               <span class="hc-user-avatar">{{ getUserInitial(currentUser.name) }}</span>
               <span class="hc-user-meta d-none d-lg-flex">
                 <span class="hc-user-name">{{ currentUser.name }}</span>
@@ -75,7 +59,9 @@
                   <div class="text-muted small" *ngIf="currentUser.email">{{ currentUser.email }}</div>
                 </div>
               </li>
-              <li><hr class="dropdown-divider" /></li>
+              <li>
+                <hr class="dropdown-divider" />
+              </li>
               <li>
                 <a class="dropdown-item" routerLink="/profile" (click)="closeMobileMenu()">
                   <i class="bi bi-person"></i>My Profile
@@ -86,10 +72,11 @@
                   <i class="bi bi-shield-lock"></i>Change Password
                 </a>
               </li>
-              <li><hr class="dropdown-divider" /></li>
               <li>
-                <button type="button" class="dropdown-item text-danger"
-                        (click)="logout(); closeMobileMenu()">
+                <hr class="dropdown-divider" />
+              </li>
+              <li>
+                <button type="button" class="dropdown-item text-danger" (click)="logout(); closeMobileMenu()">
                   <i class="bi bi-box-arrow-right"></i>Logout
                 </button>
               </li>

@@ -22,6 +22,11 @@
   text-decoration: none !important;
 }
 
+.hc-brand-logo {
+  height: 40px;
+  width: auto;
+}
+
 .hc-brand-mark {
   width: 40px;
   height: 40px;
@@ -80,10 +85,14 @@
   background: #eef0ff;
 }
 
-.hc-toggler .bi { font-size: 1.15rem; }
+.hc-toggler .bi {
+  font-size: 1.15rem;
+}
 
 /* Nav pills */
-.hc-nav-list { gap: 0.15rem; }
+.hc-nav-list {
+  gap: 0.15rem;
+}
 
 .hc-nav-link {
   display: inline-flex;
@@ -97,14 +106,20 @@
   transition: color 0.2s ease, background 0.2s ease;
 }
 
-.hc-nav-link i { font-size: 1rem; color: #7a869a; transition: color 0.2s ease; }
+.hc-nav-link i {
+  font-size: 1rem;
+  color: #7a869a;
+  transition: color 0.2s ease;
+}
 
 .hc-nav-link:hover {
   color: #4154f1 !important;
   background: #eef0ff;
 }
 
-.hc-nav-link:hover i { color: #4154f1; }
+.hc-nav-link:hover i {
+  color: #4154f1;
+}
 
 .hc-nav-link.active {
   color: #4154f1 !important;
@@ -112,7 +127,9 @@
   font-weight: 600;
 }
 
-.hc-nav-link.active i { color: #4154f1; }
+.hc-nav-link.active i {
+  color: #4154f1;
+}
 
 /* Guest buttons */
 .hc-btn-ghost {
@@ -212,7 +229,10 @@
   margin-top: 2px;
 }
 
-.hc-user-caret { color: #7a869a; font-size: 0.8rem; }
+.hc-user-caret {
+  color: #7a869a;
+  font-size: 0.8rem;
+}
 
 .hc-user-dropdown {
   min-width: 260px;
@@ -230,7 +250,9 @@
   padding: 0.5rem 0.7rem 0.65rem;
 }
 
-.hc-user-dropdown .dropdown-divider { margin: 0.25rem 0; }
+.hc-user-dropdown .dropdown-divider {
+  margin: 0.25rem 0;
+}
 
 .hc-user-dropdown .dropdown-item {
   display: flex;
@@ -253,8 +275,13 @@
   color: #b42332;
 }
 
-.hc-user-dropdown .dropdown-item i { color: #7a869a; }
-.hc-user-dropdown .dropdown-item.text-danger i { color: #b42332; }
+.hc-user-dropdown .dropdown-item i {
+  color: #7a869a;
+}
+
+.hc-user-dropdown .dropdown-item.text-danger i {
+  color: #b42332;
+}
 
 /* Responsive */
 @media (max-width: 991.98px) {
@@ -279,7 +306,9 @@
     justify-content: flex-start;
   }
 
-  .hc-user-meta { display: flex !important; }
+  .hc-user-meta {
+    display: flex !important;
+  }
 
   .hc-btn-ghost,
   .hc-btn-primary {
@@ -291,6 +320,13 @@
 }
 
 @media (max-width: 575.98px) {
-  .hc-brand-mark { width: 36px; height: 36px; font-size: 1rem; }
-  .hc-brand-name { font-size: 1.05rem; }
+  .hc-brand-mark {
+    width: 36px;
+    height: 36px;
+    font-size: 1rem;
+  }
+
+  .hc-brand-name {
+    font-size: 1.05rem;
+  }
 }

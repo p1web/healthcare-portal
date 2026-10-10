@@ -599,7 +599,8 @@ export class HospitalProfileComponent implements OnInit {
   }
 
   private uploadDocuments(): void {
-    const filesToUpload = [...this.hospitalDocuments];
+    // Convert DocUploadItem[] into File[]
+    const filesToUpload: File[] = this.hospitalDocuments.map(item => item.file);
 
     this.hospitalProfileService.uploadDocuments(filesToUpload).subscribe({
       next: (response: any) => {
@@ -617,6 +618,7 @@ export class HospitalProfileComponent implements OnInit {
     });
   }
 
+
   private formatDate(date: string): string {
     const d = new Date(date);
     const year = d.getFullYear();
@@ -629,7 +631,6 @@ export class HospitalProfileComponent implements OnInit {
   // Public profile & banner image uploads (require admin approval to
   // appear on the public listing / detail pages).
   // -----------------------------------------------------------------
-  readonly apiHost = environment.apiHost;
 
   get profileImageUrl(): string | null { return this.buildImageUrl(this.user?.hospitalProfile?.profileImageUrl); }
   get profileImagePublished(): boolean { return !!this.user?.hospitalProfile?.profileImagePublished; }

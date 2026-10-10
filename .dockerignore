@@ -1,0 +1,40 @@
+# Dependencies
+**/node_modules
+**/npm-debug.log*
+**/yarn-error.log*
+**/.pnpm-debug.log*
+
+# Git & IDEs
+.git
+.github
+.gitignore
+.vscode
+.idea
+*.code-workspace
+
+# Build outputs & caches
+frontend/dist
+frontend/.angular
+backend/dist
+**/coverage
+**/.nyc_output
+
+# Sensitive environment variables & secrets
+**/.env
+**/.env.local
+**/.env.*.local
+**/.env.production
+**/.env.production.db
+
+# Documentation & Bundles
+*.md
+*.bundle
+docs/
+
+# Local upload storage
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# OS specific files
+.DS_Store
+Thumbs.db

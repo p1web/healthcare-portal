@@ -38,6 +38,23 @@ export class HospitalProfileService {
     return this.http.post(`${this.apiUrl}/documents`, formData);
   }
 
+  // Upload a single document (supports progress events)
+  uploadDocumentToAzure(file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('documents', file);
+    return this.http.post(`${this.apiUrl}/documents/azure`, formData, {
+      reportProgress: true,
+      observe: 'events'
+    });
+  }
+
+  // Download/stream document
+  downloadDocument(index: number): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/documents/download/${index}`, {
+      responseType: 'blob'
+    });
+  }
+
   submitForReview(): Observable<any> {
     return this.http.post(`${this.apiUrl}/submit`, {});
   }

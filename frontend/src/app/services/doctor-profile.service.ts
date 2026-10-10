@@ -10,7 +10,7 @@ export class DoctorProfileService {
 
   private apiUrl = `${environment.apiUrl}/doctor/profile`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getProfile(): Observable<any> {
     return this.http.get(this.apiUrl);
@@ -24,6 +24,22 @@ export class DoctorProfileService {
     const formData = new FormData();
     files.forEach(file => formData.append('documents', file));
     return this.http.post(`${this.apiUrl}/documents`, formData);
+  }
+
+  // Upload a single document to Azure Blob Storage (used by one-by-one UI)
+  uploadDocumentToAzure(file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('documents', file);
+    return this.http.post(`${this.apiUrl}/documents/azure`, formData, {
+      reportProgress: true,
+      observe: 'events'
+    });
+  }
+
+  downloadDocument(index: number): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/documents/download/${index}`, {
+      responseType: 'blob'
+    });
   }
 
   uploadProfileImage(file: File): Observable<any> {

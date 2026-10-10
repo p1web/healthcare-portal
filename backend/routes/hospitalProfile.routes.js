@@ -3,6 +3,7 @@ const router = express.Router();
 const controller = require('../controllers/hospitalProfile.controller');
 const { authenticate, authorize } = require('../middleware/auth.middleware');
 const upload = require('../middleware/upload.middleware');
+const azureUpload = require('../middleware/azureUpload.middleware');
 const { createHospitalImageUpload } = require('../middleware/hospitalImage.middleware');
 
 const profileImageUpload = createHospitalImageUpload('profile');
@@ -27,7 +28,14 @@ router.use(authenticate, authorize('hospital'));
 router.get('/profile', controller.getProfile);
 router.put('/profile', controller.updateProfile);
 router.patch('/consultation-fee', controller.updateConsultationFee);
-router.post('/profile/documents', controller.requireEditableProfile, upload.array('documents', 5), controller.uploadDocuments);
+
+// Documents upload (handles both azure and local based on STORAGE_DRIVER)
+router.post('/profile/documents', controller.requireEditableProfile, azureUpload.array('documents', 5), controller.uploadDocuments);
+router.post('/profile/documents/azure', controller.requireEditableProfile, azureUpload.array('documents', 5), controller.uploadDocuments);
+
+// Stream/Download hospital verification document
+router.get('/profile/documents/download/:index', controller.downloadDocument);
+
 router.post('/profile/submit', controller.submitForReview);
 
 router.post('/profile/logo-image', multerHandler(profileImageUpload.single('image')), controller.uploadProfileImage);

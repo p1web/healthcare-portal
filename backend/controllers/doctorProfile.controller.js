@@ -11,6 +11,9 @@ const {
   getMissingRequiredFields
 } = require('../utils/providerReview');
 
+const { BlobServiceClient } = require('@azure/storage-blob');
+
+
 const DOCTOR_REQUIRED_FIELDS = [
   'registrationNumber', 'qualification', 'specializationId',
   'yearsOfExperience'
@@ -18,9 +21,11 @@ const DOCTOR_REQUIRED_FIELDS = [
 // consultationFee + hospitalId now live on doctor_practices; enforced via primary-practice check.
 
 const doctorProfileIncludes = [
-  { model: DoctorProfile, as: 'doctorProfile', required: false, include: [
-    { model: DoctorAvailability, as: 'availabilities', required: false }
-  ] }
+  {
+    model: DoctorProfile, as: 'doctorProfile', required: false, include: [
+      { model: DoctorAvailability, as: 'availabilities', required: false }
+    ]
+  }
 ];
 
 function formatAvailability(availabilities = []) {
@@ -235,6 +240,61 @@ exports.requireEditableProfile = async (req, res, next) => {
   }
 };
 
+// --- Storage Driver Helpers ---
+async function saveDocumentsToAzure(userId, files) {
+  const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING;
+  const containerName = process.env.AZURE_STORAGE_CONTAINER_NAME || 'verification-documents';
+
+  const blobServiceClient = BlobServiceClient.fromConnectionString(connectionString);
+  const containerClient = blobServiceClient.getContainerClient(containerName);
+
+  await containerClient.createIfNotExists();
+
+  return Promise.all(
+    files.map(async (file) => {
+      const ext = path.extname(file.originalname);
+      const blobName = `doctor-${userId}/${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
+      const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+
+      const buffer = file.buffer || fs.readFileSync(file.path);
+      await blockBlobClient.uploadData(buffer, {
+        blobHTTPHeaders: { blobContentType: file.mimetype }
+      });
+
+      return {
+        name: file.originalname,
+        url: blockBlobClient.url,
+        blobName,
+        uploadedAt: new Date().toISOString()
+      };
+    })
+  );
+}
+
+function saveDocumentsToLocal(userId, files) {
+  const UPLOAD_ROOT = path.join(__dirname, '..', 'uploads', 'verification-documents', String(userId));
+  fs.mkdirSync(UPLOAD_ROOT, { recursive: true });
+
+  return files.map((file) => {
+    let filename;
+    if (file.filename) {
+      filename = file.filename;
+    } else {
+      const ext = path.extname(file.originalname);
+      filename = `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
+      fs.writeFileSync(path.join(UPLOAD_ROOT, filename), file.buffer);
+    }
+
+    return {
+      name: file.originalname,
+      url: `/uploads/verification-documents/${userId}/${filename}`,
+      uploadedAt: new Date().toISOString()
+    };
+  });
+}
+
+// POST /api/doctor/profile/documents
+// Automatically uses the driver defined in STORAGE_DRIVER ('azure' or 'local')
 exports.uploadDocuments = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -245,6 +305,9 @@ exports.uploadDocuments = async (req, res) => {
     }
 
     const profile = req.providerProfile || await DoctorProfile.findOne({ where: { userId } });
+    if (!profile) {
+      return res.status(404).json({ success: false, message: 'Doctor profile not found' });
+    }
 
     if (!canEditProfile(profile.verificationStatus)) {
       return res.status(409).json({
@@ -253,11 +316,15 @@ exports.uploadDocuments = async (req, res) => {
       });
     }
 
-    const newDocs = files.map(f => ({
-      name: f.originalname,
-      url: `/uploads/verification-documents/${userId}/${f.filename}`,
-      uploadedAt: new Date().toISOString()
-    }));
+    const storageDriver = (process.env.STORAGE_DRIVER || 'azure').toLowerCase();
+    const isAzure = storageDriver === 'azure';
+
+    let newDocs = [];
+    if (isAzure) {
+      newDocs = await saveDocumentsToAzure(userId, files);
+    } else {
+      newDocs = saveDocumentsToLocal(userId, files);
+    }
 
     await profile.update({
       verificationDocuments: [...profile.verificationDocuments, ...newDocs]
@@ -269,7 +336,7 @@ exports.uploadDocuments = async (req, res) => {
 
     return res.json({
       success: true,
-      message: 'Documents uploaded successfully. Submit your profile for review when ready.',
+      message: `Documents uploaded successfully using ${isAzure ? 'Azure Blob Storage' : 'Local Storage'}. Submit your profile for review when ready.`,
       data: formatDoctorUser(updatedUser)
     });
   } catch (err) {
@@ -280,6 +347,76 @@ exports.uploadDocuments = async (req, res) => {
     });
   }
 };
+
+// Kept for backward compatibility
+exports.uploadDocumentsToAzure = async (req, res) => {
+  return exports.uploadDocuments(req, res);
+};
+
+// GET /api/doctor/profile/documents/download/:index
+// Streams the doctor's verification document directly through backend
+exports.downloadDocument = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const docIndex = parseInt(req.params.index, 10);
+
+    const profile = req.providerProfile || await DoctorProfile.findOne({ where: { userId } });
+    if (!profile) {
+      return res.status(404).json({ success: false, message: 'Doctor profile not found' });
+    }
+
+    const docs = profile.verificationDocuments || [];
+    const doc = docs[docIndex];
+    if (!doc) {
+      return res.status(404).json({ success: false, message: 'Document not found' });
+    }
+
+    // If it's an Azure blob
+    if (doc.blobName) {
+      const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING;
+      const containerName = process.env.AZURE_STORAGE_CONTAINER_NAME || 'verification-documents';
+
+      const blobServiceClient = BlobServiceClient.fromConnectionString(connectionString);
+      const containerClient = blobServiceClient.getContainerClient(containerName);
+      const blobClient = containerClient.getBlobClient(doc.blobName);
+
+      const exists = await blobClient.exists();
+      if (!exists) {
+        return res.status(404).json({ success: false, message: 'File not found in storage' });
+      }
+
+      const downloadResponse = await blobClient.download();
+
+      const fileName = doc.name || 'document';
+      const encodedName = encodeURIComponent(fileName);
+      res.setHeader('Content-Type', downloadResponse.contentType || 'application/octet-stream');
+      res.setHeader('Content-Disposition', `inline; filename="${encodedName}"; filename*=UTF-8''${encodedName}`);
+
+      downloadResponse.readableStreamBody.pipe(res);
+    } else if (doc.url) {
+      // Backwards-compatible for local uploads
+      const path = require('path');
+      const fs = require('fs');
+      const cleanUrl = doc.url.replace(/^\//, '');
+      const localFilePath = path.join(__dirname, '..', cleanUrl);
+
+      if (fs.existsSync(localFilePath)) {
+        return res.sendFile(localFilePath);
+      } else {
+        return res.status(404).json({ success: false, message: 'Local document file not found' });
+      }
+    } else {
+      return res.status(400).json({ success: false, message: 'Invalid document reference' });
+    }
+  } catch (err) {
+    console.error('Error downloading document:', err);
+    return res.status(500).json({
+      success: false,
+      message: err.message || 'Failed to download document'
+    });
+  }
+};
+
 
 // POST /api/doctor/profile/avatar — upload a public profile picture.
 // Stores the file under /uploads/profile-images/<userId>/, updates User.profileImage
@@ -317,7 +454,8 @@ exports.uploadProfileImage = async (req, res) => {
 };
 
 // POST /api/doctor/profile/submit
-exports.submitForReview = async (req, res) => {  try {
+exports.submitForReview = async (req, res) => {
+  try {
     const userId = req.user.id;
     const profile = await DoctorProfile.findOne({ where: { userId } });
 

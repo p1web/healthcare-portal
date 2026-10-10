@@ -143,12 +143,29 @@ export class HospitalProfileModalComponent implements OnChanges {
     return (parts.length > 1 ? parts[0][0] + parts[parts.length - 1][0] : parts[0][0]).toUpperCase();
   }
 
+  isDownloadingDoc: number | null = null;
+
   close(): void {
     this.closed.emit();
   }
 
-  documentUrl(url: string): string {
-    return /^https?:\/\//i.test(url) ? url : `${environment.apiHost}${url}`;
+  viewDocument(index: number, document: any): void {
+    const profileId = this.hospitalProfile?.id;
+    if (!profileId) return;
+
+    this.isDownloadingDoc = index;
+    this.adminService.downloadHospitalDocument(profileId, index).subscribe({
+      next: (blob: Blob) => {
+        this.isDownloadingDoc = null;
+        const fileURL = URL.createObjectURL(blob);
+        window.open(fileURL, '_blank');
+      },
+      error: (err: any) => {
+        this.isDownloadingDoc = null;
+        console.error('Failed to view hospital document:', err);
+        alert('Failed to load document: ' + (err?.error?.message || 'Download error'));
+      }
+    });
   }
 
   updateAccountStatus(): void {

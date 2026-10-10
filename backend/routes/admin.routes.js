@@ -24,12 +24,14 @@ router.put("/profile", profileController.updateProfile);
 router.get("/appointments", appointmentController.getAdminAppointments);
 
 router.get("/doctors-profile", doctorProfileController.getDoctorProfiles);
+router.get("/doctors-profile/:profileId/documents/:index/download", doctorProfileController.downloadDoctorDocument);
 router.put("/doctors-profile/:id/review", doctorProfileController.verifyDoctorProfile);
 router.put("/doctors-profile/:id/verify", doctorProfileController.verifyDoctorProfile);
 
 router.get("/specialization-list", doctorProfileController.getSpecializationList);
 
 router.get("/hospital-user-profile", hospitalController.getHospitalUserProfiles);
+router.get("/hospital-user-profile/:profileId/documents/:index/download", hospitalController.downloadHospitalDocument);
 router.put("/hospital-user-profile/:id/review", hospitalController.verifyHospitalProfile);
 router.put("/hospital-user-profile/:id/verify", hospitalController.verifyHospitalProfile);
 router.get("/public-hospitals", hospitalController.getPublicHospitals);

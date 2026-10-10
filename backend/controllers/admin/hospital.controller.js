@@ -1,3 +1,6 @@
+const path = require('path');
+const fs = require('fs');
+const { BlobServiceClient } = require('@azure/storage-blob');
 const {
   HospitalProfile,
   User,
@@ -220,7 +223,60 @@ module.exports = {
                 error: error.message
             });
         }
-    }
+    },
 
+    async downloadHospitalDocument(req, res) {
+      try {
+        const { profileId, index } = req.params;
+        const docIndex = parseInt(index, 10);
+
+        const profile = await HospitalProfile.findByPk(profileId);
+        if (!profile) {
+          return res.status(404).json({ success: false, message: "Hospital profile not found" });
+        }
+
+        const docs = profile.verificationDocuments || [];
+        const doc = docs[docIndex];
+        if (!doc) {
+          return res.status(404).json({ success: false, message: "Document not found" });
+        }
+
+        if (doc.blobName) {
+          const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING;
+          const containerName = process.env.AZURE_STORAGE_CONTAINER_NAME || 'verification-documents';
+
+          const blobServiceClient = BlobServiceClient.fromConnectionString(connectionString);
+          const containerClient = blobServiceClient.getContainerClient(containerName);
+          const blobClient = containerClient.getBlobClient(doc.blobName);
+
+          const exists = await blobClient.exists();
+          if (!exists) {
+            return res.status(404).json({ success: false, message: "File not found in storage" });
+          }
+
+          const downloadResponse = await blobClient.download();
+          const fileName = doc.name || 'document';
+          const encodedName = encodeURIComponent(fileName);
+          res.setHeader('Content-Type', downloadResponse.contentType || 'application/octet-stream');
+          res.setHeader('Content-Disposition', `inline; filename="${encodedName}"; filename*=UTF-8''${encodedName}`);
+
+          downloadResponse.readableStreamBody.pipe(res);
+        } else if (doc.url) {
+          const cleanUrl = doc.url.replace(/^\//, '');
+          const localFilePath = path.join(__dirname, '..', '..', cleanUrl);
+
+          if (fs.existsSync(localFilePath)) {
+            return res.sendFile(localFilePath);
+          } else {
+            return res.status(404).json({ success: false, message: "Local document file not found" });
+          }
+        } else {
+          return res.status(400).json({ success: false, message: "Invalid document reference" });
+        }
+      } catch (err) {
+        console.error("Error streaming hospital document for admin:", err);
+        return res.status(500).json({ success: false, message: "Failed to download document" });
+      }
+    }
 
 };

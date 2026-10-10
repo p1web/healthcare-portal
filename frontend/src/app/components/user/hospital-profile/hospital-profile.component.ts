@@ -2,12 +2,22 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, FormsModule, FormGroup, Validators } from '@angular/forms';
+import { HttpEventType } from '@angular/common/http';
 import { User } from '../../../models/user.model';
 import type { ProfileReviewStatus } from '../../../models/user.model';
 import { AuthService } from '../../../services/auth.service';
 import { HospitalProfileService } from '../../../services/hospital-profile.service';
 import { Specialty, SpecialtyService } from '../../../services/specialty.service';
 import { environment } from '../../../../environments/environment';
+
+export type UploadStatus = 'idle' | 'uploading' | 'done' | 'error';
+
+export interface DocUploadItem {
+  file: File;
+  status: UploadStatus;
+  progress: number;   // 0-100
+  errorMsg: string;
+}
 
 @Component({
   standalone: true,
@@ -17,7 +27,9 @@ import { environment } from '../../../../environments/environment';
   styleUrl: './hospital-profile.component.css'
 })
 export class HospitalProfileComponent implements OnInit {
-  hospitalDocuments: File[] = [];
+  hospitalDocuments: DocUploadItem[] = [];
+  isDownloadingDoc: number | null = null;
+  readonly apiHost = environment.apiHost;
   specialties: Specialty[] = [];
   profileForm!: FormGroup;
   user: User | null = null;
@@ -332,13 +344,108 @@ export class HospitalProfileComponent implements OnInit {
     const input = event.target as HTMLInputElement;
     if (!input.files) return;
 
+    const ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
+    const MAX_SIZE_MB = 5;
+    const MAX_FILES = 5;
+
     Array.from(input.files).forEach(file => {
-      this.hospitalDocuments.push(file);
+      if (this.hospitalDocuments.length >= MAX_FILES) {
+        alert(`You can only upload up to ${MAX_FILES} documents at a time.`);
+        return;
+      }
+
+      // Check duplicates
+      const isDuplicate = this.hospitalDocuments.some(d => d.file.name === file.name && d.file.size === file.size);
+      if (isDuplicate) return;
+
+      // Validate type
+      if (!ALLOWED_TYPES.includes(file.type)) {
+        this.hospitalDocuments.push({
+          file,
+          status: 'error',
+          progress: 0,
+          errorMsg: 'Only PDF, JPG, PNG allowed'
+        });
+        return;
+      }
+
+      // Validate size
+      if (file.size > MAX_SIZE_MB * 1024 * 1024) {
+        this.hospitalDocuments.push({
+          file,
+          status: 'error',
+          progress: 0,
+          errorMsg: `File exceeds ${MAX_SIZE_MB} MB limit`
+        });
+        return;
+      }
+
+      this.hospitalDocuments.push({ file, status: 'idle', progress: 0, errorMsg: '' });
     });
+
+    input.value = '';
   }
 
   removeHospitalDocument(index: number): void {
+    if (this.hospitalDocuments[index]?.status === 'uploading') return;
     this.hospitalDocuments.splice(index, 1);
+  }
+
+  uploadSingleDocument(index: number): void {
+    const item = this.hospitalDocuments[index];
+    if (!item || item.status === 'uploading' || item.status === 'done') return;
+
+    item.status = 'uploading';
+    item.progress = 0;
+    item.errorMsg = '';
+
+    this.hospitalProfileService.uploadDocumentToAzure(item.file).subscribe({
+      next: (event: any) => {
+        if (event.type === HttpEventType.UploadProgress && event.total) {
+          item.progress = Math.round((event.loaded / event.total) * 100);
+        } else if (event.type === HttpEventType.Response) {
+          item.status = 'done';
+          item.progress = 100;
+          if (event.body?.success && event.body?.data) {
+            this.user = event.body.data;
+            this.authService.setCurrentUser(event.body.data);
+          }
+        }
+      },
+      error: (err: any) => {
+        item.status = 'error';
+        item.errorMsg = err?.error?.message || 'Upload failed. Try again.';
+      }
+    });
+  }
+
+  get allDocumentsUploaded(): boolean {
+    return this.hospitalDocuments.length > 0 &&
+      this.hospitalDocuments.every(d => d.status === 'done');
+  }
+
+  get hasPendingDocuments(): boolean {
+    return this.hospitalDocuments.some(d => d.status === 'idle' || d.status === 'error');
+  }
+
+  get doneDocumentsCount(): number {
+    return this.hospitalDocuments.filter(d => d.status === 'done').length;
+  }
+
+  viewUploadedDocument(index: number, doc: any): void {
+    this.isDownloadingDoc = index;
+    this.hospitalProfileService.downloadDocument(index).subscribe({
+      next: (blob: Blob) => {
+        this.isDownloadingDoc = null;
+        const fileURL = URL.createObjectURL(blob);
+        window.open(fileURL, '_blank');
+      },
+      error: (err: any) => {
+        this.isDownloadingDoc = null;
+        console.error('Error viewing document:', err);
+        alert('Failed to load document: ' + (err?.error?.message || 'Storage error'));
+      }
+    });
   }
 
   get uploadedHospitalDocuments() {
@@ -470,13 +577,14 @@ export class HospitalProfileComponent implements OnInit {
 
         if (response.success) {
           this.authService.setCurrentUser(response.data);
-          this.success = response.message || 'Profile updated successfully!';
           this.error = '';
-          window.scrollTo({ top: 0, behavior: 'smooth' });
 
-          if (this.hospitalDocuments.length) {
-            this.uploadDocuments();
+          if (this.hasPendingDocuments) {
+            this.success = 'Profile updated! Remember to click "Upload" on your selected documents to upload them to storage.';
+          } else {
+            this.success = response.message || 'Profile updated successfully!';
           }
+          window.scrollTo({ top: 0, behavior: 'smooth' });
         } else {
           this.error = response.message || 'Failed to update profile';
         }

@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormArray, FormBuilder, ReactiveFormsModule, FormsModule, FormGroup, Validators } from '@angular/forms';
+import { HttpEventType } from '@angular/common/http';
 import { User } from '../../../models/user.model';
 import type { ProfileReviewStatus } from '../../../models/user.model';
 import { AuthService } from '../../../services/auth.service';
@@ -10,6 +11,15 @@ import { ImageUploadService } from '../../../services/image-upload.service';
 import { SpecializationService, Specializations } from '../../../services/specialization.service';
 import { PracticeService, Practice } from '../../../services/practice.service';
 import { environment } from '../../../../environments/environment';
+
+export type UploadStatus = 'idle' | 'uploading' | 'done' | 'error';
+
+export interface DocUploadItem {
+  file: File;
+  status: UploadStatus;
+  progress: number;   // 0-100
+  errorMsg: string;
+}
 
 @Component({
   standalone: true,
@@ -20,7 +30,7 @@ import { environment } from '../../../../environments/environment';
 })
 export class DoctorProfileComponent implements OnInit {
   readonly weekDays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-  doctorDocuments: File[] = [];
+  doctorDocuments: DocUploadItem[] = [];
   specializations: Specializations[] = [];
   practices: Practice[] = [];
   isLoadingPractices = false;
@@ -34,6 +44,7 @@ export class DoctorProfileComponent implements OnInit {
   error: string = '';
   success: string = '';
   loading: boolean = false;
+  isDownloadingDoc: number | null = null;
 
   currentStep = 0;
   visitedSteps = new Set<number>([0]);
@@ -308,13 +319,107 @@ export class DoctorProfileComponent implements OnInit {
     const input = event.target as HTMLInputElement;
     if (!input.files) return;
 
+    const ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+    const MAX_SIZE_MB = 5;
+
     Array.from(input.files).forEach(file => {
-      this.doctorDocuments.push(file);
+      // Duplicate guard — skip if same name+size already queued
+      const isDuplicate = this.doctorDocuments.some(
+        d => d.file.name === file.name && d.file.size === file.size
+      );
+      if (isDuplicate) return;
+
+      // Validate type
+      if (!ALLOWED_TYPES.includes(file.type)) {
+        this.doctorDocuments.push({
+          file,
+          status: 'error',
+          progress: 0,
+          errorMsg: 'Only PDF, JPG, PNG allowed'
+        });
+        return;
+      }
+
+      // Validate size
+      if (file.size > MAX_SIZE_MB * 1024 * 1024) {
+        this.doctorDocuments.push({
+          file,
+          status: 'error',
+          progress: 0,
+          errorMsg: `File exceeds ${MAX_SIZE_MB} MB limit`
+        });
+        return;
+      }
+
+      this.doctorDocuments.push({ file, status: 'idle', progress: 0, errorMsg: '' });
     });
+
+    // Reset input so the same file can be re-selected after removal
+    input.value = '';
   }
 
   removeDoctorDocument(index: number): void {
+    // Don't remove while actively uploading
+    if (this.doctorDocuments[index]?.status === 'uploading') return;
     this.doctorDocuments.splice(index, 1);
+  }
+
+  uploadSingleDocument(index: number): void {
+    const item = this.doctorDocuments[index];
+    if (!item || item.status === 'uploading' || item.status === 'done') return;
+
+    item.status = 'uploading';
+    item.progress = 0;
+    item.errorMsg = '';
+
+    this.doctorProfileService.uploadDocumentToAzure(item.file).subscribe({
+      next: (event: any) => {
+        if (event.type === HttpEventType.UploadProgress && event.total) {
+          item.progress = Math.round((event.loaded / event.total) * 100);
+        } else if (event.type === HttpEventType.Response) {
+          item.status = 'done';
+          item.progress = 100;
+          // Refresh uploaded docs list from server response
+          if (event.body?.success && event.body?.data) {
+            this.user = event.body.data;
+            this.authService.setCurrentUser(event.body.data);
+          }
+        }
+      },
+      error: (err: any) => {
+        item.status = 'error';
+        item.errorMsg = err?.error?.message || 'Upload failed. Try again.';
+      }
+    });
+  }
+
+  get allDocumentsUploaded(): boolean {
+    return this.doctorDocuments.length > 0 &&
+      this.doctorDocuments.every(d => d.status === 'done');
+  }
+
+  get hasPendingDocuments(): boolean {
+    return this.doctorDocuments.some(d => d.status === 'idle' || d.status === 'error');
+  }
+
+  get doneDocumentsCount(): number {
+    return this.doctorDocuments.filter(d => d.status === 'done').length;
+  }
+
+  viewUploadedDocument(index: number, doc: any): void {
+    this.isDownloadingDoc = index;
+    this.doctorProfileService.downloadDocument(index).subscribe({
+      next: (blob: Blob) => {
+        this.isDownloadingDoc = null;
+        const fileURL = URL.createObjectURL(blob);
+        window.open(fileURL, '_blank');
+      },
+      error: (err: any) => {
+        this.isDownloadingDoc = null;
+        console.error('Error viewing document:', err);
+        alert('Failed to load document: ' + (err?.error?.message || 'Storage error'));
+      }
+    });
   }
 
   get uploadedDoctorDocuments() {
@@ -449,13 +554,14 @@ export class DoctorProfileComponent implements OnInit {
 
         if (response.success) {
           this.authService.setCurrentUser(response.data);
-          this.success = response.message || 'Profile updated successfully!';
           this.error = '';
-          window.scrollTo({ top: 0, behavior: 'smooth' });
 
-          if (this.doctorDocuments.length) {
-            this.uploadDocuments();
+          if (this.hasPendingDocuments) {
+            this.success = 'Profile updated! Remember to click "Upload" on your selected documents to upload them to Azure.';
+          } else {
+            this.success = response.message || 'Profile updated successfully!';
           }
+          window.scrollTo({ top: 0, behavior: 'smooth' });
         } else {
           this.error = response.message || 'Failed to update profile';
         }
@@ -469,8 +575,12 @@ export class DoctorProfileComponent implements OnInit {
     });
   }
 
+  // Kept for backwards-compatibility; Azure upload is now done per-file via uploadSingleDocument()
   private uploadDocuments(): void {
-    const filesToUpload = [...this.doctorDocuments];
+    const filesToUpload = this.doctorDocuments
+      .filter(d => d.status === 'idle')
+      .map(d => d.file);
+    if (!filesToUpload.length) return;
 
     this.doctorProfileService.uploadDocuments(filesToUpload).subscribe({
       next: (response: any) => {

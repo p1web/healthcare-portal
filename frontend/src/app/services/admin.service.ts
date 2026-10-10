@@ -42,8 +42,20 @@ export class AdminService {
     return this.http.put(`${this.apiUrl}/doctors-profile/${doctorProfileId}/review`, review);
   }
 
+  downloadDoctorDocument(profileId: number, index: number): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/doctors-profile/${profileId}/documents/${index}/download`, {
+      responseType: 'blob'
+    });
+  }
+
   updateHospitalReview(hospitalProfileId: number, review: { status: string; reviewNotes?: string; rejectionReason?: string }): Observable<any> {
     return this.http.put(`${this.apiUrl}/hospital-user-profile/${hospitalProfileId}/review`, review);
+  }
+
+  downloadHospitalDocument(profileId: number, index: number): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/hospital-user-profile/${profileId}/documents/${index}/download`, {
+      responseType: 'blob'
+    });
   }
 
   getSpecializationList(): Observable<any[]> {

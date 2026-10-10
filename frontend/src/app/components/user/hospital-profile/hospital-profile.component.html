@@ -444,40 +444,116 @@
 
     <!-- STEP 6: VERIFICATION DOCUMENTS -->
     <section class="profile-section" *ngIf="currentStep === 6">
-      <h6 class="section-title"><i class="bi bi-file-earmark-medical"></i> Verification Documents</h6>
-
-      <div class="subsection">
-        <label class="form-label fw-semibold">Uploaded Documents</label>
-
-        <ul class="list-group mb-2" *ngIf="uploadedHospitalDocuments.length">
-          <li class="list-group-item d-flex justify-content-between align-items-center"
-            *ngFor="let doc of uploadedHospitalDocuments">
-            {{ doc.name }}
-            <a class="btn btn-sm btn-outline-secondary" [href]="apiHost + doc.url" target="_blank">View</a>
-          </li>
-        </ul>
-        <p class="text-muted mb-0" *ngIf="!uploadedHospitalDocuments.length">
-          No documents uploaded yet.
-        </p>
+      <div class="doc-upload-header">
+        <h6 class="section-title mb-0"><i class="bi bi-file-earmark-medical"></i> Verification Documents</h6>
+        <span class="doc-upload-counter" *ngIf="uploadedHospitalDocuments.length">
+          {{ uploadedHospitalDocuments.length }} document{{ uploadedHospitalDocuments.length === 1 ? '' : 's' }} verified
+        </span>
       </div>
+      <p class="section-subtitle mb-3">Upload hospital registration, license, or compliance certificates. Required before administrative review.</p>
 
       <div class="subsection">
-        <label class="form-label fw-semibold">Upload New Documents</label>
-        <input type="file" class="form-control" multiple accept=".pdf,.jpg,.jpeg,.png" [disabled]="!isProfileEditable" (change)="onHospitalDocumentsSelected($event)">
-
-        <small class="text-muted d-block mt-1">
-          Allowed formats: PDF, JPG, PNG
-        </small>
-
-        <ul class="list-group mt-2" *ngIf="hospitalDocuments.length">
-          <li class="list-group-item d-flex justify-content-between align-items-center"
-            *ngFor="let doc of hospitalDocuments; let i = index">
-            {{ doc.name }}
-            <button type="button" class="btn btn-sm btn-outline-danger" [disabled]="!isProfileEditable" (click)="removeHospitalDocument(i)">
-              Remove
+        <!-- Already uploaded docs from server -->
+        <div class="uploaded-docs-list" *ngIf="uploadedHospitalDocuments.length">
+          <div class="uploaded-doc-item" *ngFor="let doc of uploadedHospitalDocuments; let i = index">
+            <div class="uploaded-doc-icon">
+              <i class="bi bi-file-earmark-check-fill"></i>
+            </div>
+            <span class="uploaded-doc-name">{{ doc.name }}</span>
+            <button type="button" class="btn btn-xs btn-outline-primary" (click)="viewUploadedDocument(i, doc)" [disabled]="isDownloadingDoc === i">
+              <span *ngIf="isDownloadingDoc === i" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+              <i *ngIf="isDownloadingDoc !== i" class="bi bi-box-arrow-up-right me-1"></i>View
             </button>
-          </li>
-        </ul>
+          </div>
+        </div>
+
+        <!-- File dropzone -->
+        <label class="doc-dropzone" [class.disabled]="!isProfileEditable" [attr.for]="isProfileEditable ? 'hospitalDocInput' : null">
+          <i class="bi bi-cloud-upload-fill doc-dropzone-icon"></i>
+          <span class="doc-dropzone-text">
+            <strong>Click to select files</strong>
+            <span class="text-muted d-block mt-1" style="font-size:0.8rem">PDF, JPG, PNG · Max 5 MB each · Up to 5 files</span>
+          </span>
+          <input type="file" id="hospitalDocInput"
+                 multiple accept=".pdf,.jpg,.jpeg,.png"
+                 [disabled]="!isProfileEditable"
+                 (change)="onHospitalDocumentsSelected($event)"
+                 hidden />
+        </label>
+
+        <!-- Queued file cards (one-by-one upload) -->
+        <div class="doc-queue" *ngIf="hospitalDocuments.length">
+          <div class="doc-card"
+               *ngFor="let item of hospitalDocuments; let i = index"
+               [class.doc-card--uploading]="item.status === 'uploading'"
+               [class.doc-card--done]="item.status === 'done'"
+               [class.doc-card--error]="item.status === 'error'">
+
+            <!-- File type icon -->
+            <div class="doc-card-icon">
+              <i class="bi" [ngClass]="{
+                'bi-file-earmark-pdf-fill':  item.file.name.endsWith('.pdf'),
+                'bi-file-earmark-image-fill': !item.file.name.endsWith('.pdf')
+              }"></i>
+            </div>
+
+            <!-- File info -->
+            <div class="doc-card-info">
+              <span class="doc-card-name" [title]="item.file.name">{{ item.file.name }}</span>
+              <span class="doc-card-meta">{{ (item.file.size / 1024 / 1024).toFixed(2) }} MB</span>
+
+              <!-- Progress bar -->
+              <div class="doc-card-progress" *ngIf="item.status === 'uploading'">
+                <div class="doc-card-progress-bar" [style.width.%]="item.progress"></div>
+              </div>
+
+              <!-- Error message -->
+              <span class="doc-card-error" *ngIf="item.status === 'error' && item.errorMsg">
+                <i class="bi bi-exclamation-triangle-fill me-1"></i>{{ item.errorMsg }}
+              </span>
+            </div>
+
+            <!-- Status badge -->
+            <div class="doc-card-status">
+              <span class="doc-status-badge doc-status-badge--idle"     *ngIf="item.status === 'idle'">Ready</span>
+              <span class="doc-status-badge doc-status-badge--uploading" *ngIf="item.status === 'uploading'">
+                <span class="spinner-border spinner-border-sm me-1"></span>{{ item.progress }}%
+              </span>
+              <span class="doc-status-badge doc-status-badge--done"     *ngIf="item.status === 'done'">
+                <i class="bi bi-check-circle-fill me-1"></i>Uploaded
+              </span>
+              <span class="doc-status-badge doc-status-badge--error"    *ngIf="item.status === 'error' && !item.errorMsg">Failed</span>
+            </div>
+
+            <!-- Actions -->
+            <div class="doc-card-actions">
+              <button type="button" class="btn btn-sm btn-primary doc-upload-btn"
+                      *ngIf="item.status === 'idle' || (item.status === 'error' && item.errorMsg === 'Upload failed. Try again.')"
+                      [disabled]="!isProfileEditable"
+                      (click)="uploadSingleDocument(i)">
+                <i class="bi bi-cloud-upload me-1"></i>Upload
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-danger doc-remove-btn"
+                      *ngIf="item.status !== 'uploading'"
+                      [disabled]="!isProfileEditable"
+                      (click)="removeHospitalDocument(i)"
+                      title="Remove">
+                <i class="bi bi-trash3"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- All done banner -->
+        <div class="doc-all-done" *ngIf="allDocumentsUploaded">
+          <i class="bi bi-patch-check-fill me-2"></i>
+          All documents uploaded successfully!
+        </div>
+
+        <!-- No docs placeholder -->
+        <p class="text-muted small mt-2 mb-0" *ngIf="!uploadedHospitalDocuments.length && !hospitalDocuments.length">
+          <i class="bi bi-info-circle me-1"></i>No documents uploaded yet. Add at least one verification document before submitting.
+        </p>
       </div>
     </section>
 

@@ -12,12 +12,18 @@ die() {
 }
 
 compose() {
-  docker-compose -f "$COMPOSE_FILE" "$@"
+  "${DOCKER_COMPOSE[@]}" -f "$COMPOSE_FILE" "$@"
 }
 
 command -v git >/dev/null || die "git is required"
-command -v docker-compose >/dev/null || die "docker-compose is required"
+command -v docker >/dev/null || die "docker is required"
 command -v npm >/dev/null || die "npm is required"
+
+if docker compose version >/dev/null 2>&1; then
+  DOCKER_COMPOSE=(docker compose)
+else
+  die "Docker Compose v2 is required; install the Compose plugin and use 'docker compose'"
+fi
 
 [[ "$(git branch --show-current)" == "$BRANCH" ]] ||
   die "Check out $BRANCH before deploying"

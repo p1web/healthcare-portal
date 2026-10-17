@@ -24,11 +24,8 @@
     <!-- STEP INDICATOR -->
     <div class="profile-section stepper-section">
       <div class="stepper" role="tablist" aria-label="Profile completion steps">
-        <button type="button" class="step-pill"
-          *ngFor="let def of stepDefs; let i = index"
-          [class.active]="currentStep === i + 1"
-          [class.complete]="isStepComplete(i)"
-          (click)="goToStep(i + 1)"
+        <button type="button" class="step-pill" *ngFor="let def of stepDefs; let i = index"
+          [class.active]="currentStep === i + 1" [class.complete]="isStepComplete(i)" (click)="goToStep(i + 1)"
           [attr.aria-current]="currentStep === i + 1 ? 'step' : null">
           <span class="step-index">
             <i class="bi bi-check-lg" *ngIf="isStepComplete(i)"></i>
@@ -45,45 +42,8 @@
       </div>
     </div>
 
-    <!-- REVIEW STATUS (Step 1) -->
-    <div class="profile-section review-overview" *ngIf="currentStep === 1">
-      <div class="review-summary">
-        <div>
-          <span class="me-2">Review status:</span>
-          <span [ngClass]="reviewBadgeClass">{{ reviewStatusLabel }}</span>
-        </div>
-        <button type="button" class="btn btn-outline-primary" *ngIf="canSubmitForReview"
-          [disabled]="isSubmittingReview" (click)="submitForReview()">
-          <span *ngIf="!isSubmittingReview"><i class="bi bi-send-check me-1"></i>{{ reviewStatus === 'changes_requested' ? 'Resubmit Profile' : 'Submit for Review' }}</span>
-          <span *ngIf="isSubmittingReview"><span class="spinner-border spinner-border-sm me-2"></span>Submitting...</span>
-        </button>
-      </div>
-
-      <div class="review-timeline" aria-label="Profile review timeline">
-        <div class="timeline-step" *ngFor="let step of timelineSteps" [class.complete]="step.complete"
-          [class.active]="step.active" [class.outcome]="step.outcome">
-          <span class="timeline-dot"><i class="bi" [ngClass]="step.complete ? 'bi-check-lg' : 'bi-circle'"></i></span>
-          <div class="timeline-content">
-            <div class="timeline-heading">
-              <strong>{{ step.label }}</strong>
-              <span class="timeline-date">{{ step.date ? (step.date | date:'dd MMM yyyy, hh:mm a') : 'Date not recorded' }}</span>
-            </div>
-            <p>{{ step.comment }}</p>
-            <span class="timeline-reviewer" *ngIf="step.reviewer">Reviewed by {{ step.reviewer }}</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="review-note" *ngIf="!isProfileEditable">
-        <i class="bi bi-lock me-1"></i>Profile and public listing details are locked after submission. Editing is available only if the profile is returned.
-      </div>
-      <div class="review-note returned" *ngIf="reviewStatus === 'changes_requested'">
-        <i class="bi bi-arrow-counterclockwise me-1"></i>Update the requested information, save, then resubmit your profile.
-      </div>
-    </div>
-
-    <!-- STEP 2: ACCOUNT HOLDER INFORMATION -->
-    <section class="profile-section" formGroupName="basic" *ngIf="currentStep === 2">
+    <!-- STEP 1: ACCOUNT HOLDER INFORMATION -->
+    <section class="profile-section" formGroupName="basic" *ngIf="currentStep === 1">
       <h6 class="section-title"><i class="bi bi-person-lines-fill"></i> Account Holder Information</h6>
 
       <div class="row">
@@ -153,34 +113,40 @@
 
       <div class="row">
         <div class="col-md-6 mb-3">
-          <label class="form-label">Address <span class="text-danger">*</span></label>
-          <input type="text" class="form-control" formControlName="address"
-            [class.is-invalid]="profileForm.get('basic.address')?.invalid && profileForm.get('basic.address')?.touched" />
+          <label class="form-label">State <span class="text-danger">*</span></label>
+          <select class="form-select" formControlName="stateId" (change)="onBasicStateChange()"
+            [class.is-invalid]="profileForm.get('basic.stateId')?.invalid && profileForm.get('basic.stateId')?.touched">
+            <option value="">{{ isLoadingLocations ? 'Loading states...' : 'Select state' }}</option>
+            <option *ngFor="let state of locationStates" [ngValue]="state.id">{{ state.name }}</option>
+          </select>
           <div class="invalid-feedback"
-            *ngIf="profileForm.get('basic.address')?.invalid && profileForm.get('basic.address')?.touched">
-            Address is required
+            *ngIf="profileForm.get('basic.stateId')?.invalid && profileForm.get('basic.stateId')?.touched">
+            State is required
           </div>
         </div>
 
         <div class="col-md-6 mb-3">
-          <label class="form-label">City <span class="text-danger">*</span></label>
-          <input type="text" class="form-control" formControlName="city"
-            [class.is-invalid]="profileForm.get('basic.city')?.invalid && profileForm.get('basic.city')?.touched" />
+          <label class="form-label">District <span class="text-danger">*</span></label>
+          <select class="form-select" formControlName="districtId"
+            [class.is-invalid]="profileForm.get('basic.districtId')?.invalid && profileForm.get('basic.districtId')?.touched">
+            <option value="">{{ isLoadingLocations ? 'Loading districts...' : 'Select district' }}</option>
+            <option *ngFor="let district of getDistrictOptions(profileForm.get('basic.stateId')?.value)" [ngValue]="district.id">{{ district.name }}</option>
+          </select>
           <div class="invalid-feedback"
-            *ngIf="profileForm.get('basic.city')?.invalid && profileForm.get('basic.city')?.touched">
-            City is required
+            *ngIf="profileForm.get('basic.districtId')?.invalid && profileForm.get('basic.districtId')?.touched">
+            District is required
           </div>
         </div>
       </div>
 
       <div class="row">
         <div class="col-md-6 mb-3">
-          <label class="form-label">State <span class="text-danger">*</span></label>
-          <input type="text" class="form-control" formControlName="state"
-            [class.is-invalid]="profileForm.get('basic.state')?.invalid && profileForm.get('basic.state')?.touched" />
+          <label class="form-label">Address <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" formControlName="address"
+            [class.is-invalid]="profileForm.get('basic.address')?.invalid && profileForm.get('basic.address')?.touched" />
           <div class="invalid-feedback"
-            *ngIf="profileForm.get('basic.state')?.invalid && profileForm.get('basic.state')?.touched">
-            State is required
+            *ngIf="profileForm.get('basic.address')?.invalid && profileForm.get('basic.address')?.touched">
+            Address is required
           </div>
         </div>
 
@@ -198,8 +164,8 @@
       </div>
     </section>
 
-    <!-- STEP 3: HOSPITAL INFORMATION -->
-    <section class="profile-section" formGroupName="hospital" *ngIf="currentStep === 3">
+    <!-- STEP 2: HOSPITAL INFORMATION -->
+    <section class="profile-section" formGroupName="hospital" *ngIf="currentStep === 2">
       <h6 class="section-title"><i class="bi bi-building"></i> Hospital Information</h6>
 
       <div class="row">
@@ -234,26 +200,34 @@
         </div>
       </div>
 
-      <div class="mb-3">
-        <label class="form-label">Hospital Address <span class="text-danger">*</span></label>
-        <textarea class="form-control" formControlName="hospitalAddress" rows="2"
-          [class.is-invalid]="profileForm.get('hospital.hospitalAddress')?.invalid && profileForm.get('hospital.hospitalAddress')?.touched"></textarea>
-        <div class="invalid-feedback">Hospital address is required.</div>
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label class="form-label">State <span class="text-danger">*</span></label>
+          <select class="form-select" formControlName="hospitalStateId" (change)="onHospitalStateChange()"
+            [class.is-invalid]="profileForm.get('hospital.hospitalStateId')?.invalid && profileForm.get('hospital.hospitalStateId')?.touched">
+            <option value="">{{ isLoadingLocations ? 'Loading states...' : 'Select state' }}</option>
+            <option *ngFor="let state of locationStates" [ngValue]="state.id">{{ state.name }}</option>
+          </select>
+          <div class="invalid-feedback">State is required.</div>
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label class="form-label">District <span class="text-danger">*</span></label>
+          <select class="form-select" formControlName="hospitalDistrictId"
+            [class.is-invalid]="profileForm.get('hospital.hospitalDistrictId')?.invalid && profileForm.get('hospital.hospitalDistrictId')?.touched">
+            <option value="">{{ isLoadingLocations ? 'Loading districts...' : 'Select district' }}</option>
+            <option *ngFor="let district of getDistrictOptions(profileForm.get('hospital.hospitalStateId')?.value)" [ngValue]="district.id">{{ district.name }}</option>
+          </select>
+          <div class="invalid-feedback">City is required.</div>
+        </div>
       </div>
 
       <div class="row">
-        <div class="col-md-4 mb-3">
-          <label class="form-label">City <span class="text-danger">*</span></label>
-          <input type="text" class="form-control" formControlName="hospitalCity"
-            [class.is-invalid]="profileForm.get('hospital.hospitalCity')?.invalid && profileForm.get('hospital.hospitalCity')?.touched">
-          <div class="invalid-feedback">City is required.</div>
-        </div>
-
-        <div class="col-md-4 mb-3">
-          <label class="form-label">State <span class="text-danger">*</span></label>
-          <input type="text" class="form-control" formControlName="hospitalState"
-            [class.is-invalid]="profileForm.get('hospital.hospitalState')?.invalid && profileForm.get('hospital.hospitalState')?.touched">
-          <div class="invalid-feedback">State is required.</div>
+        <div class="col-md-8 mb-3">
+          <label class="form-label">Hospital Address <span class="text-danger">*</span></label>
+          <textarea class="form-control" formControlName="hospitalAddress" rows="2"
+            [class.is-invalid]="profileForm.get('hospital.hospitalAddress')?.invalid && profileForm.get('hospital.hospitalAddress')?.touched"></textarea>
+          <div class="invalid-feedback">Hospital address is required.</div>
         </div>
 
         <div class="col-md-4 mb-3">
@@ -308,15 +282,15 @@
         </div>
         <div class="col-md-6 mb-3">
           <label class="form-label">Consultation Fee (₹)</label>
-          <input type="number" class="form-control"
-                 formControlName="defaultConsultationFee" placeholder="e.g. 500" readonly />
+          <input type="number" class="form-control" formControlName="defaultConsultationFee" placeholder="e.g. 500"
+            readonly />
           <small class="text-muted">Set by system admin. Contact support to change it.</small>
         </div>
       </div>
     </section>
 
-    <!-- STEP 4: SPECIALTIES & SERVICES -->
-    <section class="profile-section" formGroupName="hospital" *ngIf="currentStep === 4">
+    <!-- STEP 3: SPECIALTIES & SERVICES -->
+    <section class="profile-section" formGroupName="hospital" *ngIf="currentStep === 3">
       <h6 class="section-title"><i class="bi bi-heart-pulse"></i> Specialties & Services</h6>
 
       <div class="mb-3">
@@ -357,100 +331,17 @@
       </div>
     </section>
 
-    <!-- STEP 5: PUBLIC IMAGES (profile / logo + banner) -->
-    <section class="profile-section" *ngIf="currentStep === 5">
-      <h6 class="section-title"><i class="bi bi-image"></i> Public Images</h6>
-      <p class="text-muted small mb-3">
-        Upload a profile/logo and banner image. They stay hidden from the public site until you
-        turn on the <strong>Publish</strong> switch. You can unpublish or replace an image any time.
-      </p>
-
-      <ng-container *ngFor="let slot of imageSlots">
-        <div class="image-upload-card border rounded p-3 mb-3">
-          <div class="d-flex flex-wrap justify-content-between align-items-start mb-2">
-            <div>
-              <h6 class="mb-1">
-                <i class="bi" [class.bi-hospital]="slot === 'logo'" [class.bi-image-alt]="slot === 'banner'"></i>
-                {{ imageRules[slot].label }} Image
-              </h6>
-              <p class="small text-muted mb-1">{{ imageRules[slot].description }}</p>
-            </div>
-            <span [ngClass]="imageStatusBadgeClass(slot)">{{ imageStatusLabel(slot) }}</span>
-          </div>
-
-          <div class="row g-3 align-items-center">
-            <div class="col-md-4">
-              <div class="image-preview bg-light border rounded d-flex align-items-center justify-content-center"
-                   [class.banner-preview]="slot === 'banner'"
-                   [style.min-height.px]="slot === 'banner' ? 90 : 140">
-                <img *ngIf="(slot === 'logo' ? profileImageUrl : bannerImageUrl) as previewUrl"
-                     [src]="previewUrl" [alt]="imageRules[slot].label + ' preview'"
-                     class="img-fluid" style="max-height: 160px; object-fit: contain;" />
-                <span *ngIf="!(slot === 'logo' ? profileImageUrl : bannerImageUrl)" class="text-muted small">
-                  No image uploaded
-                </span>
-              </div>
-            </div>
-            <div class="col-md-8">
-              <ul class="small text-muted mb-3 ps-3">
-                <li>Formats: JPG, PNG, or WEBP</li>
-                <li>Max file size: <strong>{{ imageRules[slot].maxSizeLabel }}</strong></li>
-                <li>Dimensions: {{ imageRules[slot].dimensionsLabel }}</li>
-                <li>Aspect ratio: {{ imageRules[slot].aspectLabel }}</li>
-              </ul>
-
-              <div class="form-check form-switch mb-3" *ngIf="hasImage(slot)">
-                <input class="form-check-input" type="checkbox" role="switch"
-                       [id]="'publish-' + slot"
-                       [checked]="isImagePublished(slot)"
-                       [disabled]="imageBusy[slot]"
-                       (change)="togglePublicImagePublished(slot, $event)" />
-                <label class="form-check-label fw-semibold" [for]="'publish-' + slot">
-                  Publish on public pages
-                </label>
-                <div class="small text-muted">
-                  Turning this off hides the image without deleting it.
-                </div>
-              </div>
-
-              <div class="d-flex flex-wrap gap-2">
-                <label class="btn btn-outline-primary btn-sm mb-0"
-                       [class.disabled]="imageBusy[slot]">
-                  <i class="bi bi-upload me-1"></i>
-                  <span *ngIf="!hasImage(slot)">Upload image</span>
-                  <span *ngIf="hasImage(slot)">Replace image</span>
-                  <input type="file" hidden [accept]="imageRules[slot].accept"
-                         [disabled]="imageBusy[slot]"
-                         (change)="onPublicImageSelected(slot, $event)" />
-                </label>
-                <button type="button" class="btn btn-outline-danger btn-sm"
-                        [disabled]="imageBusy[slot] || !hasImage(slot)"
-                        (click)="removePublicImage(slot)">
-                  <i class="bi bi-trash me-1"></i>Remove
-                </button>
-                <span *ngIf="imageBusy[slot]" class="d-inline-flex align-items-center small text-muted">
-                  <span class="spinner-border spinner-border-sm me-2"></span>Working…
-                </span>
-              </div>
-
-              <div class="alert alert-danger py-2 mt-2 mb-0 small" *ngIf="imageError[slot]">
-                {{ imageError[slot] }}
-              </div>
-            </div>
-          </div>
-        </div>
-      </ng-container>
-    </section>
-
-    <!-- STEP 6: VERIFICATION DOCUMENTS -->
-    <section class="profile-section" *ngIf="currentStep === 6">
+    <!-- STEP 4: VERIFICATION DOCUMENTS -->
+    <section class="profile-section" *ngIf="currentStep === 4">
       <div class="doc-upload-header">
         <h6 class="section-title mb-0"><i class="bi bi-file-earmark-medical"></i> Verification Documents</h6>
         <span class="doc-upload-counter" *ngIf="uploadedHospitalDocuments.length">
-          {{ uploadedHospitalDocuments.length }} document{{ uploadedHospitalDocuments.length === 1 ? '' : 's' }} verified
+          {{ uploadedHospitalDocuments.length }} document{{ uploadedHospitalDocuments.length === 1 ? '' : 's' }}
+          verified
         </span>
       </div>
-      <p class="section-subtitle mb-3">Upload hospital registration, license, or compliance certificates. Required before administrative review.</p>
+      <p class="section-subtitle mb-3">Upload hospital registration, license, or compliance certificates. Required
+        before administrative review.</p>
 
       <div class="subsection">
         <!-- Already uploaded docs from server -->
@@ -460,34 +351,33 @@
               <i class="bi bi-file-earmark-check-fill"></i>
             </div>
             <span class="uploaded-doc-name">{{ doc.name }}</span>
-            <button type="button" class="btn btn-xs btn-outline-primary" (click)="viewUploadedDocument(i, doc)" [disabled]="isDownloadingDoc === i">
-              <span *ngIf="isDownloadingDoc === i" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+            <button type="button" class="btn btn-xs btn-outline-primary" (click)="viewUploadedDocument(i, doc)"
+              [disabled]="isDownloadingDoc === i">
+              <span *ngIf="isDownloadingDoc === i" class="spinner-border spinner-border-sm me-1" role="status"
+                aria-hidden="true"></span>
               <i *ngIf="isDownloadingDoc !== i" class="bi bi-box-arrow-up-right me-1"></i>View
             </button>
           </div>
         </div>
 
         <!-- File dropzone -->
-        <label class="doc-dropzone" [class.disabled]="!isProfileEditable" [attr.for]="isProfileEditable ? 'hospitalDocInput' : null">
+        <label class="doc-dropzone" [class.disabled]="!isProfileEditable"
+          [attr.for]="isProfileEditable ? 'hospitalDocInput' : null">
           <i class="bi bi-cloud-upload-fill doc-dropzone-icon"></i>
           <span class="doc-dropzone-text">
             <strong>Click to select files</strong>
-            <span class="text-muted d-block mt-1" style="font-size:0.8rem">PDF, JPG, PNG · Max 5 MB each · Up to 5 files</span>
+            <span class="text-muted d-block mt-1" style="font-size:0.8rem">PDF, JPG, PNG · Max 5 MB each · Up to 5
+              files</span>
           </span>
-          <input type="file" id="hospitalDocInput"
-                 multiple accept=".pdf,.jpg,.jpeg,.png"
-                 [disabled]="!isProfileEditable"
-                 (change)="onHospitalDocumentsSelected($event)"
-                 hidden />
+          <input type="file" id="hospitalDocInput" multiple accept=".pdf,.jpg,.jpeg,.png"
+            [disabled]="!isProfileEditable" (change)="onHospitalDocumentsSelected($event)" hidden />
         </label>
 
         <!-- Queued file cards (one-by-one upload) -->
         <div class="doc-queue" *ngIf="hospitalDocuments.length">
-          <div class="doc-card"
-               *ngFor="let item of hospitalDocuments; let i = index"
-               [class.doc-card--uploading]="item.status === 'uploading'"
-               [class.doc-card--done]="item.status === 'done'"
-               [class.doc-card--error]="item.status === 'error'">
+          <div class="doc-card" *ngFor="let item of hospitalDocuments; let i = index"
+            [class.doc-card--uploading]="item.status === 'uploading'" [class.doc-card--done]="item.status === 'done'"
+            [class.doc-card--error]="item.status === 'error'">
 
             <!-- File type icon -->
             <div class="doc-card-icon">
@@ -515,29 +405,27 @@
 
             <!-- Status badge -->
             <div class="doc-card-status">
-              <span class="doc-status-badge doc-status-badge--idle"     *ngIf="item.status === 'idle'">Ready</span>
+              <span class="doc-status-badge doc-status-badge--idle" *ngIf="item.status === 'idle'">Ready</span>
               <span class="doc-status-badge doc-status-badge--uploading" *ngIf="item.status === 'uploading'">
                 <span class="spinner-border spinner-border-sm me-1"></span>{{ item.progress }}%
               </span>
-              <span class="doc-status-badge doc-status-badge--done"     *ngIf="item.status === 'done'">
+              <span class="doc-status-badge doc-status-badge--done" *ngIf="item.status === 'done'">
                 <i class="bi bi-check-circle-fill me-1"></i>Uploaded
               </span>
-              <span class="doc-status-badge doc-status-badge--error"    *ngIf="item.status === 'error' && !item.errorMsg">Failed</span>
+              <span class="doc-status-badge doc-status-badge--error"
+                *ngIf="item.status === 'error' && !item.errorMsg">Failed</span>
             </div>
 
             <!-- Actions -->
             <div class="doc-card-actions">
               <button type="button" class="btn btn-sm btn-primary doc-upload-btn"
-                      *ngIf="item.status === 'idle' || (item.status === 'error' && item.errorMsg === 'Upload failed. Try again.')"
-                      [disabled]="!isProfileEditable"
-                      (click)="uploadSingleDocument(i)">
+                *ngIf="item.status === 'idle' || (item.status === 'error' && item.errorMsg === 'Upload failed. Try again.')"
+                [disabled]="!isProfileEditable" (click)="uploadSingleDocument(i)">
                 <i class="bi bi-cloud-upload me-1"></i>Upload
               </button>
               <button type="button" class="btn btn-sm btn-outline-danger doc-remove-btn"
-                      *ngIf="item.status !== 'uploading'"
-                      [disabled]="!isProfileEditable"
-                      (click)="removeHospitalDocument(i)"
-                      title="Remove">
+                *ngIf="item.status !== 'uploading'" [disabled]="!isProfileEditable" (click)="removeHospitalDocument(i)"
+                title="Remove">
                 <i class="bi bi-trash3"></i>
               </button>
             </div>
@@ -552,21 +440,22 @@
 
         <!-- No docs placeholder -->
         <p class="text-muted small mt-2 mb-0" *ngIf="!uploadedHospitalDocuments.length && !hospitalDocuments.length">
-          <i class="bi bi-info-circle me-1"></i>No documents uploaded yet. Add at least one verification document before submitting.
+          <i class="bi bi-info-circle me-1"></i>No documents uploaded yet. Add at least one verification document before
+          submitting.
         </p>
       </div>
     </section>
 
     <div class="form-actions wizard-actions">
-      <button type="button" class="btn btn-outline-secondary px-3"
-        [disabled]="isFirstStep || isSubmitting" (click)="prevStep()">
+      <button type="button" class="btn btn-outline-secondary px-3" [disabled]="isFirstStep || isSubmitting"
+        (click)="prevStep()">
         <i class="bi bi-chevron-left me-1"></i> Previous
       </button>
 
       <span class="wizard-step-label">Step {{ currentStep }} of {{ totalSteps }}</span>
 
-      <button type="button" class="btn btn-primary px-4" *ngIf="currentStep < totalSteps"
-        [disabled]="isSubmitting" (click)="nextStep()">
+      <button type="button" class="btn btn-primary px-4" *ngIf="currentStep < totalSteps" [disabled]="isSubmitting"
+        (click)="nextStep()">
         Next <i class="bi bi-chevron-right ms-1"></i>
       </button>
 

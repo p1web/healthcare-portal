@@ -1,0 +1,45 @@
+<dialog #dialog class="profile-confirmation" aria-labelledby="profile-confirmation-title"
+  aria-describedby="profile-confirmation-description profile-confirmation-policy profile-confirmation-question"
+  (cancel)="cancel($event)" (close)="onClosed()">
+  <div class="dialog-content">
+    <header class="dialog-header">
+      <div class="dialog-icon" aria-hidden="true">
+        <i class="bi bi-shield-check"></i>
+      </div>
+      <div class="heading-copy">
+        <p class="eyebrow">Profile submission</p>
+        <h2 id="profile-confirmation-title">
+          {{ isReviewSubmission ? 'Review before submission' : 'Review before saving' }}
+        </h2>
+      </div>
+      <button type="button" class="icon-button" aria-label="Close confirmation"
+        (click)="closeWithResult('cancel')">
+        <i class="bi bi-x-lg" aria-hidden="true"></i>
+      </button>
+    </header>
+
+    <p id="profile-confirmation-description" class="intro-copy">
+      Please review your details carefully before {{ isReviewSubmission ? 'submitting for review.' : 'saving.' }}
+    </p>
+
+    <div id="profile-confirmation-policy" class="policy-note">
+      <i class="bi bi-lock-fill" aria-hidden="true"></i>
+      <p>
+        Once your profile is approved, sensitive information cannot be edited directly. For any future updates,
+        kindly contact the website administrator.
+      </p>
+    </div>
+
+    <p id="profile-confirmation-question" class="confirmation-question">
+      Do you wish to proceed with {{ isReviewSubmission ? 'submitting your profile for review' : 'saving' }}?
+    </p>
+
+    <footer class="dialog-actions">
+      <button type="button" class="btn-review" (click)="closeWithResult('cancel')">Go back</button>
+      <button type="button" class="btn-confirm" (click)="closeWithResult('confirm')">
+        <i class="bi bi-check2" aria-hidden="true"></i>
+        {{ isReviewSubmission ? 'Submit for review' : 'Save profile' }}
+      </button>
+    </footer>
+  </div>
+</dialog>

@@ -1,5 +1,5 @@
 const { Op } = require('sequelize');
-const { HospitalProfile, User, Specialty } = require('../models');
+const { HospitalProfile, User, Specialty, State, District } = require('../models');
 const { PROFILE_REVIEW_STATUSES } = require('./providerReview');
 
 const publicHospitalIncludes = [{
@@ -13,6 +13,16 @@ const publicHospitalIncludes = [{
   as: 'reviewedBy',
   required: false,
   attributes: ['id', 'name', 'email']
+}, {
+  model: State,
+  as: 'hospitalStateMaster',
+  attributes: ['id', 'name'],
+  required: false
+}, {
+  model: District,
+  as: 'hospitalDistrictMaster',
+  attributes: ['id', 'name'],
+  required: false
 }];
 
 async function attachSpecialties(profiles) {
@@ -47,7 +57,7 @@ function formatPublicHospital({ profile, specialties }) {
   return {
     id: data.id,
     name: data.hospitalName,
-    location: [data.hospitalCity, data.hospitalState].filter(Boolean).join(', '),
+    location: [data.hospitalDistrictMaster?.name, data.hospitalStateMaster?.name].filter(Boolean).join(', '),
     address: data.hospitalAddress,
     phone: data.hospitalPhone,
     email: data.hospitalEmail,

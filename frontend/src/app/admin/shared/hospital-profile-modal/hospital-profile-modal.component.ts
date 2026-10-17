@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, OnChanges, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ProfileReviewStatus, User } from '../../../models/user.model';
-import { AdminService } from '../../../services/admin.service';
+import { AdminProviderBankAccount, AdminService } from '../../../services/admin.service';
 import { environment } from '../../../../environments/environment';
 
 @Component({
@@ -27,6 +27,9 @@ export class HospitalProfileModalComponent implements OnChanges {
 
   readonly apiHost = environment.apiHost;
   readonly imageSlots: Array<'profile' | 'banner'> = ['profile', 'banner'];
+  bankAccount: AdminProviderBankAccount | null = null;
+  isLoadingBankAccount = false;
+  bankAccountError = '';
 
   constructor(private adminService: AdminService) {}
 
@@ -35,6 +38,26 @@ export class HospitalProfileModalComponent implements OnChanges {
     this.reviewAction = '';
     this.reviewComments = '';
     this.errorMessage = '';
+    this.loadBankAccount();
+  }
+
+  private loadBankAccount(): void {
+    const userId = Number(this.hospitalUser?.id);
+    this.bankAccount = null;
+    this.bankAccountError = '';
+    if (!userId) return;
+
+    this.isLoadingBankAccount = true;
+    this.adminService.getProviderBankAccount(userId).subscribe({
+      next: response => {
+        this.bankAccount = response.data;
+        this.isLoadingBankAccount = false;
+      },
+      error: () => {
+        this.bankAccountError = 'Failed to load bank account details.';
+        this.isLoadingBankAccount = false;
+      }
+    });
   }
 
   get hospitalUser(): any {

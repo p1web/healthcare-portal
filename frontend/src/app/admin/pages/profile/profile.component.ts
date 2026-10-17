@@ -5,6 +5,9 @@ import { RouterModule } from '@angular/router';
 import { User } from '../../../models/user.model';
 import { AdminService } from '../../../services/admin.service';
 import { AuthService } from '../../../services/auth.service';
+import { LocationMasterService, LocationState } from '../../../services/location-master.service';
+import { districtsForState } from '../../../shared/data/location-master.options';
+import { ProfileSaveConfirmationService } from '../../../shared/profile-save-confirmation';
 
 @Component({
   selector: 'app-admin-profile',
@@ -20,19 +23,23 @@ export class ProfileComponent implements OnInit {
   isSubmitting = false;
   error = '';
   success = '';
+  locationStates: LocationState[] = [];
+  isLoadingLocations = false;
 
   constructor(
     private fb: FormBuilder,
     private adminService: AdminService,
-    private authService: AuthService
+    private authService: AuthService,
+    private locationMasterService: LocationMasterService,
+    private profileSaveConfirmation: ProfileSaveConfirmationService
   ) {
     this.profileForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(2)]],
       email: [{ value: '', disabled: true }],
       phone: ['', [Validators.required, Validators.pattern(/^\d{10}$/)]],
       address: [''],
-      city: [''],
-      state: [''],
+      districtId: [''],
+      stateId: [''],
       pincode: ['', Validators.pattern(/^\d{6}$/)],
       country: ['']
     });
@@ -40,6 +47,29 @@ export class ProfileComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadProfile();
+    this.loadLocationStates();
+  }
+
+  getDistrictOptions(stateId: number | string | null): LocationState['districts'] {
+    return districtsForState(this.locationStates, stateId);
+  }
+
+  onStateChange(): void {
+    this.profileForm.get('districtId')?.setValue('');
+  }
+
+  private loadLocationStates(): void {
+    this.isLoadingLocations = true;
+    this.locationMasterService.getStates().subscribe({
+      next: states => {
+        this.locationStates = states;
+        this.isLoadingLocations = false;
+      },
+      error: () => {
+        this.isLoadingLocations = false;
+        this.error = 'Failed to load state and district options.';
+      }
+    });
   }
 
   get initials(): string {
@@ -67,13 +97,14 @@ export class ProfileComponent implements OnInit {
     });
   }
 
-  onSubmit(): void {
+  async onSubmit(): Promise<void> {
     this.error = '';
     this.success = '';
     if (this.profileForm.invalid) {
       this.profileForm.markAllAsTouched();
       return;
     }
+    if (!await this.profileSaveConfirmation.confirm()) return;
 
     this.isSubmitting = true;
     this.adminService.updateProfile(this.profileForm.getRawValue()).subscribe({

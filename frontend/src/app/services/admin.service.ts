@@ -5,6 +5,16 @@ import { User } from '../models/user.model';
 import { AdminAppointment } from '../models/appointment.model';
 import { environment } from '../../environments/environment';
 
+export interface AdminProviderBankAccount {
+  accountHolderName: string;
+  bankName: string;
+  accountNumber: string;
+  ifscCode: string;
+  branchName?: string;
+  accountType?: string;
+  upiId?: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -16,6 +26,12 @@ export class AdminService {
 
   getUsers(filters: any = {}): Observable<User[]> {
     return this.http.get<User[]>(`${this.apiUrl}/users`, { params: filters });
+  }
+
+  getProviderBankAccount(userId: number): Observable<{ success: boolean; data: AdminProviderBankAccount | null }> {
+    return this.http.get<{ success: boolean; data: AdminProviderBankAccount | null }>(
+      `${this.apiUrl}/users/${userId}/bank-account`
+    );
   }
 
   updateUserAccountStatus(userId: number, status: 'active' | 'blocked'): Observable<any> {

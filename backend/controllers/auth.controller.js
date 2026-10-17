@@ -2,6 +2,7 @@
 const { User, PatientProfile, DoctorProfile, HospitalProfile, PatientAllergy, PatientMedicalCondition, sequelize } = require('../models');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
+const { userLocationIncludes, hospitalLocationIncludes } = require('../utils/locationIncludes');
 
 // Generate JWT token
 const generateToken = (user) => {
@@ -48,6 +49,8 @@ function formatUserResponse(user) {
     address: user.address,
     city: user.city,
     state: user.state,
+    districtId: user.districtId,
+    stateId: user.stateId,
     pincode: user.pincode,
     country: user.country,
     profileImage: user.profileImage,
@@ -193,7 +196,8 @@ exports.login = async (req, res) => {
           ]
         },
         { model: DoctorProfile, as: 'doctorProfile' },
-        { model: HospitalProfile, as: 'hospitalProfile' }
+        { model: HospitalProfile, as: 'hospitalProfile', include: hospitalLocationIncludes() },
+        ...userLocationIncludes()
       ]
     });
 
@@ -273,7 +277,8 @@ exports.getCurrentUser = async (req, res) => {
           ]
         },
         { model: DoctorProfile, as: 'doctorProfile', required: false },
-        { model: HospitalProfile, as: 'hospitalProfile', required: false }
+        { model: HospitalProfile, as: 'hospitalProfile', required: false, include: hospitalLocationIncludes() },
+        ...userLocationIncludes()
       ]
     });
 

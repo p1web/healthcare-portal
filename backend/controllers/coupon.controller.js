@@ -1,4 +1,4 @@
-const { Coupon, CouponCategory, HospitalProfile: Hospital, CouponUsage } = require('../models');
+const { Coupon, CouponCategory, HospitalProfile: Hospital, CouponUsage, State, District } = require('../models');
 const { Op } = require('sequelize');
 
 // Format coupon for frontend
@@ -63,7 +63,11 @@ exports.getAll = async (req, res) => {
       {
         model: Hospital,
         as: 'hospitals',
-        attributes: ['id', 'hospitalName'],
+        attributes: ['id', 'hospitalName', 'hospitalStateId', 'hospitalDistrictId'],
+        include: [
+          { model: State, as: 'hospitalStateMaster', attributes: ['id', 'name'], required: false },
+          { model: District, as: 'hospitalDistrictMaster', attributes: ['id', 'name'], required: false }
+        ],
         through: { attributes: [] }
       }
     ];
@@ -113,7 +117,11 @@ exports.getById = async (req, res) => {
         {
           model: Hospital,
           as: 'hospitals',
-          attributes: ['id', 'hospitalName', 'hospitalCity', 'hospitalState'],
+          attributes: ['id', 'hospitalName', 'hospitalStateId', 'hospitalDistrictId'],
+          include: [
+            { model: State, as: 'hospitalStateMaster', attributes: ['id', 'name'], required: false },
+            { model: District, as: 'hospitalDistrictMaster', attributes: ['id', 'name'], required: false }
+          ],
           through: { attributes: [] }
         }
       ]

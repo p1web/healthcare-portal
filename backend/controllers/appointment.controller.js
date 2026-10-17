@@ -8,9 +8,12 @@ const {
   HospitalStaff,
   HospitalStaffAvailability,
   Specialization,
+  Qualification,
   User,
   Coupon,
-  CouponUsage
+  CouponUsage,
+  State,
+  District
 } = require('../models');
 const { Op } = require('sequelize');
 const { isApprovedStatus } = require('../utils/providerReview');
@@ -23,14 +26,19 @@ const doctorInclude = {
   as: 'doctorProfile',
   include: [
     { model: User, as: 'user', attributes: ['id', 'name'] },
-    { model: Specialization, as: 'specialization', attributes: ['id', 'name'] }
+    { model: Specialization, as: 'specialization', attributes: ['id', 'name'] },
+    { model: Qualification, as: 'qualification', attributes: ['id', 'name'] }
   ]
 };
 
 const hospitalInclude = {
   model: HospitalProfile,
   as: 'hospitalProfile',
-  attributes: ['id', 'hospitalName', 'hospitalKind', 'hospitalCity', 'hospitalState']
+  attributes: ['id', 'hospitalName', 'hospitalKind', 'hospitalDistrictId', 'hospitalStateId'],
+  include: [
+    { model: State, as: 'hospitalStateMaster', attributes: ['id', 'name'], required: false },
+    { model: District, as: 'hospitalDistrictMaster', attributes: ['id', 'name'], required: false }
+  ]
 };
 
 const hospitalStaffInclude = {
@@ -1191,7 +1199,7 @@ exports.getAppointmentReceipt = async (req, res) => {
         doctorName: bookingType === 'doctor' ? (value.doctorProfile?.user?.name || null) : null,
         specialization: value.doctorProfile?.specialization?.name || value.hospitalStaff?.specialization || null,
         hospitalName,
-        hospitalCity: value.hospitalProfile?.hospitalCity || null,
+        hospitalCity: value.hospitalProfile?.hospitalDistrictMaster?.name || null,
         providerName,
         consultingDoctorName,
         departmentName,

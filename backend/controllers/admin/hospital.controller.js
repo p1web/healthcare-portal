@@ -14,6 +14,7 @@ const {
   normalizeProfileReviewStatus
 } = require('../../utils/providerReview');
 const { findPublicHospitalProfiles } = require('../../utils/publicHospital');
+const { hospitalLocationIncludes } = require('../../utils/locationIncludes');
 
 function mapProfileStatusFilter(status) {
   switch (String(status || 'ALL').toUpperCase()) {
@@ -95,12 +96,15 @@ module.exports = {
           include: [ {
             model: HospitalProfile, as: "hospitalProfile",
             where: profileWhere,
-            include: [{
-              model: User,
-              as: 'reviewedBy',
-              required: false,
-              attributes: ['id', 'name', 'email']
-            }]
+            include: [
+              ...hospitalLocationIncludes(),
+              {
+                model: User,
+                as: 'reviewedBy',
+                required: false,
+                attributes: ['id', 'name', 'email']
+              }
+            ]
           }]
         });
 
@@ -127,7 +131,10 @@ module.exports = {
       const { status, reviewNotes, rejectionReason } = req.body;
 
       const profile = await HospitalProfile.findByPk(id, {
-        include: [{ model: User, as: 'user' }],
+        include: [
+          { model: User, as: 'user' },
+          ...hospitalLocationIncludes()
+        ],
         transaction: t
       });
 

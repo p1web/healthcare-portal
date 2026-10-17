@@ -87,12 +87,18 @@
             <input type="text" class="form-control" formControlName="address" />
           </div>
           <div class="col-md-4">
-            <label class="form-label">City</label>
-            <input type="text" class="form-control" formControlName="city" />
+            <label class="form-label">State</label>
+            <select class="form-select" formControlName="stateId" (change)="onStateChange()">
+              <option value="">{{ isLoadingLocations ? 'Loading states...' : 'Select state' }}</option>
+              <option *ngFor="let state of locationStates" [ngValue]="state.id">{{ state.name }}</option>
+            </select>
           </div>
           <div class="col-md-4">
-            <label class="form-label">State</label>
-            <input type="text" class="form-control" formControlName="state" />
+            <label class="form-label">District</label>
+            <select class="form-select" formControlName="districtId">
+              <option value="">{{ isLoadingLocations ? 'Loading districts...' : 'Select district' }}</option>
+              <option *ngFor="let district of getDistrictOptions(profileForm.get('stateId')?.value)" [ngValue]="district.id">{{ district.name }}</option>
+            </select>
           </div>
           <div class="col-md-4">
             <label class="form-label">Pincode</label>

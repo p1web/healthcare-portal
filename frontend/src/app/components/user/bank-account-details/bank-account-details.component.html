@@ -1,0 +1,39 @@
+<div class="profile-page">
+  <div class="profile-header">
+    <div class="profile-avatar">
+      <i class="bi bi-bank2"></i>
+    </div>
+    <div>
+      <h4 class="mb-1">Bank Account Details</h4>
+      <span class="role-badge">{{ roleBadgeLabel }}</span>
+    </div>
+  </div>
+
+  <div *ngIf="success" class="alert alert-success alert-dismissible fade show">
+    <i class="bi bi-check-circle me-2"></i>{{ success }}
+    <button type="button" class="btn-close" (click)="success = ''"></button>
+  </div>
+
+  <div *ngIf="error" class="alert alert-danger alert-dismissible fade show">
+    <i class="bi bi-exclamation-circle me-2"></i>{{ error }}
+    <button type="button" class="btn-close" (click)="error = ''"></button>
+  </div>
+
+  <div *ngIf="isLocked" class="alert alert-info">
+    <i class="bi bi-lock me-2"></i>Bank account details are read-only because an administrator has finalized your verification.
+  </div>
+
+  <div class="profile-section" *ngIf="loading">
+    <div class="text-center py-4"><span class="spinner-border spinner-border-sm me-2"></span>Loading bank details...</div>
+  </div>
+
+  <div class="profile-section" *ngIf="!loading">
+    <app-bank-account-form
+      [initialData]="initialData"
+      [isReadOnly]="isLocked"
+      [isSaving]="saving"
+      [showHeader]="false"
+      (formSubmit)="onSave($event)">
+    </app-bank-account-form>
+  </div>
+</div>

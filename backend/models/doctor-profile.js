@@ -31,6 +31,11 @@ module.exports = (sequelize, DataTypes) => {
         as: 'specialization'
       });
 
+      DoctorProfile.belongsTo(models.Qualification, {
+        foreignKey: 'qualification_id',
+        as: 'qualification'
+      });
+
       DoctorProfile.hasMany(models.DoctorPractice, {
         foreignKey: 'doctor_profile_id',
         as: 'practices'
@@ -56,9 +61,10 @@ module.exports = (sequelize, DataTypes) => {
       unique: true,
       field: 'registration_number'
     },
-    qualification: {
-      type: DataTypes.STRING(255),
-      allowNull: true
+    qualificationId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      field: 'qualification_id'
     },
     specializationId: {
       type: DataTypes.INTEGER,

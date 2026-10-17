@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormArray, ReactiveFormsModule, Validators, FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { PracticeService, Practice, PracticeAvailabilitySlot } from '../../../services/practice.service';
+import { LocationMasterService, LocationState } from '../../../services/location-master.service';
+import { districtsForState } from '../../../shared/data/location-master.options';
 
 @Component({
   standalone: true,
@@ -14,6 +16,8 @@ import { PracticeService, Practice, PracticeAvailabilitySlot } from '../../../se
 export class DoctorPracticesComponent implements OnInit {
   readonly weekDays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   practices: Practice[] = [];
+  locationStates: LocationState[] = [];
+  isLoadingLocations = false;
   soloForm!: FormGroup;
   editForm!: FormGroup;
   editingId: number | null = null;
@@ -28,7 +32,8 @@ export class DoctorPracticesComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private practiceService: PracticeService
+    private practiceService: PracticeService,
+    private locationMasterService: LocationMasterService
   ) {}
 
   ngOnInit(): void {
@@ -38,8 +43,8 @@ export class DoctorPracticesComponent implements OnInit {
       hospitalPhone: [''],
       hospitalEmail: [''],
       hospitalAddress: [''],
-      hospitalCity: [''],
-      hospitalState: [''],
+      hospitalDistrictId: [''],
+      hospitalStateId: [''],
       hospitalPincode: ['']
     });
     this.editForm = this.fb.group({
@@ -56,6 +61,29 @@ export class DoctorPracticesComponent implements OnInit {
       )
     });
     this.loadPractices();
+    this.loadLocationStates();
+  }
+
+  getDistrictOptions(stateId: number | string | null): LocationState['districts'] {
+    return districtsForState(this.locationStates, stateId);
+  }
+
+  onStateChange(): void {
+    this.soloForm.get('hospitalDistrictId')?.setValue('');
+  }
+
+  private loadLocationStates(): void {
+    this.isLoadingLocations = true;
+    this.locationMasterService.getStates().subscribe({
+      next: states => {
+        this.locationStates = states;
+        this.isLoadingLocations = false;
+      },
+      error: () => {
+        this.isLoadingLocations = false;
+        this.error = 'Failed to load state and district options.';
+      }
+    });
   }
 
   get availabilitySlots(): FormArray {
@@ -92,8 +120,8 @@ export class DoctorPracticesComponent implements OnInit {
         hospitalPhone: '',
         hospitalEmail: '',
         hospitalAddress: '',
-        hospitalCity: '',
-        hospitalState: '',
+        hospitalDistrictId: '',
+        hospitalStateId: '',
         hospitalPincode: ''
       });
     }
@@ -113,8 +141,8 @@ export class DoctorPracticesComponent implements OnInit {
       hospitalPhone: v.hospitalPhone || undefined,
       hospitalEmail: v.hospitalEmail || undefined,
       hospitalAddress: v.hospitalAddress || undefined,
-      hospitalCity: v.hospitalCity || undefined,
-      hospitalState: v.hospitalState || undefined,
+      hospitalDistrictId: v.hospitalDistrictId || undefined,
+      hospitalStateId: v.hospitalStateId || undefined,
       hospitalPincode: v.hospitalPincode || undefined
     }).subscribe({
       next: () => {

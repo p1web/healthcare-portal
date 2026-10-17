@@ -7,6 +7,9 @@ import { PatientAllergy, PatientMedicalCondition } from '../../../models/patient
 import { AuthService } from '../../../services/auth.service';
 import { PatientProfileService } from '../../../services/patient-profile.service';
 import { PatientMedicalRecordService } from '../../../services/patient-medical-record.service';
+import { LocationMasterService, LocationState } from '../../../services/location-master.service';
+import { districtsForState } from '../../../shared/data/location-master.options';
+import { ProfileSaveConfirmationService } from '../../../shared/profile-save-confirmation';
 
 @Component({
   standalone: true,
@@ -16,6 +19,8 @@ import { PatientMedicalRecordService } from '../../../services/patient-medical-r
   styleUrl: './patient-profile.component.css'
 })
 export class PatientProfileComponent implements OnInit {
+  locationStates: LocationState[] = [];
+  isLoadingLocations = false;
   profileForm!: FormGroup;
   user: User | null = null;
   isSubmitting: boolean = false;
@@ -48,7 +53,7 @@ export class PatientProfileComponent implements OnInit {
       title: 'Address',
       subtitle: 'Where you live',
       icon: 'bi-geo-alt',
-      controls: ['basic.address', 'basic.city', 'basic.state', 'basic.pincode']
+      controls: ['basic.address', 'basic.districtId', 'basic.stateId', 'basic.pincode']
     },
     {
       title: 'Medical',
@@ -69,6 +74,8 @@ export class PatientProfileComponent implements OnInit {
     private authService: AuthService,
     private patientProfileService: PatientProfileService,
     private medicalRecordService: PatientMedicalRecordService,
+    private locationMasterService: LocationMasterService,
+    private profileSaveConfirmation: ProfileSaveConfirmationService
   ) { }
 
   ngOnInit(): void {
@@ -77,6 +84,7 @@ export class PatientProfileComponent implements OnInit {
     this.setupBMICalculation();
     this.loadAllergies();
     this.loadMedicalConditions();
+    this.loadLocationStates();
   }
 
   initializeForm(): void {
@@ -86,21 +94,21 @@ export class PatientProfileComponent implements OnInit {
         email: [{ value: '', disabled: true }, [Validators.required, Validators.email]],
         phone: ['', [Validators.required, Validators.pattern(/^[0-9]{10}$/)]],
         role: [{ value: '', disabled: true }],
-        dateOfBirth: [''],
-        gender: [''],
-        address: [''],
-        city: [''],
-        state: [''],
-        pincode: ['', Validators.pattern(/^[0-9]{6}$/)],
+        dateOfBirth: ['', Validators.required],
+        gender: ['', Validators.required],
+        address: ['', Validators.required],
+        districtId: ['', Validators.required],
+        stateId: ['', Validators.required],
+        pincode: ['', [Validators.required, Validators.pattern(/^[0-9]{6}$/)]],
         country: ['India']
       }),
       patient: this.fb.group({
         bloodGroup: [''],
         height: ['', [Validators.min(0), Validators.max(300)]],
         weight: ['', [Validators.min(0), Validators.max(500)]],
-        emergencyContactName: [''],
-        emergencyContactPhone: ['', Validators.pattern(/^[0-9]{10}$/)],
-        emergencyContactRelation: ['']
+        emergencyContactName: ['', Validators.required],
+        emergencyContactPhone: ['', [Validators.required, Validators.pattern(/^[0-9]{10}$/)]],
+        emergencyContactRelation: ['', Validators.required]
       })
     });
   }
@@ -108,10 +116,11 @@ export class PatientProfileComponent implements OnInit {
   loadCurrentUser(): void {
     this.loading = true;
 
-    this.authService.currentUser$.subscribe({
-      next: (user) => {
-        if (user) {
-          this.user = user;
+    this.patientProfileService.getProfile().subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.user = response.data;
+          this.authService.setCurrentUser(response.data);
           this.populateForms();
         }
         this.loading = false;
@@ -134,8 +143,8 @@ export class PatientProfileComponent implements OnInit {
       dateOfBirth: this.user.dateOfBirth ? this.formatDate(this.user.dateOfBirth) : '',
       gender: this.user.gender || '',
       address: this.user.address || '',
-      city: this.user.city || '',
-      state: this.user.state || '',
+      districtId: this.user.districtId ?? '',
+      stateId: this.user.stateId ?? '',
       pincode: this.user.pincode || '',
       country: this.user.country || 'India'
     });
@@ -186,11 +195,39 @@ export class PatientProfileComponent implements OnInit {
     step.controls.forEach(path => this.profileForm.get(path)?.markAsTouched());
   }
 
+  getDistrictOptions(stateId: number | string | null): LocationState['districts'] {
+    return districtsForState(this.locationStates, stateId);
+  }
+
+  private loadLocationStates(): void {
+    this.isLoadingLocations = true;
+    this.locationMasterService.getStates().subscribe({
+      next: states => {
+        this.locationStates = states;
+        this.isLoadingLocations = false;
+      },
+      error: () => {
+        this.isLoadingLocations = false;
+        this.error = 'Failed to load state and district options.';
+      }
+    });
+  }
+
+  onBasicStateChange(): void {
+    this.profileForm.get('basic.districtId')?.setValue('');
+  }
+
   goToStep(index: number): void {
     if (index < 0 || index >= this.steps.length) return;
-    if (index > this.currentStep && !this.isStepValid(this.currentStep)) {
-      this.markStepTouched(this.currentStep);
-      return;
+    if (index > this.currentStep) {
+      for (let stepIndex = this.currentStep; stepIndex < index; stepIndex++) {
+        if (!this.isStepValid(stepIndex)) {
+          this.currentStep = stepIndex;
+          this.visitedSteps.add(stepIndex);
+          this.markStepTouched(stepIndex);
+          return;
+        }
+      }
     }
     this.currentStep = index;
     this.visitedSteps.add(index);
@@ -201,6 +238,7 @@ export class PatientProfileComponent implements OnInit {
 
   nextStep(): void {
     if (!this.isStepValid(this.currentStep)) {
+      this.visitedSteps.add(this.currentStep);
       this.markStepTouched(this.currentStep);
       return;
     }
@@ -228,7 +266,7 @@ export class PatientProfileComponent implements OnInit {
     return this.currentStep === 0;
   }
 
-  onSubmit(): void {
+  async onSubmit(): Promise<void> {
     const basicGroup = this.profileForm.get('basic') as FormGroup;
     const patientGroup = this.profileForm.get('patient') as FormGroup;
 
@@ -238,13 +276,19 @@ export class PatientProfileComponent implements OnInit {
       this.markFormGroupTouched(patientGroup);
       return;
     }
+    if (!await this.profileSaveConfirmation.confirm()) return;
 
     this.isSubmitting = true;
     this.error = '';
 
     const payload = {
       user: { ...basicGroup.getRawValue() },
-      patientProfile: { ...patientGroup.value }
+      patientProfile: {
+        ...patientGroup.value,
+        bloodGroup: patientGroup.value.bloodGroup === '' ? null : patientGroup.value.bloodGroup,
+        height: patientGroup.value.height === '' ? null : patientGroup.value.height,
+        weight: patientGroup.value.weight === '' ? null : patientGroup.value.weight
+      }
     };
 
     delete payload.user.email;

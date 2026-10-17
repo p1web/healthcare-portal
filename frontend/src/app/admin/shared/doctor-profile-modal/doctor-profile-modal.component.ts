@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, OnChanges, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ProfileReviewStatus, User } from '../../../models/user.model';
-import { AdminService } from '../../../services/admin.service';
+import { AdminProviderBankAccount, AdminService } from '../../../services/admin.service';
 import { environment } from '../../../../environments/environment';
 
 @Component({
@@ -28,6 +28,9 @@ export class DoctorProfileModalComponent implements OnChanges {
 
   practices: any[] = [];
   isLoadingPractices = false;
+  bankAccount: AdminProviderBankAccount | null = null;
+  isLoadingBankAccount = false;
+  bankAccountError = '';
 
   constructor(private adminService: AdminService) {}
 
@@ -37,6 +40,26 @@ export class DoctorProfileModalComponent implements OnChanges {
     this.reviewComments = '';
     this.errorMessage = '';
     this.loadPractices();
+    this.loadBankAccount();
+  }
+
+  private loadBankAccount(): void {
+    const userId = Number(this.doctorUser?.id);
+    this.bankAccount = null;
+    this.bankAccountError = '';
+    if (!userId) return;
+
+    this.isLoadingBankAccount = true;
+    this.adminService.getProviderBankAccount(userId).subscribe({
+      next: response => {
+        this.bankAccount = response.data;
+        this.isLoadingBankAccount = false;
+      },
+      error: () => {
+        this.bankAccountError = 'Failed to load bank account details.';
+        this.isLoadingBankAccount = false;
+      }
+    });
   }
 
   private loadPractices(): void {

@@ -6,10 +6,12 @@ const {
   HospitalProfile,
   User,
   Specialization,
+  Qualification,
   PlatformCommissionSettings
 } = require('../../models');
 const { PRACTICE_STATUSES } = require('../../models/doctor-practice');
 const { invalidatePlatformDefaultsCache } = require('../../utils/practiceCommission');
+const { hospitalLocationIncludes } = require('../../utils/locationIncludes');
 
 const num = (v) => (v !== null && v !== undefined) ? parseFloat(v) : 0;
 
@@ -31,15 +33,18 @@ function formatAdminPractice(practice) {
       id: value.hospital.id,
       hospitalName: value.hospital.hospitalName,
       hospitalKind: value.hospital.hospitalKind,
-      hospitalCity: value.hospital.hospitalCity,
-      hospitalState: value.hospital.hospitalState,
+      hospitalCity: value.hospital.hospitalDistrictMaster?.name || null,
+      hospitalState: value.hospital.hospitalStateMaster?.name || null,
+      hospitalDistrictId: value.hospital.hospitalDistrictId,
+      hospitalStateId: value.hospital.hospitalStateId,
       ownerUserId: value.hospital.userId,
       hospitalCommissionPercent: num(value.hospital.hospitalCommissionPercent)
     } : null,
     doctor: value.doctor ? {
       id: value.doctor.id,
       registrationNumber: value.doctor.registrationNumber,
-      qualification: value.doctor.qualification,
+      qualification: value.doctor.qualification?.name || null,
+      qualificationId: value.doctor.qualificationId,
       ownerUserId: value.doctor.userId,
       user: value.doctor.user ? { id: value.doctor.user.id, name: value.doctor.user.name, email: value.doctor.user.email } : null,
       specialization: value.doctor.specialization ? { id: value.doctor.specialization.id, name: value.doctor.specialization.name } : null
@@ -61,15 +66,17 @@ exports.listPractices = async (req, res) => {
         {
           model: HospitalProfile,
           as: 'hospital',
-          attributes: ['id', 'hospitalName', 'hospitalKind', 'hospitalCity', 'hospitalState', 'userId', 'hospitalCommissionPercent']
+          attributes: ['id', 'hospitalName', 'hospitalKind', 'hospitalDistrictId', 'hospitalStateId', 'userId', 'hospitalCommissionPercent'],
+          include: hospitalLocationIncludes()
         },
         {
           model: DoctorProfile,
           as: 'doctor',
-          attributes: ['id', 'registrationNumber', 'qualification', 'userId'],
+          attributes: ['id', 'registrationNumber', 'qualificationId', 'userId'],
           include: [
             { model: User, as: 'user', attributes: ['id', 'name', 'email'] },
-            { model: Specialization, as: 'specialization', attributes: ['id', 'name'] }
+            { model: Specialization, as: 'specialization', attributes: ['id', 'name'] },
+            { model: Qualification, as: 'qualification', attributes: ['id', 'name'] }
           ]
         }
       ],
@@ -88,7 +95,7 @@ exports.updatePractice = async (req, res) => {
   try {
     const practice = await DoctorPractice.findByPk(req.params.id, {
       include: [
-        { model: HospitalProfile, as: 'hospital' },
+        { model: HospitalProfile, as: 'hospital', include: hospitalLocationIncludes() },
         {
           model: DoctorProfile,
           as: 'doctor',
@@ -128,7 +135,8 @@ exports.updatePractice = async (req, res) => {
 exports.listHospitalCommissions = async (req, res) => {
   try {
     const hospitals = await HospitalProfile.findAll({
-      attributes: ['id', 'hospitalName', 'hospitalKind', 'hospitalCity', 'hospitalState', 'hospitalCommissionPercent', 'verificationStatus'],
+      attributes: ['id', 'hospitalName', 'hospitalKind', 'hospitalDistrictId', 'hospitalStateId', 'hospitalCommissionPercent', 'verificationStatus'],
+      include: hospitalLocationIncludes(),
       order: [['hospitalName', 'ASC']]
     });
     return res.json({
@@ -137,8 +145,8 @@ exports.listHospitalCommissions = async (req, res) => {
         id: h.id,
         hospitalName: h.hospitalName,
         hospitalKind: h.hospitalKind,
-        hospitalCity: h.hospitalCity,
-        hospitalState: h.hospitalState,
+        hospitalCity: h.hospitalDistrictMaster?.name || null,
+        hospitalState: h.hospitalStateMaster?.name || null,
         verificationStatus: h.verificationStatus,
         hospitalCommissionPercent: num(h.hospitalCommissionPercent)
       }))

@@ -127,6 +127,34 @@
       </div>
 
       <div class="row">
+        <div class="col-md-6 mb-3">
+          <label class="form-label">State <span class="text-danger">*</span></label>
+          <select class="form-select" formControlName="stateId" (change)="onBasicStateChange()"
+            [class.is-invalid]="profileForm.get('basic.stateId')?.invalid && profileForm.get('basic.stateId')?.touched">
+            <option value="">{{ isLoadingLocations ? 'Loading states...' : 'Select state' }}</option>
+            <option *ngFor="let state of locationStates" [ngValue]="state.id">{{ state.name }}</option>
+          </select>
+          <div class="invalid-feedback"
+            *ngIf="profileForm.get('basic.stateId')?.invalid && profileForm.get('basic.stateId')?.touched">
+            State is required
+          </div>
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label class="form-label">District <span class="text-danger">*</span></label>
+          <select class="form-select" formControlName="districtId"
+            [class.is-invalid]="profileForm.get('basic.districtId')?.invalid && profileForm.get('basic.districtId')?.touched">
+            <option value="">{{ isLoadingLocations ? 'Loading districts...' : 'Select district' }}</option>
+            <option *ngFor="let district of getDistrictOptions(profileForm.get('basic.stateId')?.value)" [ngValue]="district.id">{{ district.name }}</option>
+          </select>
+          <div class="invalid-feedback"
+            *ngIf="profileForm.get('basic.districtId')?.invalid && profileForm.get('basic.districtId')?.touched">
+            District is required
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
         <div class="col-md-12 mb-3">
           <label class="form-label">Address <span class="text-danger">*</span></label>
           <input type="text" class="form-control" formControlName="address"
@@ -134,28 +162,6 @@
           <div class="invalid-feedback"
             *ngIf="profileForm.get('basic.address')?.invalid && profileForm.get('basic.address')?.touched">
             Address is required
-          </div>
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="col-md-6 mb-3">
-          <label class="form-label">City <span class="text-danger">*</span></label>
-          <input type="text" class="form-control" formControlName="city"
-            [class.is-invalid]="profileForm.get('basic.city')?.invalid && profileForm.get('basic.city')?.touched" />
-          <div class="invalid-feedback"
-            *ngIf="profileForm.get('basic.city')?.invalid && profileForm.get('basic.city')?.touched">
-            City is required
-          </div>
-        </div>
-
-        <div class="col-md-6 mb-3">
-          <label class="form-label">State <span class="text-danger">*</span></label>
-          <input type="text" class="form-control" formControlName="state"
-            [class.is-invalid]="profileForm.get('basic.state')?.invalid && profileForm.get('basic.state')?.touched" />
-          <div class="invalid-feedback"
-            *ngIf="profileForm.get('basic.state')?.invalid && profileForm.get('basic.state')?.touched">
-            State is required
           </div>
         </div>
       </div>
@@ -188,25 +194,20 @@
 
       <div class="row">
         <div class="col-md-4 mb-3">
-          <label class="form-label" for="bloodGroup">Blood Group <span class="text-danger">*</span></label>
+          <label class="form-label" for="bloodGroup">Blood Group</label>
           <select class="form-control" id="bloodGroup" formControlName="bloodGroup"
             [class.is-invalid]="profileForm.get('patient.bloodGroup')?.invalid && profileForm.get('patient.bloodGroup')?.touched">
             <option value="">Select Blood Group</option>
             <option *ngFor="let bg of bloodGroups" [value]="bg">{{ bg }}</option>
           </select>
-          <div class="invalid-feedback"
-            *ngIf="profileForm.get('patient.bloodGroup')?.invalid && profileForm.get('patient.bloodGroup')?.touched">
-            Blood group is required
-          </div>
         </div>
 
         <div class="col-md-4 mb-3">
-          <label class="form-label">Height (cm) <span class="text-danger">*</span></label>
+          <label class="form-label">Height (cm)</label>
           <input type="number" class="form-control" formControlName="height" placeholder="Enter height in cm"
             [class.is-invalid]="profileForm.get('patient.height')?.invalid && profileForm.get('patient.height')?.touched" />
           <div class="invalid-feedback"
             *ngIf="profileForm.get('patient.height')?.invalid && profileForm.get('patient.height')?.touched">
-            <span *ngIf="profileForm.get('patient.height')?.errors?.['required']">Height is required</span>
             <span
               *ngIf="profileForm.get('patient.height')?.errors?.['min'] || profileForm.get('patient.height')?.errors?.['max']">
               Height must be between 50 and 300 cm
@@ -215,12 +216,11 @@
         </div>
 
         <div class="col-md-4 mb-3">
-          <label class="form-label">Weight (kg) <span class="text-danger">*</span></label>
+          <label class="form-label">Weight (kg)</label>
           <input type="number" class="form-control" formControlName="weight" placeholder="Enter weight in kg"
             [class.is-invalid]="profileForm.get('patient.weight')?.invalid && profileForm.get('patient.weight')?.touched" />
           <div class="invalid-feedback"
             *ngIf="profileForm.get('patient.weight')?.invalid && profileForm.get('patient.weight')?.touched">
-            <span *ngIf="profileForm.get('patient.weight')?.errors?.['required']">Weight is required</span>
             <span
               *ngIf="profileForm.get('patient.weight')?.errors?.['min'] || profileForm.get('patient.weight')?.errors?.['max']">
               Weight must be between 20 and 500 kg

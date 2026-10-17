@@ -8,15 +8,19 @@ const {
   HospitalStaff,
   User,
   Specialization,
+  Qualification,
   Appointment,
   DoctorAvailability,
-  sequelize
+  sequelize,
+  State,
+  District
 } = require('../models');
 const { Op } = require('sequelize');
 const { PRACTICE_STATUSES } = require('../models/doctor-practice');
 const { getPlatformDefaults } = require('../utils/practiceCommission');
 const { isApprovedStatus } = require('../utils/providerReview');
 const { PlatformCommissionSettings } = require('../models');
+const { resolveLocationIds } = require('../utils/userBasicUpdate');
 
 function toNumber(v, fallback = null) {
   if (v === null || v === undefined || v === '') return fallback;
@@ -40,14 +44,17 @@ function formatPractice(practice) {
       id: value.hospital.id,
       hospitalName: value.hospital.hospitalName,
       hospitalKind: value.hospital.hospitalKind,
-      hospitalCity: value.hospital.hospitalCity,
-      hospitalState: value.hospital.hospitalState,
+      hospitalCity: value.hospital.hospitalDistrictMaster?.name || null,
+      hospitalState: value.hospital.hospitalStateMaster?.name || null,
+      hospitalDistrictId: value.hospital.hospitalDistrictId,
+      hospitalStateId: value.hospital.hospitalStateId,
       hospitalCommissionPercent: toNumber(value.hospital.hospitalCommissionPercent, 0)
     } : null,
     doctor: value.doctor ? {
       id: value.doctor.id,
       registrationNumber: value.doctor.registrationNumber,
-      qualification: value.doctor.qualification,
+      qualification: value.doctor.qualification?.name || null,
+      qualificationId: value.doctor.qualificationId,
       user: value.doctor.user ? { id: value.doctor.user.id, name: value.doctor.user.name } : null,
       specialization: value.doctor.specialization ? { id: value.doctor.specialization.id, name: value.doctor.specialization.name } : null
     } : null,
@@ -73,7 +80,11 @@ exports.listPublicPracticesForDoctor = async (req, res) => {
       include: [{
         model: HospitalProfile,
         as: 'hospital',
-        attributes: ['id', 'hospitalName', 'hospitalKind', 'hospitalCity', 'hospitalState', 'verificationStatus', 'hospitalCommissionPercent']
+        attributes: ['id', 'hospitalName', 'hospitalKind', 'hospitalDistrictId', 'hospitalStateId', 'verificationStatus', 'hospitalCommissionPercent'],
+        include: [
+          { model: State, as: 'hospitalStateMaster', attributes: ['id', 'name'], required: false },
+          { model: District, as: 'hospitalDistrictMaster', attributes: ['id', 'name'], required: false }
+        ]
       }],
       order: [['isPrimary', 'DESC'], ['id', 'ASC']]
     });
@@ -100,7 +111,11 @@ exports.listMyPractices = async (req, res) => {
       include: [{
         model: HospitalProfile,
         as: 'hospital',
-        attributes: ['id', 'hospitalName', 'hospitalKind', 'hospitalCity', 'hospitalState', 'hospitalCommissionPercent']
+        attributes: ['id', 'hospitalName', 'hospitalKind', 'hospitalDistrictId', 'hospitalStateId', 'hospitalCommissionPercent'],
+        include: [
+          { model: State, as: 'hospitalStateMaster', attributes: ['id', 'name'], required: false },
+          { model: District, as: 'hospitalDistrictMaster', attributes: ['id', 'name'], required: false }
+        ]
       }],
       order: [['isPrimary', 'DESC'], ['id', 'ASC']]
     });
@@ -144,6 +159,8 @@ exports.createSoloClinic = async (req, res) => {
       hospitalAddress,
       hospitalCity,
       hospitalState,
+      hospitalDistrictId,
+      hospitalStateId,
       hospitalPincode
     } = req.body || {};
 
@@ -159,6 +176,13 @@ exports.createSoloClinic = async (req, res) => {
     }
 
     const user = await User.findByPk(req.user.id, { transaction: t });
+    const locationIds = await resolveLocationIds({
+      stateId: hospitalStateId,
+      districtId: hospitalDistrictId,
+      stateName: hospitalState,
+      districtName: hospitalCity,
+      transaction: t
+    });
 
     const hospital = await HospitalProfile.create({
       userId: req.user.id,
@@ -166,8 +190,8 @@ exports.createSoloClinic = async (req, res) => {
       hospitalEmail: (hospitalEmail && String(hospitalEmail).trim()) || user?.email || null,
       hospitalPhone: (hospitalPhone && String(hospitalPhone).trim()) || user?.phone || null,
       hospitalAddress: hospitalAddress ? String(hospitalAddress).trim() : null,
-      hospitalCity: hospitalCity ? String(hospitalCity).trim() : null,
-      hospitalState: hospitalState ? String(hospitalState).trim() : null,
+      hospitalDistrictId: locationIds?.districtId || null,
+      hospitalStateId: locationIds?.stateId || null,
       hospitalPincode: hospitalPincode ? String(hospitalPincode).trim() : null,
       hospitalKind: 'solo_practice',
       verificationStatus: 'approved',
@@ -194,13 +218,23 @@ exports.createSoloClinic = async (req, res) => {
     await t.commit();
 
     const created = await DoctorPractice.findByPk(practice.id, {
-      include: [{ model: HospitalProfile, as: 'hospital' }]
+      include: [{
+        model: HospitalProfile,
+        as: 'hospital',
+        include: [
+          { model: State, as: 'hospitalStateMaster', attributes: ['id', 'name'], required: false },
+          { model: District, as: 'hospitalDistrictMaster', attributes: ['id', 'name'], required: false }
+        ]
+      }]
     });
     return res.status(201).json({ success: true, data: formatPractice(created) });
   } catch (error) {
     if (!t.finished) await t.rollback();
     console.error('Create solo clinic error:', error);
-    return res.status(500).json({ success: false, message: 'Failed to create solo clinic' });
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.statusCode ? error.message : 'Failed to create solo clinic'
+    });
   }
 };
 
@@ -239,7 +273,14 @@ exports.updateMyPractice = async (req, res) => {
     }
 
     const updated = await DoctorPractice.findByPk(practice.id, {
-      include: [{ model: HospitalProfile, as: 'hospital' }]
+      include: [{
+        model: HospitalProfile,
+        as: 'hospital',
+        include: [
+          { model: State, as: 'hospitalStateMaster', attributes: ['id', 'name'], required: false },
+          { model: District, as: 'hospitalDistrictMaster', attributes: ['id', 'name'], required: false }
+        ]
+      }]
     });
     return res.json({ success: true, data: formatPractice(updated) });
   } catch (error) {
@@ -293,7 +334,8 @@ exports.listHospitalPractices = async (req, res) => {
         as: 'doctor',
         include: [
           { model: User, as: 'user', attributes: ['id', 'name', 'email'] },
-          { model: Specialization, as: 'specialization', attributes: ['id', 'name'] }
+          { model: Specialization, as: 'specialization', attributes: ['id', 'name'] },
+          { model: Qualification, as: 'qualification', attributes: ['id', 'name'] }
         ]
       }],
       order: [['status', 'ASC'], ['createdAt', 'DESC']]
@@ -444,7 +486,10 @@ exports.getHospitalSummary = async (req, res) => {
         {
           model: DoctorProfile,
           as: 'doctorProfile',
-          include: [{ model: User, as: 'user', attributes: ['id', 'name'] }]
+          include: [
+            { model: User, as: 'user', attributes: ['id', 'name'] },
+            { model: Qualification, as: 'qualification', attributes: ['id', 'name'] }
+          ]
         },
         { model: HospitalStaff, as: 'hospitalStaff', attributes: ['id', 'name'], required: false },
         { model: Department, as: 'department', attributes: ['id', 'name'], required: false }

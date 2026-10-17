@@ -26,6 +26,9 @@ const HospitalStaff = require("./hospital-staff")(sequelize, DataTypes);
 const HospitalAvailability = require("./hospital-availability")(sequelize, DataTypes);
 const Department = require("./department")(sequelize, DataTypes);
 const HospitalStaffAvailability = require("./hospital-staff-availability")(sequelize, DataTypes);
+const ProviderBankAccount = require("./provider-bank-account")(sequelize, DataTypes);
+const State = require("./state")(sequelize, DataTypes);
+const District = require("./district")(sequelize, DataTypes);
 
 
 // Run associations
@@ -38,12 +41,12 @@ CouponUsage.associate({ Coupon });
 Appointment.associate({ DoctorProfile, User, Coupon, DoctorPractice, HospitalProfile, HospitalStaff, Department });
 
 // User associations
-User.associate({ PatientProfile, DoctorProfile, HospitalProfile });
+User.associate({ PatientProfile, DoctorProfile, HospitalProfile, State, District });
 
 // Profile associations
 PatientProfile.associate({ User, PatientAllergy, PatientMedicalCondition });
-DoctorProfile.associate({ User, Specialization, DoctorAvailability, Appointment, DoctorPractice });
-HospitalProfile.associate({ User, Coupon, DoctorPractice, HospitalStaff, HospitalAvailability, Department });
+DoctorProfile.associate({ User, Specialization, Qualification, DoctorAvailability, Appointment, DoctorPractice });
+HospitalProfile.associate({ User, Coupon, DoctorPractice, HospitalStaff, HospitalAvailability, Department, State, District });
 PatientAllergy.associate({ PatientProfile });
 PatientMedicalCondition.associate({ PatientProfile });
 DoctorPractice.associate({ DoctorProfile, HospitalProfile, DoctorAvailability, Appointment });
@@ -52,6 +55,8 @@ HospitalStaff.associate({ HospitalProfile, Department, HospitalStaffAvailability
 HospitalAvailability.associate({ HospitalProfile });
 Department.associate({ HospitalProfile, HospitalStaff, Appointment });
 HospitalStaffAvailability.associate({ HospitalStaff });
+State.associate({ District });
+District.associate({ State });
 
 
 module.exports = {
@@ -79,5 +84,8 @@ module.exports = {
   HospitalStaff,
   HospitalAvailability,
   Department,
-  HospitalStaffAvailability
+  HospitalStaffAvailability,
+  ProviderBankAccount,
+  State,
+  District
 };

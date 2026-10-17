@@ -5,8 +5,11 @@ const {
   DoctorProfile,
   User,
   Specialization,
+  Qualification,
   HospitalProfile,
   DoctorAvailability,
+  State,
+  District,
   sequelize,
 } = require("../../models");
 
@@ -16,6 +19,7 @@ const {
   buildAdminReviewUpdate,
   normalizeProfileReviewStatus
 } = require('../../utils/providerReview');
+const { userLocationIncludes } = require('../../utils/locationIncludes');
 
 function mapProfileStatusFilter(status) {
   switch (String(status || 'ALL').toUpperCase()) {
@@ -102,11 +106,12 @@ module.exports = {
             where: userWhere,
             attributes: [
               "id", "name", "email", "phone",
-              "gender", "address", "city",
-              "state", "country", "pincode",
+              "gender", "address", "districtId",
+              "stateId", "country", "pincode",
               "is_active", "is_blocked",
               "created_at", "updated_at"
-            ]
+            ],
+            include: userLocationIncludes()
           },
           {
             model: User,
@@ -119,6 +124,12 @@ module.exports = {
             as: 'specialization',
             required: publicListing,
             attributes: ['id', 'name']
+          },
+          {
+            model: Qualification,
+            as: 'qualification',
+            required: false,
+            attributes: ['id', 'name', 'description']
           },
           {
             model: DoctorAvailability,
@@ -208,11 +219,19 @@ module.exports = {
     try {
       const hospitals = await HospitalProfile.findAll({
         where: { verificationStatus: PROFILE_REVIEW_STATUSES.APPROVED },
-        attributes: ['id', ['hospital_name', 'name'], ['hospital_city', 'location']],
+        attributes: ['id', 'hospitalName', 'hospitalStateId', 'hospitalDistrictId'],
+        include: [
+          { model: State, as: 'hospitalStateMaster', attributes: ['id', 'name'], required: false },
+          { model: District, as: 'hospitalDistrictMaster', attributes: ['id', 'name'], required: false }
+        ],
         order: [['hospitalName', 'ASC']]
       });
 
-      res.json(hospitals);
+      res.json(hospitals.map(hospital => ({
+        id: hospital.id,
+        name: hospital.hospitalName,
+        location: [hospital.hospitalDistrictMaster?.name, hospital.hospitalStateMaster?.name].filter(Boolean).join(', ')
+      })));
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch hospitals", error });
     }

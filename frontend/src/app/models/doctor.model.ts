@@ -19,6 +19,7 @@ export interface Doctor {
   email?: string;
   phone?: string;
   qualification?: string;
+  qualificationId?: number | null;
   bio?: string;
   image?: string;
   consultationDuration?: number;

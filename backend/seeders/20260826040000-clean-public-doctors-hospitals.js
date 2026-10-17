@@ -262,11 +262,79 @@ const DOCTOR_PROFILES = [
   }
 ];
 
+function locationKey(stateName, districtName) {
+  return `${String(stateName || '').trim().toLowerCase()}|${String(districtName || '').trim().toLowerCase()}`;
+}
+
+async function ensureLocationMasterRows(queryInterface) {
+  const locations = [
+    ...HOSPITAL_USERS,
+    ...DOCTOR_USERS
+  ].map(user => ({ stateName: user.state, districtName: user.city }))
+    .concat(HOSPITAL_PROFILES.map(profile => ({
+      stateName: profile.hospital_state,
+      districtName: profile.hospital_city
+    })));
+  const locationIds = new Map();
+
+  for (const location of locations) {
+    const stateName = String(location.stateName || '').trim();
+    const districtName = String(location.districtName || '').trim();
+    const [states] = await queryInterface.sequelize.query(
+      'SELECT id FROM states WHERE LOWER(name) = LOWER(:name) LIMIT 1',
+      { replacements: { name: stateName } }
+    );
+    let stateId = states[0]?.id;
+
+    if (!stateId) {
+      await queryInterface.bulkInsert('states', [{
+        name: stateName,
+        created_at: new Date(),
+        updated_at: new Date()
+      }]);
+      const [insertedStates] = await queryInterface.sequelize.query(
+        'SELECT id FROM states WHERE LOWER(name) = LOWER(:name) LIMIT 1',
+        { replacements: { name: stateName } }
+      );
+      stateId = insertedStates[0].id;
+    }
+
+    const [districts] = await queryInterface.sequelize.query(
+      'SELECT id FROM districts WHERE state_id = :stateId AND LOWER(name) = LOWER(:name) LIMIT 1',
+      { replacements: { stateId, name: districtName } }
+    );
+    let districtId = districts[0]?.id;
+
+    if (!districtId) {
+      await queryInterface.bulkInsert('districts', [{
+        state_id: stateId,
+        name: districtName,
+        created_at: new Date(),
+        updated_at: new Date()
+      }]);
+      const [insertedDistricts] = await queryInterface.sequelize.query(
+        'SELECT id FROM districts WHERE state_id = :stateId AND LOWER(name) = LOWER(:name) LIMIT 1',
+        { replacements: { stateId, name: districtName } }
+      );
+      districtId = insertedDistricts[0].id;
+    }
+
+    locationIds.set(locationKey(stateName, districtName), { stateId, districtId });
+  }
+
+  return locationIds;
+}
+
+function locationForeignKeys(locationIds, stateName, districtName) {
+  return locationIds.get(locationKey(stateName, districtName));
+}
+
 module.exports = {
   async up(queryInterface, Sequelize) {
     const now = new Date();
     const uploadedAt = now.toISOString();
     const hashedPassword = await bcrypt.hash('password123', 10);
+    const locationIds = await ensureLocationMasterRows(queryInterface);
     const emails = {
       hospitals: HOSPITAL_USERS.map(u => u.email),
       doctors: DOCTOR_USERS.map(u => u.email)
@@ -287,8 +355,7 @@ module.exports = {
       is_email_verified: true,
       is_phone_verified: true,
       address: u.address,
-      city: u.city,
-      state: u.state,
+      ...locationForeignKeys(locationIds, u.state, u.city),
       pincode: u.pincode,
       is_active: true,
       terms_accepted_at: now,
@@ -309,8 +376,8 @@ module.exports = {
       hospital_phone: profile.hospital_phone,
       emergency_contact_number: profile.emergency_contact_number,
       hospital_address: profile.hospital_address,
-      hospital_city: profile.hospital_city,
-      hospital_state: profile.hospital_state,
+      hospital_state_id: locationForeignKeys(locationIds, profile.hospital_state, profile.hospital_city).stateId,
+      hospital_district_id: locationForeignKeys(locationIds, profile.hospital_state, profile.hospital_city).districtId,
       hospital_pincode: profile.hospital_pincode,
       website: profile.website,
       registration_number: profile.registration_number,
@@ -355,8 +422,7 @@ module.exports = {
       gender: u.gender,
       date_of_birth: u.date_of_birth,
       address: u.address,
-      city: u.city,
-      state: u.state,
+      ...locationForeignKeys(locationIds, u.state, u.city),
       pincode: u.pincode,
       is_active: true,
       terms_accepted_at: now,

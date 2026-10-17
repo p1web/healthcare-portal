@@ -100,6 +100,12 @@ export const routes: Routes = [
       },
       { path: 'doctor-analytics', component: DoctorAnalyticsComponent, canActivate: [RoleGuard], data: { title: 'Practice Analytics', roles: ['doctor'] } },
       { path: 'profile/doctor', component: DoctorProfileComponent, canActivate: [RoleGuard], data: { title: 'My Profile', roles: ['doctor'] } },
+      {
+        path: 'doctor-review-status',
+        canActivate: [RoleGuard],
+        data: { title: 'Verification Status', roles: ['doctor'] },
+        loadComponent: () => import('./components/user/doctor-review-status/doctor-review-status.component').then(m => m.DoctorReviewStatusComponent)
+      },
       { path: 'doctor-practices', component: DoctorPracticesComponent, canActivate: [RoleGuard], data: { title: 'My Practices', roles: ['doctor'] } },
       { path: 'profile/hospital', component: HospitalProfileComponent, canActivate: [RoleGuard], data: { title: 'My Profile', roles: ['hospital'] } },
       { path: 'hospital-dashboard', component: HospitalDashboardComponent, canActivate: [RoleGuard], data: { title: 'Dashboard', roles: ['hospital'] } },
@@ -120,6 +126,24 @@ export const routes: Routes = [
         canActivate: [RoleGuard],
         data: { title: 'Appointments', roles: ['hospital'] },
         loadComponent: () => import('./components/user/hospital-appointments/hospital-appointments.component').then(m => m.HospitalAppointmentsComponent)
+      },
+      {
+        path: 'hospital-review-status',
+        canActivate: [RoleGuard],
+        data: { title: 'Review Status', roles: ['hospital'] },
+        loadComponent: () => import('./components/user/hospital-review-status/hospital-review-status.component').then(m => m.HospitalReviewStatusComponent)
+      },
+      {
+        path: 'hospital-public-images',
+        canActivate: [RoleGuard],
+        data: { title: 'Public Images', roles: ['hospital'] },
+        loadComponent: () => import('./components/user/hospital-public-images/hospital-public-images.component').then(m => m.HospitalPublicImagesComponent)
+      },
+      {
+        path: 'bank-account-details',
+        canActivate: [RoleGuard],
+        data: { title: 'Bank Account Details', roles: ['doctor', 'hospital'] },
+        loadComponent: () => import('./components/user/bank-account-details/bank-account-details.component').then(m => m.BankAccountDetailsComponent)
       },
       { path: 'change-password', component: ChangePasswordComponent, data: { title: 'Change Password' } },
       { path: 'reset-password', component: ResetPasswordComponent, data: { title: 'Reset Password' } }

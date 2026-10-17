@@ -22,6 +22,9 @@ module.exports = (sequelize, DataTypes) => {
         as: 'hospitalProfile'
       });
 
+      User.belongsTo(models.State, { foreignKey: 'state_id', as: 'stateMaster' });
+      User.belongsTo(models.District, { foreignKey: 'district_id', as: 'districtMaster' });
+
       User.hasMany(models.DoctorProfile, {
         foreignKey: 'reviewed_by_user_id',
         as: 'reviewedDoctorProfiles'
@@ -52,6 +55,8 @@ module.exports = (sequelize, DataTypes) => {
     // Hide sensitive data when converting to JSON
     toJSON() {
       const values = { ...this.get() };
+      values.city = this.districtMaster?.name || null;
+      values.state = this.stateMaster?.name || null;
       delete values.password;
       delete values.email_verification_token;
       delete values.phone_verification_token;
@@ -164,13 +169,23 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.TEXT,
       allowNull: true
     },
+    districtId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      field: 'district_id'
+    },
+    stateId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      field: 'state_id'
+    },
     city: {
-      type: DataTypes.STRING(100),
-      allowNull: true
+      type: DataTypes.VIRTUAL,
+      get() { return this.districtMaster?.name || null; }
     },
     state: {
-      type: DataTypes.STRING(100),
-      allowNull: true
+      type: DataTypes.VIRTUAL,
+      get() { return this.stateMaster?.name || null; }
     },
     pincode: {
       type: DataTypes.STRING(10),

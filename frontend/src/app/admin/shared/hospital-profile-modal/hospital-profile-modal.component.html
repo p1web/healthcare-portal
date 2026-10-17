@@ -43,6 +43,26 @@
         </section>
 
         <section class="profile-section">
+          <h6><i class="bi bi-bank"></i> Bank &amp; Payout Details</h6>
+          <div *ngIf="isLoadingBankAccount" class="text-muted small">
+            <span class="spinner-border spinner-border-sm me-1"></span>Loading bank details...
+          </div>
+          <p *ngIf="!isLoadingBankAccount && bankAccountError" class="text-danger mb-0">{{ bankAccountError }}</p>
+          <ng-container *ngIf="!isLoadingBankAccount && !bankAccountError">
+            <div class="detail-grid" *ngIf="bankAccount as account; else noBankAccount">
+              <div><label>Account Holder</label><span>{{ account.accountHolderName || '—' }}</span></div>
+              <div><label>Bank</label><span>{{ account.bankName || '—' }}</span></div>
+              <div><label>Account Number</label><span>{{ account.accountNumber || '—' }}</span></div>
+              <div><label>IFSC</label><span>{{ account.ifscCode || '—' }}</span></div>
+              <div><label>Branch</label><span>{{ account.branchName || '—' }}</span></div>
+              <div><label>Account Type</label><span class="text-capitalize">{{ account.accountType || '—' }}</span></div>
+              <div><label>UPI ID</label><span>{{ account.upiId || '—' }}</span></div>
+            </div>
+            <ng-template #noBankAccount><p class="text-muted mb-0">No bank details on file.</p></ng-template>
+          </ng-container>
+        </section>
+
+        <section class="profile-section">
           <h6><i class="bi bi-image"></i> Public Images</h6>
           <p class="text-muted small mb-3">
             Images the hospital has uploaded. Only images the hospital has switched to

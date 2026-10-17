@@ -1,9 +1,10 @@
 // controllers/doctorProfile.controller.js
 const path = require('path');
 const fs = require('fs');
-const { User, DoctorProfile, DoctorAvailability, DoctorPractice, sequelize } = require('../models');
+const { User, DoctorProfile, DoctorAvailability, DoctorPractice, Qualification, sequelize } = require('../models');
 const { PRACTICE_STATUSES } = require('../models/doctor-practice');
 const { applyUserBasicUpdates } = require('../utils/userBasicUpdate');
+const { userLocationIncludes } = require('../utils/locationIncludes');
 const {
   buildSubmittedReviewReset,
   canSubmitForReview,
@@ -15,7 +16,7 @@ const { BlobServiceClient } = require('@azure/storage-blob');
 
 
 const DOCTOR_REQUIRED_FIELDS = [
-  'registrationNumber', 'qualification', 'specializationId',
+  'registrationNumber', 'qualificationId', 'specializationId',
   'yearsOfExperience'
 ];
 // consultationFee + hospitalId now live on doctor_practices; enforced via primary-practice check.
@@ -23,7 +24,9 @@ const DOCTOR_REQUIRED_FIELDS = [
 const doctorProfileIncludes = [
   {
     model: DoctorProfile, as: 'doctorProfile', required: false, include: [
-      { model: DoctorAvailability, as: 'availabilities', required: false }
+      { model: DoctorAvailability, as: 'availabilities', required: false },
+      { model: Qualification, as: 'qualification', required: false, attributes: ['id', 'name', 'description'] },
+      { model: User, as: 'reviewedBy', required: false, attributes: ['id', 'name', 'email'] }
     ]
   }
 ];
@@ -86,6 +89,8 @@ function formatDoctorUser(user) {
     address: user.address,
     city: user.city,
     state: user.state,
+    districtId: user.districtId,
+    stateId: user.stateId,
     pincode: user.pincode,
     country: user.country,
     profileImage: user.profileImage,
@@ -99,7 +104,7 @@ function formatDoctorUser(user) {
 exports.getProfile = async (req, res) => {
   try {
     const user = await User.findByPk(req.user.id, {
-      include: doctorProfileIncludes
+      include: [...doctorProfileIncludes, ...userLocationIncludes()]
     });
 
     if (!user) {
@@ -145,9 +150,22 @@ exports.updateProfile = async (req, res) => {
 
     // consultationFee + hospitalId are practice-scoped now; accept-and-ignore for back-compat.
     const doctorFields = [
-      'registrationNumber', 'qualification', 'specializationId',
+      'registrationNumber', 'qualificationId', 'specializationId',
       'yearsOfExperience'
     ];
+
+    if (doctorProfile.qualificationId !== undefined) {
+      const qualificationId = Number(doctorProfile.qualificationId);
+      if (doctorProfile.qualificationId === null || doctorProfile.qualificationId === '') {
+        doctorProfile.qualificationId = null;
+      } else if (!Number.isInteger(qualificationId) || qualificationId <= 0
+        || !await Qualification.findByPk(qualificationId, { transaction: t })) {
+        await t.rollback();
+        return res.status(400).json({ success: false, message: 'Invalid qualification' });
+      } else {
+        doctorProfile.qualificationId = qualificationId;
+      }
+    }
 
     const doctorUpdates = Object.fromEntries(
       doctorFields
@@ -195,7 +213,7 @@ exports.updateProfile = async (req, res) => {
     await t.commit();
 
     const updatedUser = await User.findByPk(userId, {
-      include: doctorProfileIncludes
+      include: [...doctorProfileIncludes, ...userLocationIncludes()]
     });
 
     return res.json({
@@ -331,7 +349,7 @@ exports.uploadDocuments = async (req, res) => {
     });
 
     const updatedUser = await User.findByPk(userId, {
-      include: doctorProfileIncludes
+      include: [...doctorProfileIncludes, ...userLocationIncludes()]
     });
 
     return res.json({
@@ -505,7 +523,7 @@ exports.submitForReview = async (req, res) => {
     await profile.update(buildSubmittedReviewReset());
 
     const updatedUser = await User.findByPk(userId, {
-      include: doctorProfileIncludes
+      include: [...doctorProfileIncludes, ...userLocationIncludes()]
     });
 
     return res.json({

@@ -4,15 +4,15 @@
   <div class="sidebar-identity">
     <div class="identity-avatar">
       {{ getInitials(user.name) }}
-      <span *ngIf="isVerified(user)" class="identity-verified"
-            title="Verified account" aria-label="Verified account">
+      <span *ngIf="isVerified(user)" class="identity-verified" title="Verified account" aria-label="Verified account">
         <i class="bi bi-patch-check-fill"></i>
       </span>
     </div>
     <div class="identity-text">
       <div class="identity-name" [title]="user.name">{{ user.name || 'Welcome' }}</div>
       <span class="identity-role">
-        <i class="bi" [ngClass]="isDoctor ? 'bi-person-badge' : isPatient ? 'bi-heart-pulse' : isHospital ? 'bi-hospital' : 'bi-shield-check'"></i>
+        <i class="bi"
+          [ngClass]="isDoctor ? 'bi-person-badge' : isPatient ? 'bi-heart-pulse' : isHospital ? 'bi-hospital' : 'bi-shield-check'"></i>
         {{ roleLabel }}
       </span>
     </div>
@@ -22,50 +22,38 @@
   <div class="sidebar-group">
     <span class="sidebar-group-label">Overview</span>
 
-    <a class="sidebar-item" [routerLink]="dashboardLink"
-       routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+    <a class="sidebar-item" [routerLink]="dashboardLink" routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: true }">
       <span class="sidebar-item-icon"><i class="bi bi-speedometer2"></i></span>
       <span class="sidebar-item-text">Dashboard</span>
     </a>
 
-    <a *ngIf="isPatient"
-       class="sidebar-item" routerLink="/appointments"
-       routerLinkActive="active">
+    <a *ngIf="isPatient" class="sidebar-item" routerLink="/appointments" routerLinkActive="active">
       <span class="sidebar-item-icon"><i class="bi bi-calendar2-check"></i></span>
       <span class="sidebar-item-text">My Appointments</span>
     </a>
 
-    <a *ngIf="isDoctor"
-       class="sidebar-item" routerLink="/doctor-appointments"
-       routerLinkActive="active">
+    <a *ngIf="isDoctor" class="sidebar-item" routerLink="/doctor-appointments" routerLinkActive="active">
       <span class="sidebar-item-icon"><i class="bi bi-calendar2-heart"></i></span>
       <span class="sidebar-item-text">Patient Bookings</span>
     </a>
 
-    <a *ngIf="isDoctor"
-       class="sidebar-item" routerLink="/doctor-practices"
-       routerLinkActive="active">
+    <a *ngIf="isDoctor" class="sidebar-item" routerLink="/doctor-practices" routerLinkActive="active">
       <span class="sidebar-item-icon"><i class="bi bi-hospital"></i></span>
       <span class="sidebar-item-text">My Practices</span>
     </a>
 
-    <a *ngIf="isHospital"
-       class="sidebar-item" routerLink="/hospital-staff"
-       routerLinkActive="active">
+    <a *ngIf="isHospital" class="sidebar-item" routerLink="/hospital-staff" routerLinkActive="active">
       <span class="sidebar-item-icon"><i class="bi bi-people-fill"></i></span>
       <span class="sidebar-item-text">Sitting Doctors</span>
     </a>
 
-    <a *ngIf="isHospital"
-       class="sidebar-item" routerLink="/hospital-appointments"
-       routerLinkActive="active">
+    <a *ngIf="isHospital" class="sidebar-item" routerLink="/hospital-appointments" routerLinkActive="active">
       <span class="sidebar-item-icon"><i class="bi bi-calendar2-check"></i></span>
       <span class="sidebar-item-text">Appointments</span>
     </a>
 
-    <a *ngIf="isHospital"
-       class="sidebar-item" routerLink="/hospital-availability"
-       routerLinkActive="active">
+    <a *ngIf="isHospital" class="sidebar-item" routerLink="/hospital-availability" routerLinkActive="active">
       <span class="sidebar-item-icon"><i class="bi bi-clock-history"></i></span>
       <span class="sidebar-item-text">Hospital Hours</span>
     </a>
@@ -75,14 +63,32 @@
   <div class="sidebar-group">
     <span class="sidebar-group-label">Account</span>
 
-    <a class="sidebar-item" routerLink="/profile"
-       routerLinkActive="active">
+    <a class="sidebar-item" routerLink="/profile" routerLinkActive="active">
       <span class="sidebar-item-icon"><i class="bi bi-person-circle"></i></span>
       <span class="sidebar-item-text">My Profile</span>
     </a>
 
-    <a class="sidebar-item" routerLink="/change-password"
-       routerLinkActive="active">
+    <a *ngIf="isHospital" class="sidebar-item" routerLink="/hospital-review-status" routerLinkActive="active">
+      <span class="sidebar-item-icon"><i class="bi bi-shield-check"></i></span>
+      <span class="sidebar-item-text">Verification Status</span>
+    </a>
+
+    <a *ngIf="isDoctor" class="sidebar-item" routerLink="/doctor-review-status" routerLinkActive="active">
+      <span class="sidebar-item-icon"><i class="bi bi-shield-check"></i></span>
+      <span class="sidebar-item-text">Verification Status</span>
+    </a>
+
+    <a *ngIf="isHospital" class="sidebar-item" routerLink="/hospital-public-images" routerLinkActive="active">
+      <span class="sidebar-item-icon"><i class="bi bi-image"></i></span>
+      <span class="sidebar-item-text">Hospital Logo & Banner</span>
+    </a>
+
+    <a *ngIf="isDoctor || isHospital" class="sidebar-item" routerLink="/bank-account-details" routerLinkActive="active">
+      <span class="sidebar-item-icon"><i class="bi bi-bank2"></i></span>
+      <span class="sidebar-item-text">Bank Account Details</span>
+    </a>
+
+    <a class="sidebar-item" routerLink="/change-password" routerLinkActive="active">
       <span class="sidebar-item-icon"><i class="bi bi-shield-lock"></i></span>
       <span class="sidebar-item-text">Change Password</span>
     </a>

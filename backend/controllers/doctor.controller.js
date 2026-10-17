@@ -1,4 +1,4 @@
-const { DoctorProfile, User, Specialization, HospitalProfile, DoctorAvailability, DoctorPractice } = require('../models');
+const { DoctorProfile, User, Specialization, Qualification, HospitalProfile, DoctorAvailability, DoctorPractice, State, District } = require('../models');
 const { PROFILE_REVIEW_STATUSES } = require('../utils/providerReview');
 
 // Helper function to format availability days
@@ -61,6 +61,7 @@ function formatDoctorForFrontend(profile) {
     name: doctorJSON.user.name,
 
     specialization_id: doctorJSON.specializationId,
+    qualificationId: doctorJSON.qualificationId ?? null,
     hospital_id: hospital?.id ?? null,
 
     specialization: doctorJSON.specialization?.name || '',
@@ -73,7 +74,7 @@ function formatDoctorForFrontend(profile) {
     availabilitySchedule: formatAvailabilitySchedule(doctorJSON.availabilities),
     email: doctorJSON.user.email,
     phone: doctorJSON.user.phone,
-    qualification: doctorJSON.qualification || '',
+    qualification: doctorJSON.qualification?.name || '',
     bio: '',
     image: doctorJSON.user.profileImage || 'https://via.placeholder.com/300x300',
     consultationDuration: 30
@@ -89,6 +90,7 @@ const publicDoctorIncludes = [
     attributes: ['id', 'name', 'email', 'phone', 'profileImage']
   },
   { model: Specialization, as: 'specialization', required: true },
+  { model: Qualification, as: 'qualification', required: false, attributes: ['id', 'name'] },
   {
     model: DoctorPractice,
     as: 'practices',
@@ -97,8 +99,11 @@ const publicDoctorIncludes = [
     include: [{
       model: HospitalProfile,
       as: 'hospital',
-      attributes: ['id', 'hospitalName', 'hospitalCity', 'hospitalState',
-        'hospitalAddress', 'hospitalPhone', 'hospitalEmail']
+      attributes: ['id', 'hospitalName', 'hospitalAddress', 'hospitalPhone', 'hospitalEmail', 'hospitalStateId', 'hospitalDistrictId'],
+      include: [
+        { model: State, as: 'hospitalStateMaster', attributes: ['id', 'name'], required: false },
+        { model: District, as: 'hospitalDistrictMaster', attributes: ['id', 'name'], required: false }
+      ]
     }]
   },
   { model: DoctorAvailability, as: 'availabilities', required: false }

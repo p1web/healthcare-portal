@@ -9,6 +9,8 @@ export interface PracticeHospital {
   hospitalKind: 'solo_practice' | 'multi_doctor';
   hospitalCity: string | null;
   hospitalState: string | null;
+  hospitalDistrictId?: number | null;
+  hospitalStateId?: number | null;
   hospitalCommissionPercent?: number;
 }
 
@@ -48,8 +50,8 @@ export interface CreateSoloClinicRequest {
   hospitalPhone?: string;
   hospitalEmail?: string;
   hospitalAddress?: string;
-  hospitalCity?: string;
-  hospitalState?: string;
+  hospitalDistrictId?: number;
+  hospitalStateId?: number;
   hospitalPincode?: string;
 }
 

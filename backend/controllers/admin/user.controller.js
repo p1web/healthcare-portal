@@ -6,12 +6,15 @@ const {
   DoctorProfile,
   DoctorAvailability,
   HospitalProfile,
+  ProviderBankAccount,
+  State,
+  District,
   Specialization,
   sequelize
 } = require("../../models");
 
 const { Op, Sequelize } = require("sequelize");
-
+const { decryptBankDetails } = require("../../utils/bankAccountEncryption");
 module.exports = {
   async getAllUsers(req, res) {
     
@@ -53,7 +56,16 @@ module.exports = {
               { model: DoctorAvailability, as: "availabilities" }
             ]
           },
-          { model: HospitalProfile, as: "hospitalProfile" }
+          {
+            model: HospitalProfile,
+            as: "hospitalProfile",
+            include: [
+              { model: State, as: 'hospitalStateMaster', attributes: ['id', 'name'], required: false },
+              { model: District, as: 'hospitalDistrictMaster', attributes: ['id', 'name'], required: false }
+            ]
+          },
+          { model: State, as: 'stateMaster', attributes: ['id', 'name'], required: false },
+          { model: District, as: 'districtMaster', attributes: ['id', 'name'], required: false }
         ],
         order: [["created_at", "DESC"]]
       });
@@ -61,6 +73,42 @@ module.exports = {
       res.json(users);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch users", error });
+    }
+  },
+
+  async getProviderBankAccount(req, res) {
+    try {
+      const userId = Number(req.params.id);
+      if (!Number.isInteger(userId) || userId < 1) {
+        return res.status(400).json({ success: false, message: 'Invalid user ID' });
+      }
+
+      const user = await User.findByPk(userId, { attributes: ['id', 'role'] });
+      if (!user || !['doctor', 'hospital'].includes(user.role)) {
+        return res.status(404).json({ success: false, message: 'Provider not found' });
+      }
+
+      const row = await ProviderBankAccount.findOne({
+        where: { userId: user.id, userRole: user.role }
+      });
+      if (!row) return res.json({ success: true, data: null });
+
+      const details = decryptBankDetails(row.encryptedDetails);
+      return res.json({
+        success: true,
+        data: {
+          accountHolderName: details.accountHolderName,
+          bankName: details.bankName,
+          accountNumber: details.accountNumber,
+          ifscCode: details.ifscCode,
+          branchName: details.branchName,
+          accountType: details.accountType,
+          upiId: details.upiId
+        }
+      });
+    } catch (error) {
+      console.error('Get provider bank account error:', error.message);
+      return res.status(500).json({ success: false, message: 'Failed to load bank account details' });
     }
   },
 

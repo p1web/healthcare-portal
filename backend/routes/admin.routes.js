@@ -18,6 +18,7 @@ router.use(authenticate, authorize("admin"));
 
 // Admin-only routes
 router.get("/users", userController.getAllUsers);
+router.get("/users/:id/bank-account", userController.getProviderBankAccount);
 router.patch("/users/:id/account-status", userController.updateAccountStatus);
 router.get("/profile", profileController.getProfile);
 router.put("/profile", profileController.updateProfile);

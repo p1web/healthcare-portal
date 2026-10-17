@@ -11,6 +11,8 @@ export interface User {
   address?: string;
   city?: string;
   state?: string;
+  districtId?: number | null;
+  stateId?: number | null;
   pincode?: string;
   country?: string;
   profileImage?: string | null;
@@ -62,7 +64,8 @@ export interface DoctorProfile {
   id?: number;
   hospitalId?: number;
   registrationNumber?: string;
-  qualification?: string;
+  qualificationId?: number;
+  qualification?: { id: number; name: string; description?: string | null } | null;
   specializationId?: number;
   yearsOfExperience?: number;
   consultationFee?: number;
@@ -97,6 +100,8 @@ export interface HospitalProfile {
   hospitalAddress?: string;
   hospitalCity?: string;
   hospitalState?: string;
+  hospitalDistrictId?: number | null;
+  hospitalStateId?: number | null;
   hospitalPincode?: string;
   website?: string;
   registrationNumber?: string;

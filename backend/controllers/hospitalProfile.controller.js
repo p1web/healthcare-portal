@@ -4,7 +4,8 @@ const fs = require('fs');
 const { Op } = require('sequelize');
 const { BlobServiceClient } = require('@azure/storage-blob');
 const { User, HospitalProfile, HospitalStaff, Specialty, sequelize } = require('../models');
-const { applyUserBasicUpdates } = require('../utils/userBasicUpdate');
+const { applyUserBasicUpdates, resolveLocationIds } = require('../utils/userBasicUpdate');
+const { userLocationIncludes, hospitalLocationIncludes } = require('../utils/locationIncludes');
 const {
   buildSubmittedReviewReset,
   canSubmitForReview,
@@ -19,8 +20,8 @@ const {
 
 const HOSPITAL_REQUIRED_FIELDS = [
   'hospitalName', 'hospitalEmail', 'hospitalPhone',
-  'emergencyContactNumber', 'hospitalAddress', 'hospitalCity',
-  'hospitalState', 'hospitalPincode',
+  'emergencyContactNumber', 'hospitalAddress', 'hospitalDistrictId',
+  'hospitalStateId', 'hospitalPincode', 'website',
   'registrationNumber', 'establishedYear', 'totalBeds',
   'hospitalType', 'operatingHours', 'specialtyIds'
 ];
@@ -42,6 +43,8 @@ function formatHospitalUser(user) {
     address: user.address,
     city: user.city,
     state: user.state,
+    districtId: user.districtId,
+    stateId: user.stateId,
     pincode: user.pincode,
     country: user.country,
     profileImage: user.profileImage,
@@ -51,11 +54,20 @@ function formatHospitalUser(user) {
   };
 }
 
+function hospitalProfileInclude() {
+  return {
+    model: HospitalProfile,
+    as: 'hospitalProfile',
+    required: false,
+    include: hospitalLocationIncludes()
+  };
+}
+
 // GET /api/hospital/profile
 exports.getProfile = async (req, res) => {
   try {
     const user = await User.findByPk(req.user.id, {
-      include: [{ model: HospitalProfile, as: 'hospitalProfile', required: false }]
+      include: [...userLocationIncludes(), hospitalProfileInclude()]
     });
 
     if (!user) {
@@ -162,8 +174,8 @@ exports.updateProfile = async (req, res) => {
 
     const hospitalFields = [
       'hospitalName', 'hospitalEmail', 'hospitalPhone',
-      'emergencyContactNumber', 'hospitalAddress', 'hospitalCity',
-      'hospitalState', 'hospitalPincode', 'website',
+      'emergencyContactNumber', 'hospitalAddress', 'hospitalDistrictId',
+      'hospitalStateId', 'hospitalPincode', 'website',
       'registrationNumber', 'bio', 'specialtyIds', 'establishedYear', 'totalBeds',
       'hospitalType', 'operatingHours',
       'emergencyServices', 'ambulanceServices'
@@ -184,10 +196,25 @@ exports.updateProfile = async (req, res) => {
       hospitalUpdates.bio = String(hospitalUpdates.bio).trim();
     }
 
+    const hospitalLocation = await resolveLocationIds({
+      stateId: hospitalProfile.hospitalStateId,
+      districtId: hospitalProfile.hospitalDistrictId,
+      stateName: hospitalProfile.hospitalState,
+      districtName: hospitalProfile.hospitalCity,
+      existingStateId: existingProfile?.hospitalStateId,
+      existingDistrictId: existingProfile?.hospitalDistrictId,
+      transaction: t
+    });
+    if (hospitalLocation) {
+      Object.assign(hospitalUpdates, {
+        hospitalStateId: hospitalLocation.stateId,
+        hospitalDistrictId: hospitalLocation.districtId
+      });
+    }
+
     [
       'hospitalName', 'hospitalEmail', 'hospitalPhone',
-      'emergencyContactNumber', 'hospitalAddress', 'hospitalCity',
-      'hospitalState', 'hospitalPincode', 'website'
+      'emergencyContactNumber', 'hospitalAddress', 'hospitalPincode', 'website'
     ].forEach((field) => {
       if (hospitalUpdates[field] !== undefined) {
         hospitalUpdates[field] = String(hospitalUpdates[field]).trim();
@@ -205,7 +232,7 @@ exports.updateProfile = async (req, res) => {
     await t.commit();
 
     const updatedUser = await User.findByPk(userId, {
-      include: [{ model: HospitalProfile, as: 'hospitalProfile', required: false }]
+      include: [...userLocationIncludes(), hospitalProfileInclude()]
     });
 
     return res.json({
@@ -220,7 +247,7 @@ exports.updateProfile = async (req, res) => {
 
     console.error('Error updating hospital profile:', err);
 
-    return res.status(500).json({
+    return res.status(err.statusCode || 500).json({
       success: false,
       message: err.message || 'Profile update failed'
     });
@@ -341,7 +368,7 @@ exports.uploadDocuments = async (req, res) => {
     });
 
     const updatedUser = await User.findByPk(userId, {
-      include: [{ model: HospitalProfile, as: 'hospitalProfile', required: false }]
+      include: [...userLocationIncludes(), hospitalProfileInclude()]
     });
 
     return res.json({
@@ -456,7 +483,7 @@ exports.submitForReview = async (req, res) => {
     await profile.update(buildSubmittedReviewReset());
 
     const updatedUser = await User.findByPk(userId, {
-      include: [{ model: HospitalProfile, as: 'hospitalProfile', required: false }]
+      include: [...userLocationIncludes(), hospitalProfileInclude()]
     });
 
     return res.json({

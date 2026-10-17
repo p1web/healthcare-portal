@@ -1,6 +1,7 @@
 // controllers/patientProfile.controller.js
 const { User, PatientProfile, PatientAllergy, PatientMedicalCondition, sequelize } = require('../models');
 const { applyUserBasicUpdates } = require('../utils/userBasicUpdate');
+const { userLocationIncludes } = require('../utils/locationIncludes');
 
 function formatPatientUser(user) {
   return {
@@ -14,6 +15,8 @@ function formatPatientUser(user) {
     address: user.address,
     city: user.city,
     state: user.state,
+    districtId: user.districtId,
+    stateId: user.stateId,
     pincode: user.pincode,
     country: user.country,
     profileImage: user.profileImage,
@@ -36,7 +39,7 @@ const patientProfileInclude = {
 // GET /api/patient/profile
 exports.getProfile = async (req, res) => {
   try {
-    const user = await User.findByPk(req.user.id, { include: [patientProfileInclude] });
+    const user = await User.findByPk(req.user.id, { include: [patientProfileInclude, ...userLocationIncludes()] });
 
     if (!user) {
       return res.status(404).json({ success: false, message: 'User not found' });
@@ -91,7 +94,7 @@ exports.updateProfile = async (req, res) => {
 
     await t.commit();
 
-    const updatedUser = await User.findByPk(userId, { include: [patientProfileInclude] });
+    const updatedUser = await User.findByPk(userId, { include: [patientProfileInclude, ...userLocationIncludes()] });
 
     return res.json({
       success: true,
@@ -105,7 +108,7 @@ exports.updateProfile = async (req, res) => {
 
     console.error('Error updating patient profile:', err);
 
-    return res.status(500).json({
+    return res.status(err.statusCode || 500).json({
       success: false,
       message: err.message || 'Profile update failed'
     });

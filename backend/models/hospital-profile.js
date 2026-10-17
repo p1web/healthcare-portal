@@ -5,6 +5,13 @@ const { PROFILE_REVIEW_STATUSES, isApprovedStatus } = require('../utils/provider
 
 module.exports = (sequelize, DataTypes) => {
   class HospitalProfile extends Model {
+    toJSON() {
+      const values = { ...this.get() };
+      values.hospitalCity = this.hospitalDistrictMaster?.name || null;
+      values.hospitalState = this.hospitalStateMaster?.name || null;
+      return values;
+    }
+
     static associate(models) {
       HospitalProfile.belongsTo(models.User, {
         foreignKey: 'user_id',
@@ -15,6 +22,9 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'reviewed_by_user_id',
         as: 'reviewedBy'
       });
+
+      HospitalProfile.belongsTo(models.State, { foreignKey: 'hospital_state_id', as: 'hospitalStateMaster' });
+      HospitalProfile.belongsTo(models.District, { foreignKey: 'hospital_district_id', as: 'hospitalDistrictMaster' });
 
       HospitalProfile.hasMany(models.DoctorPractice, {
         foreignKey: 'hospital_profile_id',
@@ -88,15 +98,23 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true,
       field: 'hospital_address'
     },
-    hospitalCity: {
-      type: DataTypes.STRING(100),
+    hospitalDistrictId: {
+      type: DataTypes.INTEGER,
       allowNull: true,
-      field: 'hospital_city'
+      field: 'hospital_district_id'
+    },
+    hospitalStateId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      field: 'hospital_state_id'
+    },
+    hospitalCity: {
+      type: DataTypes.VIRTUAL,
+      get() { return this.hospitalDistrictMaster?.name || null; }
     },
     hospitalState: {
-      type: DataTypes.STRING(100),
-      allowNull: true,
-      field: 'hospital_state'
+      type: DataTypes.VIRTUAL,
+      get() { return this.hospitalStateMaster?.name || null; }
     },
     hospitalPincode: {
       type: DataTypes.STRING(10),

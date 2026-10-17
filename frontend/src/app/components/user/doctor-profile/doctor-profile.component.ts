@@ -9,8 +9,12 @@ import { AuthService } from '../../../services/auth.service';
 import { DoctorProfileService } from '../../../services/doctor-profile.service';
 import { ImageUploadService } from '../../../services/image-upload.service';
 import { SpecializationService, Specializations } from '../../../services/specialization.service';
+import { QualificationService, Qualification } from '../../../services/qualification.service';
 import { PracticeService, Practice } from '../../../services/practice.service';
+import { LocationMasterService, LocationState } from '../../../services/location-master.service';
 import { environment } from '../../../../environments/environment';
+import { districtsForState } from '../../../shared/data/location-master.options';
+import { ProfileSaveConfirmationService } from '../../../shared/profile-save-confirmation';
 
 export type UploadStatus = 'idle' | 'uploading' | 'done' | 'error';
 
@@ -32,12 +36,14 @@ export class DoctorProfileComponent implements OnInit {
   readonly weekDays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   doctorDocuments: DocUploadItem[] = [];
   specializations: Specializations[] = [];
+  qualifications: Qualification[] = [];
   practices: Practice[] = [];
+  locationStates: LocationState[] = [];
+  isLoadingLocations = false;
   isLoadingPractices = false;
   profileForm!: FormGroup;
   user: User | null = null;
   isSubmitting: boolean = false;
-  isSubmittingReview: boolean = false;
   isUploadingAvatar = false;
   avatarError = '';
   readonly apiHost = environment.apiHost;
@@ -51,12 +57,6 @@ export class DoctorProfileComponent implements OnInit {
 
   readonly steps = [
     {
-      title: 'Review Status',
-      subtitle: 'Verification progress',
-      icon: 'bi-shield-check',
-      controls: [] as string[]
-    },
-    {
       title: 'About you',
       subtitle: 'Personal details',
       icon: 'bi-person',
@@ -66,14 +66,14 @@ export class DoctorProfileComponent implements OnInit {
       title: 'Address',
       subtitle: 'Contact location',
       icon: 'bi-geo-alt',
-      controls: ['basic.address', 'basic.city', 'basic.state', 'basic.pincode']
+      controls: ['basic.address', 'basic.districtId', 'basic.stateId', 'basic.pincode']
     },
     {
       title: 'Professional',
       subtitle: 'Credentials',
       icon: 'bi-briefcase',
       controls: [
-        'doctor.registrationNumber', 'doctor.qualification',
+        'doctor.registrationNumber', 'doctor.qualificationId',
         'doctor.specializationId', 'doctor.yearsOfExperience'
       ]
     },
@@ -91,14 +91,19 @@ export class DoctorProfileComponent implements OnInit {
     private doctorProfileService: DoctorProfileService,
     private imageUploadService: ImageUploadService,
     private specializationService: SpecializationService,
+    private qualificationService: QualificationService,
     private practiceService: PracticeService,
+    private locationMasterService: LocationMasterService,
+    private profileSaveConfirmation: ProfileSaveConfirmationService
   ) { }
 
   ngOnInit(): void {
     this.initializeForm();
     this.loadCurrentUser();
     this.loadSpecializations();
+    this.loadQualifications();
     this.loadPractices();
+    this.loadLocationStates();
   }
 
   initializeForm(): void {
@@ -108,17 +113,17 @@ export class DoctorProfileComponent implements OnInit {
         email: [{ value: '', disabled: true }, [Validators.required, Validators.email]],
         phone: ['', [Validators.required, Validators.pattern(/^[0-9]{10}$/)]],
         role: [{ value: '', disabled: true }],
-        dateOfBirth: [''],
-        gender: [''],
-        address: [''],
-        city: [''],
-        state: [''],
-        pincode: ['', Validators.pattern(/^[0-9]{6}$/)],
+        dateOfBirth: ['', Validators.required],
+        gender: ['', Validators.required],
+        address: ['', Validators.required],
+        districtId: ['', Validators.required],
+        stateId: ['', Validators.required],
+        pincode: ['', [Validators.required, Validators.pattern(/^[0-9]{6}$/)]],
         country: ['India']
       }),
       doctor: this.fb.group({
         registrationNumber: ['', Validators.required],
-        qualification: ['', Validators.required],
+        qualificationId: ['', Validators.required],
         specializationId: ['', Validators.required],
         yearsOfExperience: ['', Validators.required],
         verificationDocuments: [[]],
@@ -139,6 +144,17 @@ export class DoctorProfileComponent implements OnInit {
       },
       error: (err) => {
         console.error('Failed to load specializations', err);
+      }
+    });
+  }
+
+  loadQualifications(): void {
+    this.qualificationService.getQualifications().subscribe({
+      next: (data) => {
+        this.qualifications = data;
+      },
+      error: (err) => {
+        console.error('Failed to load qualifications', err);
       }
     });
   }
@@ -192,8 +208,8 @@ export class DoctorProfileComponent implements OnInit {
       dateOfBirth: this.user.dateOfBirth ? this.formatDate(this.user.dateOfBirth) : '',
       gender: this.user.gender || '',
       address: this.user.address || '',
-      city: this.user.city || '',
-      state: this.user.state || '',
+      districtId: this.user.districtId ?? '',
+      stateId: this.user.stateId ?? '',
       pincode: this.user.pincode || '',
       country: this.user.country || 'India'
     });
@@ -203,7 +219,7 @@ export class DoctorProfileComponent implements OnInit {
 
       this.profileForm.get('doctor')?.patchValue({
         registrationNumber: d.registrationNumber || '',
-        qualification: d.qualification || '',
+        qualificationId: d.qualificationId ?? d.qualification?.id ?? '',
         specializationId: d.specializationId || '',
         yearsOfExperience: d.yearsOfExperience ? Number(d.yearsOfExperience) : '',
         verificationDocuments: d.verificationDocuments || []
@@ -237,6 +253,32 @@ export class DoctorProfileComponent implements OnInit {
     });
   }
 
+  get hasAvailableDay(): boolean {
+    return this.availabilityControls.some(control => control.get('isAvailable')?.value);
+  }
+
+  getDistrictOptions(stateId: number | string | null): LocationState['districts'] {
+    return districtsForState(this.locationStates, stateId);
+  }
+
+  private loadLocationStates(): void {
+    this.isLoadingLocations = true;
+    this.locationMasterService.getStates().subscribe({
+      next: states => {
+        this.locationStates = states;
+        this.isLoadingLocations = false;
+      },
+      error: () => {
+        this.isLoadingLocations = false;
+        this.error = 'Failed to load state and district options.';
+      }
+    });
+  }
+
+  onBasicStateChange(): void {
+    this.profileForm.get('basic.districtId')?.setValue('');
+  }
+
   markFormGroupTouched(formGroup: FormGroup): void {
     Object.keys(formGroup.controls).forEach(key => {
       const control = formGroup.get(key);
@@ -251,8 +293,8 @@ export class DoctorProfileComponent implements OnInit {
   isStepValid(index: number): boolean {
     const step = this.steps[index];
     if (!step || !this.profileForm) return true;
-    // Step 5 (availability) — validate every FormArray row via hasInvalidAvailability.
-    if (index === 4) return !this.hasInvalidAvailability;
+    // Availability validates every FormArray row via hasInvalidAvailability.
+    if (index === 3) return this.hasAvailableDay && !this.hasInvalidAvailability;
     return step.controls.every(path => {
       const control = this.profileForm.get(path);
       return !control || control.valid || control.disabled;
@@ -266,7 +308,7 @@ export class DoctorProfileComponent implements OnInit {
   markStepTouched(index: number): void {
     const step = this.steps[index];
     if (!step) return;
-    if (index === 4) {
+    if (index === 3) {
       this.availabilityControls.forEach(control => this.markFormGroupTouched(control));
       return;
     }
@@ -275,9 +317,15 @@ export class DoctorProfileComponent implements OnInit {
 
   goToStep(index: number): void {
     if (index < 0 || index >= this.steps.length) return;
-    if (index > this.currentStep && !this.isStepValid(this.currentStep)) {
-      this.markStepTouched(this.currentStep);
-      return;
+    if (index > this.currentStep) {
+      for (let stepIndex = this.currentStep; stepIndex < index; stepIndex++) {
+        if (!this.isStepValid(stepIndex)) {
+          this.currentStep = stepIndex;
+          this.visitedSteps.add(stepIndex);
+          this.markStepTouched(stepIndex);
+          return;
+        }
+      }
     }
     this.currentStep = index;
     this.visitedSteps.add(index);
@@ -288,6 +336,7 @@ export class DoctorProfileComponent implements OnInit {
 
   nextStep(): void {
     if (!this.isStepValid(this.currentStep)) {
+      this.visitedSteps.add(this.currentStep);
       this.markStepTouched(this.currentStep);
       return;
     }
@@ -430,54 +479,12 @@ export class DoctorProfileComponent implements OnInit {
     return this.user?.doctorProfile?.verificationStatus || 'unknown';
   }
 
-  get reviewStatusLabel(): string {
-    const labels: Record<string, string> = {
-      draft: 'Draft',
-      submitted: 'Submitted',
-      under_review: 'Pending for Review',
-      approved: 'Approved',
-      rejected: 'Rejected',
-      changes_requested: 'Returned'
-    };
-    return labels[this.reviewStatus] || 'Unknown';
-  }
-
-  get reviewBadgeClass(): string {
-    switch (this.reviewStatus) {
-      case 'approved':
-        return 'badge bg-success';
-      case 'under_review':
-        return 'badge bg-info text-dark';
-      case 'changes_requested':
-        return 'badge bg-warning text-dark';
-      case 'rejected':
-        return 'badge bg-danger';
-      case 'submitted':
-        return 'badge bg-primary';
-      case 'suspended':
-        return 'badge bg-dark';
-      default:
-        return 'badge bg-secondary';
-    }
-  }
-
   get canSubmitForReview(): boolean {
     return this.reviewStatus === 'draft' || this.reviewStatus === 'changes_requested';
   }
 
   get isProfileEditable(): boolean {
     return this.canSubmitForReview;
-  }
-
-  get timelineSteps() {
-    const profile = this.user?.doctorProfile;
-    const isFinal = ['approved', 'rejected', 'changes_requested'].includes(this.reviewStatus);
-    return [
-      { label: 'Draft', date: this.user?.createdAt, comment: 'Profile created and available for editing.', complete: this.reviewStatus !== 'unknown', active: this.reviewStatus === 'draft' },
-      { label: 'Submitted', date: profile?.submittedAt, comment: 'Profile submitted for verification.', complete: ['submitted', 'under_review', 'approved', 'rejected', 'changes_requested'].includes(this.reviewStatus), active: this.reviewStatus === 'submitted' },
-      { label: 'Pending for Review', date: this.reviewStatus === 'under_review' ? profile?.reviewedAt : null, comment: this.reviewStatus === 'under_review' ? 'Your profile is being reviewed by the administration team.' : 'Profile queued for administrative review.', complete: ['under_review', 'approved', 'rejected', 'changes_requested'].includes(this.reviewStatus), active: this.reviewStatus === 'under_review' },
-      { label: isFinal ? this.reviewStatusLabel : 'Decision', date: isFinal ? profile?.reviewedAt : null, comment: isFinal ? (profile?.reviewNotes || profile?.rejectionReason || 'Review decision recorded.') : 'Awaiting reviewer decision.', reviewer: isFinal ? profile?.reviewedBy?.name : null, complete: isFinal, active: isFinal, outcome: true }
-    ];
   }
 
   private updateFormAccess(): void {
@@ -490,36 +497,7 @@ export class DoctorProfileComponent implements OnInit {
     }
   }
 
-  submitForReview(): void {
-    this.isSubmittingReview = true;
-    this.error = '';
-    this.success = '';
-
-    this.doctorProfileService.submitForReview().subscribe({
-      next: (response: any) => {
-        this.isSubmittingReview = false;
-
-        if (response.success) {
-          this.authService.setCurrentUser(response.data);
-          this.success = response.message || 'Profile submitted for review.';
-        } else {
-          this.error = response.message || 'Failed to submit profile for review';
-        }
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      },
-      error: (err) => {
-        this.isSubmittingReview = false;
-        console.error('Error submitting profile for review:', err);
-        const missingFields = err.error?.missingFields;
-        this.error = missingFields?.length
-          ? `${err.error?.message} (missing: ${missingFields.join(', ')})`
-          : (err.error?.message || 'Failed to submit profile for review. Please try again.');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }
-    });
-  }
-
-  onSubmit(): void {
+  async onSubmit(): Promise<void> {
     if (!this.isProfileEditable) {
       this.error = 'Profile can only be updated while in Draft or Returned status.';
       return;
@@ -527,12 +505,13 @@ export class DoctorProfileComponent implements OnInit {
     const basicGroup = this.profileForm.get('basic') as FormGroup;
     const doctorGroup = this.profileForm.get('doctor') as FormGroup;
 
-    if (!basicGroup.valid || !doctorGroup.valid || this.hasInvalidAvailability) {
+    if (!basicGroup.valid || !doctorGroup.valid || !this.hasAvailableDay || this.hasInvalidAvailability) {
       this.error = 'Please fill all required fields correctly.';
       this.markFormGroupTouched(basicGroup);
       this.markFormGroupTouched(doctorGroup);
       return;
     }
+    if (!await this.profileSaveConfirmation.confirm()) return;
 
     this.isSubmitting = true;
     this.error = '';

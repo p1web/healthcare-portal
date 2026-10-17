@@ -22,8 +22,10 @@ command -v npm >/dev/null || die "npm is required"
 [[ "$(git branch --show-current)" == "$BRANCH" ]] ||
   die "Check out $BRANCH before deploying"
 
-[[ -z "$(git status --porcelain)" ]] ||
-  die "Working tree is not clean; refusing to discard local changes"
+# With this (optional):
+if [[ -n "$(git status --porcelain --untracked-files=no)" ]]; then
+  die "Working tree has modified files; commit or stash before deploying"
+fi
 
 [[ -f backend/.env.production && -f backend/.env.production.db ]] ||
   die "Production environment files are missing"

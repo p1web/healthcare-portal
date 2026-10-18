@@ -27,6 +27,7 @@ const HospitalAvailability = require("./hospital-availability")(sequelize, DataT
 const Department = require("./department")(sequelize, DataTypes);
 const HospitalStaffAvailability = require("./hospital-staff-availability")(sequelize, DataTypes);
 const ProviderBankAccount = require("./provider-bank-account")(sequelize, DataTypes);
+const ActivityLog = require("./activity-log")(sequelize, DataTypes);
 const State = require("./state")(sequelize, DataTypes);
 const District = require("./district")(sequelize, DataTypes);
 
@@ -41,7 +42,8 @@ CouponUsage.associate({ Coupon });
 Appointment.associate({ DoctorProfile, User, Coupon, DoctorPractice, HospitalProfile, HospitalStaff, Department });
 
 // User associations
-User.associate({ PatientProfile, DoctorProfile, HospitalProfile, State, District });
+User.associate({ PatientProfile, DoctorProfile, HospitalProfile, State, District, ActivityLog });
+ActivityLog.associate({ User });
 
 // Profile associations
 PatientProfile.associate({ User, PatientAllergy, PatientMedicalCondition });
@@ -86,6 +88,7 @@ module.exports = {
   Department,
   HospitalStaffAvailability,
   ProviderBankAccount,
+  ActivityLog,
   State,
   District
 };

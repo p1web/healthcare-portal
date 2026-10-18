@@ -18,6 +18,7 @@ import { CouponAnalyticsComponent } from './pages/coupon-analytics/coupon-analyt
 import { AdminPracticesComponent } from './pages/practices/practices.component';
 import { AdminCommissionSettingsComponent } from './pages/commission-settings/commission-settings.component';
 import { AdminHospitalCommissionsComponent } from './pages/hospital-commissions/hospital-commissions.component';
+import { ActivityLogsComponent } from './pages/activity-logs/activity-logs.component';
 
 const routes: Routes = [
   {
@@ -34,6 +35,7 @@ const routes: Routes = [
       { path: 'public-doctors', component: DoctorsComponent, data: { publicListing: true } },
       { path: 'public-hospitals', component: PublicHospitalsComponent },
       { path: 'appointments', component: AppointmentsComponent },
+      { path: 'activity-logs', component: ActivityLogsComponent },
       { path: 'specialties', component: SpecialtiesComponent },
       { path: 'specializations', component: SpecializationsComponent },
       { path: 'qualifications', component: QualificationsComponent },

@@ -7,9 +7,11 @@ require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+const activityAuditMiddleware = require('./middleware/activityAudit.middleware');
 
 // Middleware
 app.use(helmet());
+app.use('/api', activityAuditMiddleware);
 app.use(cors());
 app.use(cors({
   // origin: process.env.CORS_ORIGIN || 'http://localhost:4200',

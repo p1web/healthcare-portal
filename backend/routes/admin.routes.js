@@ -12,11 +12,13 @@ const couponCategoryController = require("../controllers/admin/coupon-category.c
 const couponController = require("../controllers/admin/coupon.controller");
 const adminPracticeController = require("../controllers/admin/practice.controller");
 const qualificationController = require("../controllers/admin/qualification.controller");
+const activityLogController = require("../controllers/admin/activity-log.controller");
 const { authenticate, authorize } = require("../middleware/auth.middleware");
 
 router.use(authenticate, authorize("admin"));
 
 // Admin-only routes
+router.get("/activity-logs", activityLogController.list);
 router.get("/users", userController.getAllUsers);
 router.get("/users/:id/bank-account", userController.getProviderBankAccount);
 router.patch("/users/:id/account-status", userController.updateAccountStatus);

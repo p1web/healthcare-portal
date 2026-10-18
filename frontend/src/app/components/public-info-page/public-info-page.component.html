@@ -1,0 +1,37 @@
+<section class="info-page">
+  <header class="info-hero">
+    <div class="container info-hero-inner">
+      <p class="info-eyebrow">{{ page.eyebrow }}</p>
+      <h1>{{ page.title }}</h1>
+      <p class="info-intro">{{ page.intro }}</p>
+    </div>
+  </header>
+
+  <div class="container info-content">
+    <article class="info-section" *ngFor="let section of page.sections; let index = index" [attr.id]="section.id">
+      <span class="section-number" aria-hidden="true">{{ index + 1 }}</span>
+      <div class="section-copy">
+        <h2>{{ section.heading }}</h2>
+        <p *ngFor="let paragraph of section.paragraphs">{{ paragraph }}</p>
+        <ul *ngIf="section.bullets?.length">
+          <li *ngFor="let bullet of section.bullets">{{ bullet }}</li>
+        </ul>
+      </div>
+    </article>
+
+    <aside class="info-cta" *ngIf="page.callToAction as callToAction">
+      <div>
+        <h2>{{ callToAction.heading }}</h2>
+        <p>{{ callToAction.description }}</p>
+      </div>
+      <a class="btn info-cta-link" [routerLink]="callToAction.route">
+        {{ callToAction.label }} <i class="bi bi-arrow-right" aria-hidden="true"></i>
+      </a>
+    </aside>
+
+    <div class="info-contact">
+      <span class="contact-mark"><i class="bi bi-envelope" aria-hidden="true"></i></span>
+      <p>Questions? Contact <a href="mailto:support&#64;toosmartcare.in">support&#64;toosmartcare.in</a>.</p>
+    </div>
+  </div>
+</section>

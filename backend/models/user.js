@@ -34,6 +34,11 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'reviewed_by_user_id',
         as: 'reviewedHospitalProfiles'
       });
+
+      User.hasMany(models.ActivityLog, {
+        foreignKey: 'user_id',
+        as: 'activityLogs'
+      });
     }
 
     // Instance method to check password

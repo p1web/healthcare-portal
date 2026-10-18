@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { User } from '../models/user.model';
 import { AdminAppointment } from '../models/appointment.model';
@@ -13,6 +13,46 @@ export interface AdminProviderBankAccount {
   branchName?: string;
   accountType?: string;
   upiId?: string;
+}
+
+export interface ActivityLogEntry {
+  id: number;
+  userId: number | null;
+  subjectUserId: number | null;
+  actorRole: string | null;
+  category: string;
+  actionType: string;
+  result: 'success' | 'failure' | 'aborted' | string;
+  description: string | null;
+  entityType: string | null;
+  entityId: string | null;
+  requestId: string | null;
+  httpMethod: string | null;
+  requestPath: string | null;
+  ipAddress: string | null;
+  browser: string | null;
+  userAgent: string | null;
+  sqlQuery: string | null;
+  metadata: Record<string, unknown>;
+  createdAt: string;
+  actor: { id: number; name: string; email: string; role: string } | null;
+}
+
+export interface ActivityLogFilters {
+  page: number;
+  limit: number;
+  search?: string;
+  category?: string;
+  result?: string;
+  userId?: number;
+  from?: string;
+  to?: string;
+}
+
+export interface ActivityLogResponse {
+  success: boolean;
+  data: ActivityLogEntry[];
+  pagination: { page: number; limit: number; total: number; totalPages: number };
 }
 
 @Injectable({
@@ -48,6 +88,15 @@ export class AdminService {
 
   getAppointments(): Observable<{ success: boolean; data: AdminAppointment[] }> {
     return this.http.get<{ success: boolean; data: AdminAppointment[] }>(`${this.apiUrl}/appointments`);
+  }
+
+  getActivityLogs(filters: ActivityLogFilters): Observable<ActivityLogResponse> {
+    let params = new HttpParams();
+    for (const [key, value] of Object.entries(filters)) {
+      if (value === undefined || value === null || value === '') continue;
+      params = params.set(key, value);
+    }
+    return this.http.get<ActivityLogResponse>(`${this.apiUrl}/activity-logs`, { params });
   }
 
   getDoctorProfile(filters: any = {}): Observable<User[]> {

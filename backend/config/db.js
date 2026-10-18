@@ -1,4 +1,6 @@
 const { Sequelize } = require("sequelize");
+const { activityContext } = require("../utils/activityContext");
+const { sanitizeSqlQuery } = require("../utils/activitySanitizers");
 
 const sequelize = new Sequelize(
   process.env.DB_NAME || "healthcare_db",
@@ -8,7 +10,16 @@ const sequelize = new Sequelize(
     host: process.env.DB_HOST || "postgres",
     port: process.env.DB_PORT || 5432,
     dialect: "postgres",
-    logging: false,
+    logging: (sql) => {
+      const context = activityContext.getStore();
+      if (!context) return;
+
+      if (context.sqlQueries.length < 50) {
+        context.sqlQueries.push(sanitizeSqlQuery(sql));
+      } else {
+        context.sqlQueriesTruncated = true;
+      }
+    },
   }
 );
 

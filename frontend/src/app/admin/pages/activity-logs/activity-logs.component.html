@@ -1,0 +1,176 @@
+<div class="pagetitle">
+  <h1>Activity Logs</h1>
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a routerLink="/admin/dashboard">Home</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Activity Logs</li>
+    </ol>
+  </nav>
+</div>
+
+<section class="section activity-section">
+  <div class="activity-toolbar">
+    <div>
+      <h2>System activity</h2>
+      <p>{{ total | number }} events</p>
+    </div>
+    <button type="button" class="btn btn-outline-primary" (click)="loadLogs()" [disabled]="isLoading" aria-label="Refresh activity logs">
+      <i class="bi bi-arrow-clockwise" [class.spin]="isLoading"></i>
+      <span>Refresh</span>
+    </button>
+  </div>
+
+  <div class="filter-panel">
+    <label class="search-control">
+      <span>Search events</span>
+      <span class="input-wrap">
+        <i class="bi bi-search" aria-hidden="true"></i>
+        <input type="search" class="form-control" [(ngModel)]="search" (keyup.enter)="applyFilters()"
+          placeholder="Action, actor ID, resource or route" />
+      </span>
+    </label>
+    <label>
+      <span>Category</span>
+      <input class="form-control" [(ngModel)]="category" (keyup.enter)="applyFilters()" placeholder="Any category" />
+    </label>
+    <label>
+      <span>Outcome</span>
+      <select class="form-select" [(ngModel)]="result" aria-label="Filter by outcome">
+        <option *ngFor="let option of results" [value]="option.value">{{ option.label }}</option>
+      </select>
+    </label>
+    <label>
+      <span>From</span>
+      <input type="date" class="form-control" [(ngModel)]="from" />
+    </label>
+    <label>
+      <span>To</span>
+      <input type="date" class="form-control" [(ngModel)]="to" />
+    </label>
+    <div class="filter-actions">
+      <button type="button" class="btn btn-primary" (click)="applyFilters()">
+        <i class="bi bi-funnel" aria-hidden="true"></i> Apply
+      </button>
+      <button type="button" class="btn btn-outline-secondary" (click)="resetFilters()" aria-label="Reset filters">
+        <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="isLoading" class="state-panel" role="status">
+    <span class="spinner-border spinner-border-sm text-primary" aria-hidden="true"></span>
+    Loading activity...
+  </div>
+
+  <div *ngIf="!isLoading && error" class="alert alert-danger d-flex justify-content-between align-items-center">
+    <span><i class="bi bi-exclamation-circle me-2" aria-hidden="true"></i>{{ error }}</span>
+    <button type="button" class="btn btn-sm btn-outline-danger" (click)="loadLogs()">Retry</button>
+  </div>
+
+  <div *ngIf="!isLoading && !error && !logs.length" class="state-panel empty-state">
+    <i class="bi bi-journal-x" aria-hidden="true"></i>
+    <h2>No activity found</h2>
+    <p>Adjust the filters or try another search.</p>
+  </div>
+
+  <div *ngIf="!isLoading && !error && logs.length" class="table-responsive activity-table-wrap">
+    <table class="table align-middle mb-0">
+      <thead>
+        <tr>
+          <th scope="col">Event</th>
+          <th scope="col">Actor</th>
+          <th scope="col">Target</th>
+          <th scope="col">Request</th>
+          <th scope="col">IP / browser</th>
+          <th scope="col">Outcome</th>
+          <th scope="col">Time</th>
+          <th scope="col"><span class="visually-hidden">Details</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let log of logs; trackBy: trackByLogId">
+          <td class="event-cell">
+            <strong>{{ log.actionType }}</strong>
+            <small>{{ log.description || log.category }}</small>
+          </td>
+          <td>
+            <strong>{{ log.actor?.name || (log.userId ? 'User #' + log.userId : 'Anonymous') }}</strong>
+            <small>{{ log.actor?.role || log.actorRole || 'Unknown role' }}</small>
+          </td>
+          <td>
+            <span *ngIf="log.entityType; else noTarget">{{ log.entityType }}{{ log.entityId ? ' #' + log.entityId : '' }}</span>
+            <ng-template #noTarget><span class="muted-dash">—</span></ng-template>
+            <small *ngIf="log.subjectUserId">User #{{ log.subjectUserId }}</small>
+          </td>
+          <td class="request-cell">
+            <span class="method-badge">{{ log.httpMethod || '—' }}</span>
+            <code>{{ log.requestPath || '—' }}</code>
+          </td>
+          <td>
+            <strong>{{ log.ipAddress || '—' }}</strong>
+            <small>{{ log.browser || 'Unknown browser' }}</small>
+          </td>
+          <td><span class="result-badge" [ngClass]="'result-' + log.result">{{ log.result }}</span></td>
+          <td class="time-cell">
+            <strong>{{ log.createdAt | date:'dd MMM yyyy' }}</strong>
+            <small>{{ log.createdAt | date:'HH:mm:ss' }}</small>
+          </td>
+          <td class="text-end">
+            <button type="button" class="btn btn-sm btn-outline-primary details-button"
+              (click)="openDetails(log)" [attr.aria-label]="'View details for log ' + log.id" title="View event details">
+              <i class="bi bi-eye" aria-hidden="true"></i>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <app-pagination *ngIf="!isLoading && !error && total" [totalItems]="total" [currentPage]="currentPage"
+    [pageSize]="pageSize" [pageSizeOptions]="pageSizeOptions" (currentPageChange)="setPage($event)"
+    (pageSizeChange)="setPageSize($event)"></app-pagination>
+</section>
+
+<div *ngIf="selectedLog as log" class="details-backdrop" (click)="closeDetails()" (keydown.escape)="closeDetails()">
+  <section class="details-panel" role="dialog" aria-modal="true" aria-labelledby="detailsTitle" (click)="$event.stopPropagation()">
+    <header class="details-header">
+      <div>
+        <p>Activity event #{{ log.id }}</p>
+        <h2 id="detailsTitle">{{ log.actionType }}</h2>
+      </div>
+      <button type="button" class="btn-close" aria-label="Close details" (click)="closeDetails()"></button>
+    </header>
+
+    <div class="details-scroll">
+      <div class="details-grid">
+        <div><span>Outcome</span><strong>{{ log.result | titlecase }}</strong></div>
+        <div><span>Recorded</span><strong>{{ log.createdAt | date:'medium' }}</strong></div>
+        <div><span>Actor</span><strong>{{ log.actor?.name || (log.userId ? 'User #' + log.userId : 'Anonymous') }}</strong></div>
+        <div><span>Actor role</span><strong>{{ log.actor?.role || log.actorRole || '—' }}</strong></div>
+        <div><span>Target user</span><strong>{{ log.subjectUserId || '—' }}</strong></div>
+        <div><span>Resource</span><strong>{{ log.entityType || '—' }} {{ log.entityId ? '#' + log.entityId : '' }}</strong></div>
+        <div><span>HTTP request</span><strong>{{ log.httpMethod || '—' }} {{ log.requestPath || '' }}</strong></div>
+        <div><span>IP address</span><strong>{{ log.ipAddress || '—' }}</strong></div>
+        <div><span>Browser</span><strong>{{ log.browser || '—' }}</strong></div>
+        <div><span>Request ID</span><strong>{{ log.requestId || '—' }}</strong></div>
+      </div>
+
+      <div class="detail-block" *ngIf="log.description">
+        <h3>Description</h3>
+        <p>{{ log.description }}</p>
+      </div>
+      <div class="detail-block" *ngIf="log.userAgent">
+        <h3>User agent</h3>
+        <code class="detail-code">{{ log.userAgent }}</code>
+      </div>
+      <div class="detail-block">
+        <h3>Metadata</h3>
+        <pre class="detail-code">{{ formatJson(log.metadata) }}</pre>
+      </div>
+      <div class="detail-block">
+        <h3>Sanitized SQL</h3>
+        <pre class="detail-code">{{ log.sqlQuery || 'No SQL captured for this request.' }}</pre>
+      </div>
+    </div>
+  </section>
+</div>

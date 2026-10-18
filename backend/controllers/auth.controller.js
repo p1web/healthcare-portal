@@ -104,6 +104,7 @@ exports.register = async (req, res) => {
     });
 
     if (existingUser) {
+      req.auditSubjectUserId = existingUser.id;
       const field = existingUser.email === email ? 'Email' : 'Phone number';
       return res.status(409).json({
         success: false,
@@ -120,6 +121,7 @@ exports.register = async (req, res) => {
       role,
       termsAcceptedAt: new Date()
     });
+    req.auditActor = { id: user.id, role: user.role };
 
     // Create role-specific profile
     if (role === 'patient') {
@@ -208,6 +210,8 @@ exports.login = async (req, res) => {
       });
     }
 
+    req.auditSubjectUserId = user.id;
+
     // Check if user is active
     if (!user.isActive) {
       return res.status(403).json({
@@ -233,6 +237,8 @@ exports.login = async (req, res) => {
         message: 'Invalid email or password'
       });
     }
+
+    req.auditActor = { id: user.id, role: user.role };
 
     // Update last login
     await user.update({ lastLogin: new Date() });

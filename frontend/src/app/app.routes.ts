@@ -24,6 +24,7 @@ import { ChangePasswordComponent } from './components/user/change-password/chang
 import { ResetPasswordComponent } from './components/user/reset-password/reset-password.component';
 import { PublicLayoutComponent } from './public-layout.component';
 import { RoleGuard } from './guards/role.guard';
+import { PublicInfoPageComponent } from './components/public-info-page/public-info-page.component';
 
 export const routes: Routes = [
   {
@@ -36,6 +37,10 @@ export const routes: Routes = [
       { path: 'doctor/:id', component: DoctorDetailComponent },
       { path: 'hospitals', component: HospitalsComponent },
       { path: 'hospital/:id', component: HospitalDetailComponent },
+      { path: 'about', component: PublicInfoPageComponent, data: { pageKey: 'about' } },
+      { path: 'partner-with-us', component: PublicInfoPageComponent, data: { pageKey: 'partners' } },
+      { path: 'terms-and-conditions', component: PublicInfoPageComponent, data: { pageKey: 'terms' } },
+      { path: 'privacy-policy', component: PublicInfoPageComponent, data: { pageKey: 'privacy' } },
       {
         path: 'hospital/:id/book',
         loadComponent: () => import('./components/hospital-booking/hospital-booking.component').then(m => m.HospitalBookingComponent)

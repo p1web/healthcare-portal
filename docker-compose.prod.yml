@@ -48,6 +48,7 @@ services:
       - ./frontend/dist/healthcare-portal:/usr/share/nginx/html:ro
       - ./frontend/nginx.conf:/etc/nginx/nginx.conf:ro
       - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /var/www/toosmartcare.in/uploads:/var/www/toosmartcare.in/uploads:ro 
     networks:
       - healthcare-network
     depends_on:
